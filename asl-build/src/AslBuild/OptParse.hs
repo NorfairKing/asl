@@ -16,10 +16,10 @@ data Flags = Flags
     { flagsTravis :: Bool
     } deriving (Show, Eq)
 
-runArgumentsParser :: [[Char]] -> ParserResult Arguments
-runArgumentsParser = execParserPure prefs argParser
+runArgumentsParser :: [String] -> ParserResult Arguments
+runArgumentsParser = execParserPure pfs argParser
   where
-    prefs = ParserPrefs
+    pfs = ParserPrefs
       { prefMultiSuffix = "NOTE"
       , prefDisambiguate = True
       , prefShowHelpOnError = True
@@ -29,9 +29,9 @@ runArgumentsParser = execParserPure prefs argParser
       }
 
 argParser :: ParserInfo Arguments
-argParser = info (helper <*> parseArgs) help
+argParser = info (helper <*> parseArgs) helpText
   where
-    help = fullDesc <> progDesc description
+    helpText = fullDesc <> progDesc description
     description = "Note"
 
 parseArgs :: Parser Arguments
