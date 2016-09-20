@@ -59,5 +59,6 @@ install:
 script:
 - |
   set -ex
-  stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+  stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps --copy-bins
+  asl
   set +ex
