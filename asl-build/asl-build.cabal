@@ -5,6 +5,8 @@ description:         Please see README.md
 homepage:            https://github.com/NorfairKing/asl
 author:              Tom Sydney Kerckhove
 maintainer:          syd.kerckhove@gmail.com
+license:             AllRightsReserved
+license-file:        LICENSE
 copyright:           Copyright: (c) 2016 Tom Sydney Kerckhove
 category:            Build
 build-type:          Simple
@@ -15,8 +17,9 @@ library
   exposed-modules:     
       AslBuild
   build-depends:      
-      base >= 4.7 && < 5
-    , shake >= 0.15
+      base                          >= 4.7    && < 5
+    , shake                         >= 0.15   && < 0.16
+    , optparse-applicative          >= 0.13   && < 0.14
   default-language:    Haskell2010
 
 executable asl

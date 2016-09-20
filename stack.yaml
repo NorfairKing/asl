@@ -1,6 +1,7 @@
-resolver: lts-7.0
-packages:
-- './asl-build'
-extra-deps: []
 flags: {}
 extra-package-dbs: []
+packages:
+- ./asl-build
+extra-deps:
+- optparse-applicative-0.13.0.0
+resolver: lts-7.0
