@@ -2,20 +2,19 @@ module AslBuild.OptParse where
 
 import           Data.Monoid
 import           Options.Applicative
-import           System.Environment  (getArgs)
 
-getArguments :: IO Arguments
-getArguments = do
-    args <- getArgs
+getArguments :: [String] -> IO Arguments
+getArguments args = do
     let result = runArgumentsParser args
     handleParseResult result
 
 
 type Arguments = (Command, Flags)
 data Command = Command
+    deriving (Show, Eq)
 data Flags = Flags
     { flagsTravis :: Bool
-    }
+    } deriving (Show, Eq)
 
 runArgumentsParser :: [[Char]] -> ParserResult Arguments
 runArgumentsParser = execParserPure prefs argParser
