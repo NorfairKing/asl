@@ -157,9 +157,9 @@ commitHashRules = lift $ do
         alwaysRerun
         -- Make the hash as short as possible with --short
         Stdout hash <- quietly $ cmd "git rev-parse --short=0 --verify HEAD"
-        Stdout dirtyStr <- quietly $ cmd "git ls-files --exclude-standard --others"
+        Stdout dirtyStr <- quietly $ cmd "git status --porcelain"
         -- # init to remove newline
-        let contents = init hash ++ if null (dirtyStr :: String) then [] else "-dirty" ++ "\n"
+        let contents = init hash ++ if null (dirtyStr :: String) then [] else "-dirty"
         writeFileChanged out contents
 
 cleanRules :: AslBuilder ()
