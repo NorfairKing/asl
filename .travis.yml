@@ -60,6 +60,6 @@ script:
 - |
   set -ex
   stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps --copy-bins
-  asl build --travis -- --color
-  asl clean --travis -- --color
+  asl build all --travis -- --color
+  asl build clean --travis -- --color
   set +ex

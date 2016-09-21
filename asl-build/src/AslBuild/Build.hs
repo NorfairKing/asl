@@ -10,9 +10,9 @@ import           AslBuild.Jar
 import           AslBuild.OptParse
 import           AslBuild.Reports
 
-doTheShake :: Arguments -> IO ()
-doTheShake args = shakeArgs shakeOptions $
-    flip runReaderT args $ do
+doTheShake :: BuildContext -> IO ()
+doTheShake bctx = shakeArgs shakeOptions $
+    flip runReaderT bctx $ do
         commitHashRules
         jarRules
         reportRules

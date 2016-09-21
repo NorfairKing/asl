@@ -7,10 +7,10 @@ import           AslBuild.OptParse
 
 cleanRules :: AslBuilder ()
 cleanRules = do
-    c <- getCommand
+    c <- ask
     lift $ do
         case c of
-            CommandClean -> want [cleanTarget]
+            BuildClean -> want [cleanTarget]
             _ -> return ()
         phony cleanTarget $ do
 

@@ -12,10 +12,10 @@ outputJarFile = outDir <.> jar
 
 jarRules :: AslBuilder ()
 jarRules = do
-    c <- getCommand
+    c <- ask
     lift $ do
         case c of
-            CommandBuild -> want [outputJarFile]
+            BuildAll _ -> want [outputJarFile]
             _ -> return ()
 
         let jarFile = asl <.> jar

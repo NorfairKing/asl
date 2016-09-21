@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module AslBuild.RunBaseLine where
 
 import           AslBuild.OptParse
@@ -8,6 +9,9 @@ import           AslBuild.OptParse
 -- * What is the maximum throughput of the server without the middleware?
 -- * What is the response time without the middleware?
 runBaseLine :: BaseLineConfig -> IO ()
-runBaseLine conf = do
-    putStrLn "Running baseline experiment with this config:"
-    print conf
+runBaseLine conf@BaseLineConfig{..} =
+    if baseLineNrClients < 1 || baseLineNrClients > 3
+    then putStrLn "Number of clients must be between 1 and 3."
+    else do
+        putStrLn "Running baseline experiment with this config:"
+        print conf

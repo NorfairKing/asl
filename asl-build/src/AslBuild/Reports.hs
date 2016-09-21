@@ -9,16 +9,16 @@ import           AslBuild.Utils
 
 reportRules :: AslBuilder ()
 reportRules = do
-    usingTravis <- getSetting flagsTravis
-    c <- getCommand
-    unless usingTravis $ lift $ do
+    c <- ask
+    lift $ do
         let reportstubname = "reportstub"
         let reportStubOut = outDir </> reportstubname <.> pdfExt
         let reportStubInBuildDir = reportsDir </> reportstubname <.> pdfExt
         let reportstubtex = reportstubname  <.> texExt
         let reportstubtexInBuildDir = reportsDir </> reportstubtex
         case c of
-            CommandBuild -> want [reportStubOut]
+            BuildAll onTravis -> unless onTravis $ want [reportStubOut]
+            BuildReports -> want [reportStubOut]
             _ -> return ()
         reportStubInBuildDir %> \_ -> do
             need [reportstubtexInBuildDir]

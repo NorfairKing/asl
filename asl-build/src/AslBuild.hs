@@ -17,10 +17,8 @@ aslBuild = do
         [] -> putStrLn "There is something wrong in the split library."
         (first:rests) -> do
             let rest = concat rests
-            arguments@(command, _) <- getArguments first
-            withArgs rest $ do
-                let doShake = doTheShake arguments
+            (command, _) <- getArguments first
+            withArgs rest $
                 case command of
-                    CommandBuild -> doShake
-                    CommandClean -> doShake
+                    CommandBuild buildCtx -> doTheShake buildCtx
                     CommandRun runCtx  -> run runCtx

@@ -8,23 +8,28 @@ import           Data.Monoid
 import           Development.Shake    (Rules)
 import           Options.Applicative
 
-getSetting :: (Flags -> a) -> AslBuilder a
-getSetting func = asks $ func . snd
+type AslBuilder = ReaderT BuildContext Rules
 
-getCommand :: AslBuilder Command
-getCommand = asks fst
+getSetting :: (BuildContext -> a) -> AslBuilder a
+getSetting = asks
 
 getArguments :: [String] -> IO Arguments
 getArguments args = do
     let result = runArgumentsParser args
     handleParseResult result
 
-type AslBuilder = ReaderT Arguments Rules
 type Arguments = (Command, Flags)
 data Command
-    = CommandClean
-    | CommandBuild
+    = CommandBuild BuildContext
     | CommandRun RunContext
+    deriving (Show, Eq)
+
+data BuildContext
+    = BuildAll
+        { buildTravis :: Bool
+        }
+    | BuildClean
+    | BuildReports
     deriving (Show, Eq)
 
 data RunContext
@@ -37,8 +42,11 @@ data BaseLineConfig
     } deriving (Show, Eq)
 
 data Flags = Flags
-    { flagsTravis :: Bool
-    } deriving (Show, Eq)
+    deriving (Show, Eq)
+
+data Configuration = Configuration
+
+data Settings = Settings
 
 runArgumentsParser :: [String] -> ParserResult Arguments
 runArgumentsParser = execParserPure pfs argParser
@@ -64,23 +72,44 @@ parseArgs = (,) <$> parseCommand <*> parseFlags
 parseCommand :: Parser Command
 parseCommand = hsubparser $ mconcat
     [ command "build" parseBuild
-    , command "clean" parseClean
     , command "run"   parseRun
     ]
-
-parseClean :: ParserInfo Command
-parseClean = info parser modifier
-  where
-    parser = pure CommandClean
-    modifier = fullDesc
-            <> progDesc "Clean up generated files."
 
 parseBuild :: ParserInfo Command
 parseBuild = info parser modifier
   where
-    parser = pure CommandBuild
+    parser = CommandBuild <$> subp
+    subp = hsubparser $ mconcat
+        [ command "all"    parseBuildAll
+        , command "clean"  parseBuildClean
+        , command "reports" parseBuildReports
+        ]
     modifier = fullDesc
-            <> progDesc "Build everything"
+            <> progDesc "Build parts of the system"
+
+parseBuildAll :: ParserInfo BuildContext
+parseBuildAll = info parser modifier
+  where
+    parser = BuildAll
+        <$> switch
+            ( long "travis"
+            <> help "Run on travis")
+    modifier = fullDesc
+            <> progDesc "Build all the parts"
+
+parseBuildClean :: ParserInfo BuildContext
+parseBuildClean = info parser modifier
+  where
+    parser = pure BuildClean
+    modifier = fullDesc
+            <> progDesc "Clean up the built parts"
+
+parseBuildReports :: ParserInfo BuildContext
+parseBuildReports = info parser modifier
+  where
+    parser = pure BuildReports
+    modifier = fullDesc
+            <> progDesc "Build the reports"
 
 parseRun :: ParserInfo Command
 parseRun = info parser modifier
@@ -107,8 +136,5 @@ parseBaseLineConfig = BaseLineConfig
         <> help "The number of clients to connect to the server.")
 
 parseFlags :: Parser Flags
-parseFlags = Flags
-    <$> switch
-        ( long "travis"
-        <> help "Run on travis")
+parseFlags = pure Flags
 
