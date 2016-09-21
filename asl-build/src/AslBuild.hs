@@ -7,6 +7,7 @@ import           System.Environment (getArgs, withArgs)
 
 import           AslBuild.Build
 import           AslBuild.OptParse
+import           AslBuild.Run
 
 aslBuild :: IO ()
 aslBuild = do
@@ -22,4 +23,4 @@ aslBuild = do
                 case command of
                     CommandBuild -> doShake
                     CommandClean -> doShake
-                    CommandRun   -> putStrLn "Stub for running."
+                    CommandRun runCtx  -> run runCtx

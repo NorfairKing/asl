@@ -24,8 +24,17 @@ type Arguments = (Command, Flags)
 data Command
     = CommandClean
     | CommandBuild
-    | CommandRun
+    | CommandRun RunContext
     deriving (Show, Eq)
+
+data RunContext
+    = RunBaseLine BaseLineConfig
+    deriving (Show, Eq)
+
+data BaseLineConfig
+    = BaseLineConfig
+    { baseLineNrClients :: Int
+    } deriving (Show, Eq)
 
 data Flags = Flags
     { flagsTravis :: Bool
@@ -76,9 +85,26 @@ parseBuild = info parser modifier
 parseRun :: ParserInfo Command
 parseRun = info parser modifier
   where
-    parser = pure CommandRun
+    parser = CommandRun <$> subp
+    subp = hsubparser $ mconcat
+        [ command "baseline" parseRunBaseLine
+        ]
     modifier = fullDesc
             <> progDesc "Run the system"
+
+parseRunBaseLine :: ParserInfo RunContext
+parseRunBaseLine = info parser modifier
+  where
+    parser = RunBaseLine <$> parseBaseLineConfig
+    modifier = fullDesc
+            <> progDesc "Run the baseline experiment"
+
+parseBaseLineConfig :: Parser BaseLineConfig
+parseBaseLineConfig = BaseLineConfig
+    <$> option auto
+        ( long "nr-clients"
+        <> metavar "INT"
+        <> help "The number of clients to connect to the server.")
 
 parseFlags :: Parser Flags
 parseFlags = Flags
