@@ -6,6 +6,7 @@ import           Data.List.Split
 import           System.Environment (getArgs, withArgs)
 
 import           AslBuild.Build
+import           AslBuild.Create
 import           AslBuild.OptParse
 import           AslBuild.Run
 
@@ -22,3 +23,4 @@ aslBuild = do
                 case command of
                     DispatchBuild buildCtx -> doTheShake buildCtx
                     DispatchRun runCtx  -> run runCtx
+                    DispatchCreate createCtx -> create createCtx

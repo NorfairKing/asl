@@ -1,12 +1,20 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.OptParse
     ( module AslBuild.OptParse
     , module Control.Monad.Reader
     ) where
 
+import           Prelude                 hiding (lookup)
+
 import           Control.Monad.Reader
+import           Data.Configurator
+import           Data.Configurator.Types (Config)
+import           Data.Maybe
 import           Data.Monoid
-import           Development.Shake    (Rules)
+import           Development.Shake       (Rules)
 import           Options.Applicative
+import           System.Exit
 
 type AslBuilder = ReaderT BuildContext Rules
 
@@ -22,6 +30,7 @@ type Arguments = (Command, Flags)
 data Command
     = CommandBuild BuildContext
     | CommandRun RunContext
+    | CommandCreate
     deriving (Show, Eq)
 
 data BuildContext
@@ -42,6 +51,9 @@ data BaseLineConfig
     } deriving (Show, Eq)
 
 data Flags = Flags
+    { flagCreateConfig  :: Maybe FilePath
+    , flagPrivateConfig :: Maybe FilePath
+    }
     deriving (Show, Eq)
 
 runArgumentsParser :: [String] -> ParserResult Arguments
@@ -67,8 +79,9 @@ parseArgs = (,) <$> parseCommand <*> parseFlags
 
 parseCommand :: Parser Command
 parseCommand = hsubparser $ mconcat
-    [ command "build" parseBuild
-    , command "run"   parseRun
+    [ command "build"   parseBuild
+    , command "run"     parseRun
+    , command "create"  parseCreate
     ]
 
 parseBuild :: ParserInfo Command
@@ -131,18 +144,56 @@ parseBaseLineConfig = BaseLineConfig
         <> metavar "INT"
         <> help "The number of clients to connect to the server.")
 
+parseCreate :: ParserInfo Command
+parseCreate = info parser modifier
+  where
+    parser = pure CommandCreate
+    modifier = fullDesc
+            <> progDesc "Create the appropriate servers on azure"
+
 parseFlags :: Parser Flags
-parseFlags = pure Flags
+parseFlags = Flags
+    <$> option (Just <$> str)
+        ( long "private-config"
+        <> value Nothing
+        <> metavar "FILE"
+        <> help ("The path to the private config file to use. (Default: " ++ defaultPrivateConfigFile ++ ")"))
+    <*> option (Just <$> str)
+        ( long "creation-config"
+        <> value Nothing
+        <> metavar "FILE"
+        <> help ("The path to the creation config file to use. (Default: " ++ defaultCreateConfigFile ++ ")"))
 
 type Instructions = (Dispatch, Settings)
+
 data Dispatch
     = DispatchBuild BuildContext
     | DispatchRun RunContext
+    | DispatchCreate CreateContext
     deriving (Show, Eq)
+
+data CreateContext
+    = CreateContext
+    { cconfSubscriptionId :: String
+    } deriving (Show, Eq)
+
 data Settings = Settings
     deriving (Show, Eq)
 
-data Configuration = Configuration
+data Configuration
+    = Configuration
+    { confPrivate :: PrivateConfiguration
+    , confCreate  :: CreateConfiguration
+    } deriving (Show, Eq)
+
+data PrivateConfiguration
+    = PrivateConfiguration
+    { pconfSubscriptionId :: Maybe String
+    } deriving (Show, Eq)
+
+data CreateConfiguration
+    = CreateConfiguration
+    deriving (Show, Eq)
 
 getInstructions :: [String] -> IO (Dispatch, Settings)
 getInstructions args = getInstructionsHelper
@@ -165,11 +216,46 @@ getInstructionsHelper args getConfig combine = do
     combine cmd flags configuration
 
 getConfiguration :: Command -> Flags -> IO Configuration
-getConfiguration _ _ = pure Configuration
+getConfiguration _ flags = do
+    pconfig <- load [Optional $ privateConfigFile flags]
+    cconfig <- load [Optional $ createConfigFile flags]
+    Configuration
+        <$> configToPrivateConfiguration pconfig
+        <*> configToCreateConfiguration cconfig
+
+privateConfigFile :: Flags -> FilePath
+privateConfigFile Flags{..} = fromMaybe defaultPrivateConfigFile flagPrivateConfig
+
+defaultPrivateConfigFile :: FilePath
+defaultPrivateConfigFile = "private.cfg"
+
+configToPrivateConfiguration :: Config -> IO PrivateConfiguration
+configToPrivateConfiguration c = PrivateConfiguration
+    <$> lookup c "subscription-id"
+
+createConfigFile :: Flags -> FilePath
+createConfigFile Flags{..} = fromMaybe defaultCreateConfigFile flagCreateConfig
+
+defaultCreateConfigFile :: FilePath
+defaultCreateConfigFile = "create.cfg"
+
+configToCreateConfiguration :: Config -> IO CreateConfiguration
+configToCreateConfiguration _ = pure CreateConfiguration
 
 combineToInstructions :: Command -> Flags -> Configuration -> IO (Dispatch, Settings)
-combineToInstructions c _ _ = do
+combineToInstructions c _ conf = do
     let sets = Settings
     case c of
         CommandBuild bctx -> pure (DispatchBuild bctx, sets)
         CommandRun rctx   -> pure (DispatchRun rctx, sets)
+        CommandCreate     -> do
+            cctx <- creationConfig conf
+            return (DispatchCreate cctx, sets)
+
+creationConfig :: Configuration -> IO CreateContext
+creationConfig Configuration{..} = CreateContext
+    <$> fromMaybe (die "No subscription-id configured") (pure <$> pconfSubscriptionId confPrivate)
+
+
+
+
