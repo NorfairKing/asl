@@ -44,10 +44,6 @@ data BaseLineConfig
 data Flags = Flags
     deriving (Show, Eq)
 
-data Configuration = Configuration
-
-data Settings = Settings
-
 runArgumentsParser :: [String] -> ParserResult Arguments
 runArgumentsParser = execParserPure pfs argParser
   where
@@ -138,3 +134,42 @@ parseBaseLineConfig = BaseLineConfig
 parseFlags :: Parser Flags
 parseFlags = pure Flags
 
+type Instructions = (Dispatch, Settings)
+data Dispatch
+    = DispatchBuild BuildContext
+    | DispatchRun RunContext
+    deriving (Show, Eq)
+data Settings = Settings
+    deriving (Show, Eq)
+
+data Configuration = Configuration
+
+getInstructions :: [String] -> IO (Dispatch, Settings)
+getInstructions args = getInstructionsHelper
+    (getArguments args)
+    getConfiguration
+    combineToInstructions
+
+getInstructionsHelper
+    :: IO (command, flags)
+        -- ^ A way to parse 'command' and 'flags' from command-lines options
+    -> (command -> flags -> IO configuration)
+        -- ^ A way to read 'configuration', may depend on the previously obtained 'command' and 'flags'.
+    -> (command -> flags -> configuration -> IO (dispatch, settings))
+        -- ^ A way to combine 'command', 'flags' and 'configuration' all together to obtain
+        -- both a 'dispatch' and 'settings'.
+    -> IO (dispatch, settings)
+getInstructionsHelper args getConfig combine = do
+    (cmd, flags) <- args
+    configuration <- getConfig cmd flags
+    combine cmd flags configuration
+
+getConfiguration :: Command -> Flags -> IO Configuration
+getConfiguration _ _ = pure Configuration
+
+combineToInstructions :: Command -> Flags -> Configuration -> IO (Dispatch, Settings)
+combineToInstructions c _ _ = do
+    let sets = Settings
+    case c of
+        CommandBuild bctx -> pure (DispatchBuild bctx, sets)
+        CommandRun rctx   -> pure (DispatchRun rctx, sets)
