@@ -2,23 +2,24 @@ module AslBuild
     ( aslBuild
     ) where
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import           Data.List.Split
+import           System.Environment (getArgs, withArgs)
 
+import           AslBuild.Build
+import           AslBuild.OptParse
 
 aslBuild :: IO ()
 aslBuild = do
-    putStrLn "ASL Build system"
-    shakeArgs shakeOptions $ do
-        let outdir = "out"
-            jarfile = "asl.jar"
-            jarout = outdir </> jarfile
-        want [jarout]
-        let jarInGradleBuildDir = "asl/build/libs/asl-0.1.jar"
-        jarInGradleBuildDir %> \out -> do
-            let buildFile = "asl/build.gradle"
-            need [buildFile]
-            cmd "gradle" "--build-file" buildFile "jar"
-        jarout %> \out -> do
-            need [jarInGradleBuildDir]
-            cmd "mv" jarInGradleBuildDir out
+    args <- getArgs
+    let splitt = splitOn ["--"] args
+    case splitt of
+        [] -> putStrLn "There is something wrong in the split library."
+        (first:rests) -> do
+            let rest = concat rests
+            arguments@(command, _) <- getArguments first
+            withArgs rest $ do
+                let doShake = doTheShake arguments
+                case command of
+                    CommandBuild -> doShake
+                    CommandClean -> doShake
+                    CommandRun   -> putStrLn "Stub for running."

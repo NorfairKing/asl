@@ -14,19 +14,29 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     
+  exposed-modules:
       AslBuild
-  build-depends:      
+      AslBuild.Build
+      AslBuild.Clean
+      AslBuild.CommitHash
+      AslBuild.Constants
+      AslBuild.Jar
+      AslBuild.OptParse
+      AslBuild.Reports
+      AslBuild.Utils
+  build-depends:
       base                          >= 4.7    && < 5
     , shake                         >= 0.15   && < 0.16
     , optparse-applicative          >= 0.13   && < 0.14
+    , mtl
+    , split
   default-language:    Haskell2010
 
 executable asl
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:      
+  build-depends:
       base
     , asl-build
   default-language:    Haskell2010
