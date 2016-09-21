@@ -7,16 +7,26 @@ data ResourceGroup
     , rgLocation :: String
     } deriving (Show, Eq)
 
+data StorageAccount
+    = StorageAccount
+    { saResourceGroup :: ResourceGroup
+    , saName          :: String
+    } deriving (Show, Eq)
+
+data NetworkInterfaceCard
+    = NetworkInterfaceCard
+    { nicResourceGroup :: ResourceGroup
+    } deriving (Show, Eq)
+
 data VirtualMachine
     = VirtualMachine
-    { vmSize              :: String
-    , vmResourceGroupName :: String
-    , vmName              :: String
-    , vmLocation          :: String
-    , vmOs                :: String
-    , vmAdminUsername     :: String
-    , vmAdminPassword     :: String
-    , vmImageUrn          :: String
+    { vmSize          :: String
+    , vmResourceGroup :: ResourceGroup
+    , vmName          :: String
+    , vmOs            :: String
+    , vmAdminUsername :: String
+    , vmAdminPassword :: String
+    , vmImageUrn      :: String
     } deriving (Show, Eq)
 
 data MachineKind
@@ -64,13 +74,12 @@ vmFromKind MachineSpecs{..} rg mk =
         Server ix   -> vmFromTemplate rg msServerTemplate ix
 
 vmFromTemplate :: ResourceGroup -> MachineTemplate -> Int -> VirtualMachine
-vmFromTemplate ResourceGroup{..} MachineTemplate{..} i = VirtualMachine
-    { vmSize              = mtSize
-    , vmResourceGroupName = rgName
-    , vmName              = mtNamePrefix ++ show i
-    , vmLocation          = rgLocation
-    , vmOs                = mtOsType
-    , vmAdminUsername     = mtAdminUsername
-    , vmAdminPassword     = mtAdminPassword
-    , vmImageUrn          = mtImageUrn
+vmFromTemplate rg MachineTemplate{..} i = VirtualMachine
+    { vmSize          = mtSize
+    , vmResourceGroup = rg
+    , vmName          = mtNamePrefix ++ show i
+    , vmOs            = mtOsType
+    , vmAdminUsername = mtAdminUsername
+    , vmAdminPassword = mtAdminPassword
+    , vmImageUrn      = mtImageUrn
     }
