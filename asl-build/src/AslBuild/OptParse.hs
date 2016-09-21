@@ -10,6 +10,7 @@ import           Prelude                 hiding (lookup)
 import           Control.Monad.Reader
 import           Data.Configurator
 import           Data.Configurator.Types (Config)
+import           Data.List.Split
 import           Data.Maybe
 import           Data.Monoid
 import           Data.Text               (Text)
@@ -55,7 +56,8 @@ data BaseLineConfig
 
 data CreateCommand
     = CreateResourceGroup
-    | CreateVms
+    | CreateVirtualMachine MachineKind
+    | CreateCluster
     deriving (Show, Eq)
 
 data Flags = Flags
@@ -157,8 +159,9 @@ parseCreate = info parser modifier
   where
     parser = CommandCreate <$> subp
     subp = hsubparser $ mconcat
-        [ command "resource-group" parseCreateResourceGroup
-        , command "vms" parseCreateVms
+        [ command "resource-group"  parseCreateResourceGroup
+        , command "virtual-machine" parseCreateVirtualMachine
+        , command "cluster"         parseCreateCluster
         ]
     modifier = fullDesc
             <> progDesc "Create the appropriate servers on azure"
@@ -170,12 +173,33 @@ parseCreateResourceGroup = info parser modifier
     modifier = fullDesc
             <> progDesc "Create the resource group."
 
-parseCreateVms :: ParserInfo CreateCommand
-parseCreateVms = info parser modifier
+parseCreateVirtualMachine :: ParserInfo CreateCommand
+parseCreateVirtualMachine = info parser modifier
   where
-    parser = pure CreateVms
+    parser = CreateVirtualMachine <$> parseMachineKind
     modifier = fullDesc
-            <> progDesc "Create the virtual machines."
+            <> progDesc "Create a single virtual machine"
+
+parseMachineKind :: Parser MachineKind
+parseMachineKind = option (eitherReader machineKindReader)
+    (long "machine-kind"
+    <> help "machine kind (client INT|middle|server INT)")
+  where
+    machineKindReader :: String -> Either String MachineKind
+    machineKindReader s = case splitOn "-" s of
+        [] -> Left "No machinekind given."
+        ["middle"] -> Right Middle
+        [_] -> Left "Not enough arguments to parse a machinekind."
+        ["client", ix] -> Right $ Client $ read ix
+        ["server", ix] -> Right $ Server $ read ix
+        _ -> Left "Too many arguments to make a machinekind."
+
+parseCreateCluster :: ParserInfo CreateCommand
+parseCreateCluster = info parser modifier
+  where
+    parser = pure CreateCluster
+    modifier = fullDesc
+            <> progDesc "Create the entire cluster."
 
 parseFlags :: Parser Flags
 parseFlags = Flags
@@ -215,9 +239,7 @@ data Configuration
 
 data PrivateConfiguration
     = PrivateConfiguration
-    { pconfSubscriptionId :: Maybe String
-    , pconfResourceGroup  :: ResourceGroupConfig
-    } deriving (Show, Eq)
+    deriving (Show, Eq)
 
 data ResourceGroupConfig
     = ResourceGroupConfig
@@ -227,16 +249,22 @@ data ResourceGroupConfig
 
 data CreateConfiguration
     = CreateConfiguration
-    { cconfVmsConfig :: CreateVmsConfiguration
+    { pconfResourceGroup :: ResourceGroupConfig
+    , cconfVmsConfig     :: CreateVmsConfiguration
     } deriving (Show, Eq)
 
 data CreateVmsConfiguration
     = CreateVmsConfiguration
-    { cconfVmsNrServers           :: Maybe Int
-    , cconfVmsNrClients           :: Maybe Int
-    , cconfVmsClientConfiguration :: MachineConfiguration
-    , cconfVmsMiddleConfiguration :: MachineConfiguration
-    , cconfVmsServerConfiguration :: MachineConfiguration
+    { cconfVmsNrServers :: Maybe Int
+    , cconfVmsNrClients :: Maybe Int
+    , cconfVmsMspecs    :: MachineSpecsConfig
+    } deriving (Show, Eq)
+
+data MachineSpecsConfig
+    = MachineSpecsConfig
+    { mscClientConfiguration :: MachineConfiguration
+    , mscMiddleConfiguration :: MachineConfiguration
+    , mscServerConfiguration :: MachineConfiguration
     } deriving (Show, Eq)
 
 data MachineConfiguration
@@ -284,14 +312,7 @@ defaultPrivateConfigFile :: FilePath
 defaultPrivateConfigFile = "private.cfg"
 
 configToPrivateConfiguration :: Config -> IO PrivateConfiguration
-configToPrivateConfiguration c = PrivateConfiguration
-    <$> lookup c "subscription-id"
-    <*> parseResourceGroup c
-
-parseResourceGroup :: Config -> IO ResourceGroupConfig
-parseResourceGroup c = ResourceGroupConfig
-    <$> lookup c "resource-group.name"
-    <*> lookup c "resource-group.location"
+configToPrivateConfiguration _ = pure PrivateConfiguration
 
 createConfigFile :: Flags -> FilePath
 createConfigFile Flags{..} = fromMaybe defaultCreateConfigFile flagCreateConfig
@@ -301,13 +322,23 @@ defaultCreateConfigFile = "create.cfg"
 
 configToCreateConfiguration :: Config -> IO CreateConfiguration
 configToCreateConfiguration c = CreateConfiguration
-    <$> configToCreateVmsConfiguration c
+    <$> parseResourceGroup c
+    <*> configToCreateVmsConfiguration c
+
+parseResourceGroup :: Config -> IO ResourceGroupConfig
+parseResourceGroup c = ResourceGroupConfig
+    <$> lookup c "resource-group.name"
+    <*> lookup c "resource-group.location"
 
 configToCreateVmsConfiguration :: Config -> IO CreateVmsConfiguration
 configToCreateVmsConfiguration c = CreateVmsConfiguration
     <$> lookup c "vms.nr-clients"
     <*> lookup c "vms.nr-servers"
-    <*> machineConfiguration c "vms.client-machine"
+    <*> configToMachineSpecsConfig c
+
+configToMachineSpecsConfig :: Config -> IO MachineSpecsConfig
+configToMachineSpecsConfig c = MachineSpecsConfig
+    <$> machineConfiguration c "vms.client-machine"
     <*> machineConfiguration c "vms.middle-machine"
     <*> machineConfiguration c "vms.server-machine"
 
@@ -337,17 +368,48 @@ configResourceGroup ResourceGroupConfig{..} = ResourceGroup
     <$> rgcName
     <*> rgcLocation
 
+configMachineSpecs :: MachineSpecsConfig -> Maybe MachineSpecs
+configMachineSpecs MachineSpecsConfig{..} = MachineSpecs
+    <$> machineConfigToServerTemplate mscClientConfiguration
+    <*> machineConfigToServerTemplate mscMiddleConfiguration
+    <*> machineConfigToServerTemplate mscServerConfiguration
+
+machineConfigToServerTemplate :: MachineConfiguration -> Maybe MachineTemplate
+machineConfigToServerTemplate MachineConfiguration{..} = MachineTemplate
+    <$> mcSize
+    <*> mcNamePrefix
+    <*> mcOsType
+    <*> mcAdminUsername
+    <*> mcAdminPassword
+    <*> mcImageUrn
+
 creationConfig :: CreateCommand -> Configuration -> IO CreateContext
 creationConfig cc Configuration{..} = do
     let vmsc = cconfVmsConfig confCreate
-        rgc = pconfResourceGroup confPrivate
+        msps = cconfVmsMspecs vmsc
+        rgc = pconfResourceGroup confCreate
     case cc of
         CreateResourceGroup ->
             CreateContextResourceGroup
                 <$> fromMaybe
                     (die "No resource-group configured")
                     (pure <$> configResourceGroup rgc)
-        CreateVms ->
+        CreateVirtualMachine mk -> do
+            nrc <- fromMaybe
+                        (die "vms.nr-clients not configured")
+                        (pure <$> cconfVmsNrClients vmsc)
+            nrs <- fromMaybe
+                        (die "vms.nr-servers not configured")
+                        (pure <$> cconfVmsNrServers vmsc)
+            ms <- fromMaybe (die "no machine specs configured") $ pure <$> configMachineSpecs msps
+            rg <- fromMaybe (die "no resource group configured") $ pure <$> configResourceGroup rgc
+            mk' <- case mk of
+                Client ix -> if ix < 1 || ix > nrc then die ("Client index out of bounds: " ++ show ix) else return mk
+                Middle -> return mk
+                Server ix -> if ix < 1 || ix > nrs then die ("Server index out of bounds: " ++ show ix) else return mk
+
+            return $ CreateContextVirtualMachine $ vmFromKind ms rg mk'
+        CreateCluster ->
             CreateContextCluster
                 <$> (EntireCluster
                     <$> fromMaybe
@@ -360,24 +422,9 @@ creationConfig cc Configuration{..} = do
                         (die "vms.nr-servers not configured")
                         (pure <$> cconfVmsNrServers vmsc)
                     <*> fromMaybe
-                        (die "vms.client-machine not configured")
-                        (pure <$> machineConfigToServerTemplate (cconfVmsClientConfiguration vmsc))
-                    <*> fromMaybe
-                        (die "vms.middle-machine not configured")
-                        (pure <$> machineConfigToServerTemplate (cconfVmsMiddleConfiguration vmsc))
-                    <*> fromMaybe
-                        (die "vms.server-machine not configured")
-                        (pure <$> machineConfigToServerTemplate (cconfVmsServerConfiguration vmsc)))
+                        (die "machinespecs not configured")
+                        (pure <$> configMachineSpecs msps))
 
-
-machineConfigToServerTemplate :: MachineConfiguration -> Maybe MachineTemplate
-machineConfigToServerTemplate MachineConfiguration{..} = MachineTemplate
-    <$> mcSize
-    <*> mcNamePrefix
-    <*> mcOsType
-    <*> mcAdminUsername
-    <*> mcAdminPassword
-    <*> mcImageUrn
 
 
 
