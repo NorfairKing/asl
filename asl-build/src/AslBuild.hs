@@ -13,8 +13,13 @@ aslBuild = do
     args <- getArgs
     let splitt = splitOn ["--"] args
     case splitt of
-        [] -> putStrLn "Should never happen"
+        [] -> putStrLn "There is something wrong in the split library."
         (first:rests) -> do
             let rest = concat rests
-            (Command, flags) <- getArguments first
-            withArgs rest $ doTheShake flags
+            arguments@(command, _) <- getArguments first
+            withArgs rest $ do
+                let doShake = doTheShake arguments
+                case command of
+                    CommandBuild -> doShake
+                    CommandClean -> doShake
+                    CommandRun   -> putStrLn "Stub for running."

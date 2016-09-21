@@ -1,2 +1,2 @@
 source scripts/lib.sh
-check "Install" stack install
+check "Install Buildsystem" stack install

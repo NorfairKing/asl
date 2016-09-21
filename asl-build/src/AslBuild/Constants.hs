@@ -76,3 +76,6 @@ javaExt = java
 gradleExt :: Extension
 gradleExt = gradle
 
+-- Rules
+cleanTarget :: String
+cleanTarget = "clean"

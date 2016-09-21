@@ -6,8 +6,15 @@ import           AslBuild.Constants
 import           AslBuild.OptParse
 
 cleanRules :: AslBuilder ()
-cleanRules = lift $ phony "clean" $ do
-    removeFilesAfter outDir ["//"]
-    removeFilesAfter codeSrcDir ["//build", "//out"]
-    removeFilesAfter reportsDir ["//*.pdf", "//*.aux", "//*.log", "//*.fls", "//*.fdb_latexmk"]
+cleanRules = do
+    c <- getCommand
+    lift $ do
+        case c of
+            CommandClean -> want [cleanTarget]
+            _ -> return ()
+        phony cleanTarget $ do
+
+            removeFilesAfter outDir ["//"]
+            removeFilesAfter codeSrcDir ["//build", "//out"]
+            removeFilesAfter reportsDir ["//*.pdf", "//*.aux", "//*.log", "//*.fls", "//*.fdb_latexmk"]
 

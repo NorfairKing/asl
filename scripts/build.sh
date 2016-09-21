@@ -1,2 +1,2 @@
 source scripts/lib.sh
-check "Build" asl
+check "Build" asl build

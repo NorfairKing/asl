@@ -1,2 +1,2 @@
 source scripts/lib.sh
-check "Build" stack build
+check "Build Buildsystem" stack build
