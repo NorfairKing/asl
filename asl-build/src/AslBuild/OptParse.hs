@@ -30,7 +30,7 @@ type Arguments = (Command, Flags)
 data Command
     = CommandBuild BuildContext
     | CommandRun RunContext
-    | CommandCreate
+    | CommandCreate CreateCommand
     deriving (Show, Eq)
 
 data BuildContext
@@ -49,6 +49,11 @@ data BaseLineConfig
     = BaseLineConfig
     { baseLineNrClients :: Int
     } deriving (Show, Eq)
+
+data CreateCommand
+    = CreateResourceGroup
+    | CreateVms
+    deriving (Show, Eq)
 
 data Flags = Flags
     { flagCreateConfig  :: Maybe FilePath
@@ -89,8 +94,8 @@ parseBuild = info parser modifier
   where
     parser = CommandBuild <$> subp
     subp = hsubparser $ mconcat
-        [ command "all"    parseBuildAll
-        , command "clean"  parseBuildClean
+        [ command "all"     parseBuildAll
+        , command "clean"   parseBuildClean
         , command "reports" parseBuildReports
         ]
     modifier = fullDesc
@@ -147,9 +152,27 @@ parseBaseLineConfig = BaseLineConfig
 parseCreate :: ParserInfo Command
 parseCreate = info parser modifier
   where
-    parser = pure CommandCreate
+    parser = CommandCreate <$> subp
+    subp = hsubparser $ mconcat
+        [ command "resource-group" parseCreateResourceGroup
+        , command "vms" parseCreateVms
+        ]
     modifier = fullDesc
             <> progDesc "Create the appropriate servers on azure"
+
+parseCreateResourceGroup :: ParserInfo CreateCommand
+parseCreateResourceGroup = info parser modifier
+  where
+    parser = pure CreateResourceGroup
+    modifier = fullDesc
+            <> progDesc "Create the resource group."
+
+parseCreateVms :: ParserInfo CreateCommand
+parseCreateVms = info parser modifier
+  where
+    parser = pure CreateVms
+    modifier = fullDesc
+            <> progDesc "Create the virtual machines."
 
 parseFlags :: Parser Flags
 parseFlags = Flags
@@ -173,8 +196,28 @@ data Dispatch
     deriving (Show, Eq)
 
 data CreateContext
-    = CreateContext
-    { cconfSubscriptionId :: String
+    = CreateContextResourceGroup CreateResourceGroupContext
+    | CreateContextVms CreateVmsContext
+    deriving (Show, Eq)
+
+data CreateResourceGroupContext
+    = CreateResourceGroupContext
+    { crgcName     :: String
+    , crgcLocation :: String
+    } deriving (Show, Eq)
+
+data CreateVmsContext
+    = CreateVmsContext
+    { cvmscNrServers :: Int
+    , cvmscNrClients :: Int
+    } deriving (Show, Eq)
+
+data CreateVmContext
+    = CreateVmContext
+    { cvmcResourceGroupName :: String
+    , cvmcName              :: String
+    , cvmcLocation          :: String
+    , cvmcOs                :: String
     } deriving (Show, Eq)
 
 data Settings = Settings
@@ -189,11 +232,25 @@ data Configuration
 data PrivateConfiguration
     = PrivateConfiguration
     { pconfSubscriptionId :: Maybe String
+    , pconfResourceGroup  :: ResourceGroupConfig
+    } deriving (Show, Eq)
+
+data ResourceGroupConfig
+    = ResourceGroupConfig
+    { rgcName     :: Maybe String
+    , rgcLocation :: Maybe String
     } deriving (Show, Eq)
 
 data CreateConfiguration
     = CreateConfiguration
-    deriving (Show, Eq)
+    { cconfVmsConfig :: CreateVmsConfiguration
+    } deriving (Show, Eq)
+
+data CreateVmsConfiguration
+    = CreateVmsConfiguration
+    { cconfVmsNrServers :: Maybe Int
+    , cconfVmsNrClients :: Maybe Int
+    } deriving (Show, Eq)
 
 getInstructions :: [String] -> IO (Dispatch, Settings)
 getInstructions args = getInstructionsHelper
@@ -232,6 +289,12 @@ defaultPrivateConfigFile = "private.cfg"
 configToPrivateConfiguration :: Config -> IO PrivateConfiguration
 configToPrivateConfiguration c = PrivateConfiguration
     <$> lookup c "subscription-id"
+    <*> parseResourceGroup c
+
+parseResourceGroup :: Config -> IO ResourceGroupConfig
+parseResourceGroup c = ResourceGroupConfig
+    <$> lookup c "resource-group.name"
+    <*> lookup c "resource-group.location"
 
 createConfigFile :: Flags -> FilePath
 createConfigFile Flags{..} = fromMaybe defaultCreateConfigFile flagCreateConfig
@@ -240,7 +303,13 @@ defaultCreateConfigFile :: FilePath
 defaultCreateConfigFile = "create.cfg"
 
 configToCreateConfiguration :: Config -> IO CreateConfiguration
-configToCreateConfiguration _ = pure CreateConfiguration
+configToCreateConfiguration c = CreateConfiguration
+    <$> configToCreateVmsConfiguration c
+
+configToCreateVmsConfiguration :: Config -> IO CreateVmsConfiguration
+configToCreateVmsConfiguration c = CreateVmsConfiguration
+    <$> lookup c "vms.nr-servers"
+    <*> lookup c "vms.nr-clients"
 
 combineToInstructions :: Command -> Flags -> Configuration -> IO (Dispatch, Settings)
 combineToInstructions c _ conf = do
@@ -248,13 +317,32 @@ combineToInstructions c _ conf = do
     case c of
         CommandBuild bctx -> pure (DispatchBuild bctx, sets)
         CommandRun rctx   -> pure (DispatchRun rctx, sets)
-        CommandCreate     -> do
-            cctx <- creationConfig conf
-            return (DispatchCreate cctx, sets)
+        CommandCreate cc  -> do
+                cctx <- creationConfig cc conf
+                return (DispatchCreate cctx, sets)
 
-creationConfig :: Configuration -> IO CreateContext
-creationConfig Configuration{..} = CreateContext
-    <$> fromMaybe (die "No subscription-id configured") (pure <$> pconfSubscriptionId confPrivate)
+creationConfig :: CreateCommand -> Configuration -> IO CreateContext
+creationConfig cc Configuration{..} = case cc of
+    CreateResourceGroup ->
+        CreateContextResourceGroup
+            <$> (CreateResourceGroupContext
+                <$> fromMaybe
+                    (die "No name configured")
+                    (pure <$> rgcName (pconfResourceGroup confPrivate))
+                <*> fromMaybe
+                    (die "No location configured")
+                    (pure <$> rgcLocation (pconfResourceGroup confPrivate)))
+    CreateVms ->
+        CreateContextVms
+            <$> (CreateVmsContext
+                <$> fromMaybe
+                    (die "vms.nr-servers not configured")
+                    (pure <$> cconfVmsNrServers (cconfVmsConfig confCreate))
+                <*> fromMaybe
+                    (die "vms.nr-clients not configured")
+                    (pure <$> cconfVmsNrClients (cconfVmsConfig confCreate)))
+
+
 
 
 
