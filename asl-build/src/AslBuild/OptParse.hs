@@ -17,6 +17,8 @@ import           Development.Shake       (Rules)
 import           Options.Applicative
 import           System.Exit
 
+import           AslBuild.Create.Types
+
 type AslBuilder = ReaderT BuildContext Rules
 
 getSetting :: (BuildContext -> a) -> AslBuilder a
@@ -197,48 +199,10 @@ data Dispatch
     deriving (Show, Eq)
 
 data CreateContext
-    = CreateContextResourceGroup CreateResourceGroupContext
-    | CreateContextVms CreateVmsContext
+    = CreateContextResourceGroup ResourceGroup
+    | CreateContextVirtualMachine VirtualMachine
+    | CreateContextCluster EntireCluster
     deriving (Show, Eq)
-
-data CreateResourceGroupContext
-    = CreateResourceGroupContext
-    { crgcName     :: String
-    , crgcLocation :: String
-    } deriving (Show, Eq)
-
-data CreateVmsContext
-    = CreateVmsContext
-    { cvmscResourceGroup :: String
-    , cvmscLocation      :: String
-    , cvmscNrServers     :: Int
-    , cvmscNrClients     :: Int
-    , cvmsClientTemplate :: ServerTemplate
-    , cvmsMiddleTemplate :: ServerTemplate
-    , cvmsServerTemplate :: ServerTemplate
-    } deriving (Show, Eq)
-
-data ServerTemplate
-    = ServerTemplate
-    { stSize          :: String
-    , stNamePrefix    :: String
-    , stOsType        :: String
-    , stAdminUsername :: String
-    , stAdminPassword :: String
-    , stImageUrn      :: String
-    } deriving (Show, Eq)
-
-data CreateVmContext
-    = CreateVmContext
-    { cvmcSize              :: String
-    , cvmcResourceGroupName :: String
-    , cvmcName              :: String
-    , cvmcLocation          :: String
-    , cvmcOs                :: String
-    , cvmcAdminUsername     :: String
-    , cvmcAdminPassword     :: String
-    , cvmcImageUrn          :: String
-    } deriving (Show, Eq)
 
 data Settings = Settings
     deriving (Show, Eq)
@@ -368,47 +332,46 @@ combineToInstructions c _ conf = do
                 cctx <- creationConfig cc conf
                 return (DispatchCreate cctx, sets)
 
+configResourceGroup :: ResourceGroupConfig -> Maybe ResourceGroup
+configResourceGroup ResourceGroupConfig{..} = ResourceGroup
+    <$> rgcName
+    <*> rgcLocation
+
 creationConfig :: CreateCommand -> Configuration -> IO CreateContext
-creationConfig cc Configuration{..} = case cc of
-    CreateResourceGroup ->
-        CreateContextResourceGroup
-            <$> (CreateResourceGroupContext
+creationConfig cc Configuration{..} = do
+    let vmsc = cconfVmsConfig confCreate
+        rgc = pconfResourceGroup confPrivate
+    case cc of
+        CreateResourceGroup ->
+            CreateContextResourceGroup
                 <$> fromMaybe
-                    (die "No name configured")
-                    (pure <$> rgcName (pconfResourceGroup confPrivate))
-                <*> fromMaybe
-                    (die "No location configured")
-                    (pure <$> rgcLocation (pconfResourceGroup confPrivate)))
-    CreateVms -> do
-        let vmsc = cconfVmsConfig confCreate
-            prg = pconfResourceGroup confPrivate
-        CreateContextVms
-            <$> (CreateVmsContext
-                <$> fromMaybe
-                    (die "resource-group.name not configured")
-                    (pure <$> rgcName prg)
-                <*> fromMaybe
-                    (die "resource-group.location not configured")
-                    (pure <$> rgcLocation prg)
-                <*> fromMaybe
-                    (die "vms.nr-clients not configured")
-                    (pure <$> cconfVmsNrClients vmsc)
-                <*> fromMaybe
-                    (die "vms.nr-servers not configured")
-                    (pure <$> cconfVmsNrServers vmsc)
-                <*> fromMaybe
-                    (die "vms.client-machine not configured")
-                    (pure <$> machineConfigToServerTemplate (cconfVmsClientConfiguration vmsc))
-                <*> fromMaybe
-                    (die "vms.middle-machine not configured")
-                    (pure <$> machineConfigToServerTemplate (cconfVmsMiddleConfiguration vmsc))
-                <*> fromMaybe
-                    (die "vms.server-machine not configured")
-                    (pure <$> machineConfigToServerTemplate (cconfVmsServerConfiguration vmsc)))
+                    (die "No resource-group configured")
+                    (pure <$> configResourceGroup rgc)
+        CreateVms ->
+            CreateContextCluster
+                <$> (EntireCluster
+                    <$> fromMaybe
+                        (die "No resource-group configured")
+                        (pure <$> configResourceGroup rgc)
+                    <*> fromMaybe
+                        (die "vms.nr-clients not configured")
+                        (pure <$> cconfVmsNrClients vmsc)
+                    <*> fromMaybe
+                        (die "vms.nr-servers not configured")
+                        (pure <$> cconfVmsNrServers vmsc)
+                    <*> fromMaybe
+                        (die "vms.client-machine not configured")
+                        (pure <$> machineConfigToServerTemplate (cconfVmsClientConfiguration vmsc))
+                    <*> fromMaybe
+                        (die "vms.middle-machine not configured")
+                        (pure <$> machineConfigToServerTemplate (cconfVmsMiddleConfiguration vmsc))
+                    <*> fromMaybe
+                        (die "vms.server-machine not configured")
+                        (pure <$> machineConfigToServerTemplate (cconfVmsServerConfiguration vmsc)))
 
 
-machineConfigToServerTemplate :: MachineConfiguration -> Maybe ServerTemplate
-machineConfigToServerTemplate MachineConfiguration{..} = ServerTemplate
+machineConfigToServerTemplate :: MachineConfiguration -> Maybe MachineTemplate
+machineConfigToServerTemplate MachineConfiguration{..} = MachineTemplate
     <$> mcSize
     <*> mcNamePrefix
     <*> mcOsType
