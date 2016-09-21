@@ -16,8 +16,14 @@ library
   hs-source-dirs:      src
   exposed-modules:
       AslBuild
-      AslBuild.OptParse
+      AslBuild.Build
+      AslBuild.Clean
+      AslBuild.CommitHash
       AslBuild.Constants
+      AslBuild.Jar
+      AslBuild.OptParse
+      AslBuild.Reports
+      AslBuild.Utils
   build-depends:
       base                          >= 4.7    && < 5
     , shake                         >= 0.15   && < 0.16

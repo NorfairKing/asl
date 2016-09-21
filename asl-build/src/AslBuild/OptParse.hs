@@ -1,6 +1,11 @@
-module AslBuild.OptParse where
+module AslBuild.OptParse
+    ( module AslBuild.OptParse
+    , module Control.Monad.Reader
+    ) where
 
+import           Control.Monad.Reader
 import           Data.Monoid
+import           Development.Shake
 import           Options.Applicative
 
 getArguments :: [String] -> IO Arguments
@@ -9,6 +14,7 @@ getArguments args = do
     handleParseResult result
 
 
+type AslBuilder = ReaderT Flags Rules
 type Arguments = (Command, Flags)
 data Command = Command
     deriving (Show, Eq)
@@ -45,3 +51,4 @@ parseFlags = Flags
     <$> switch
         ( long "travis"
         <> help "Run on travis")
+
