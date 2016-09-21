@@ -56,6 +56,7 @@ data BaseLineConfig
 
 data CreateCommand
     = CreateResourceGroup
+    | CreateStorageAccount
     | CreateVirtualMachine MachineKind
     | CreateCluster
     deriving (Show, Eq)
@@ -160,6 +161,7 @@ parseCreate = info parser modifier
     parser = CommandCreate <$> subp
     subp = hsubparser $ mconcat
         [ command "resource-group"  parseCreateResourceGroup
+        , command "storage-account" parseCreateStorageAccount
         , command "virtual-machine" parseCreateVirtualMachine
         , command "cluster"         parseCreateCluster
         ]
@@ -173,6 +175,13 @@ parseCreateResourceGroup = info parser modifier
     modifier = fullDesc
             <> progDesc "Create the resource group."
 
+parseCreateStorageAccount :: ParserInfo CreateCommand
+parseCreateStorageAccount = info parser modifier
+  where
+    parser = pure CreateStorageAccount
+    modifier = fullDesc
+            <> progDesc "Create the storage account."
+
 parseCreateVirtualMachine :: ParserInfo CreateCommand
 parseCreateVirtualMachine = info parser modifier
   where
@@ -181,9 +190,8 @@ parseCreateVirtualMachine = info parser modifier
             <> progDesc "Create a single virtual machine"
 
 parseMachineKind :: Parser MachineKind
-parseMachineKind = option (eitherReader machineKindReader)
-    (long "machine-kind"
-    <> help "machine kind (client INT|middle|server INT)")
+parseMachineKind = argument (eitherReader machineKindReader)
+    (help "machine kind (client INT|middle|server INT)")
   where
     machineKindReader :: String -> Either String MachineKind
     machineKindReader s = case splitOn "-" s of
@@ -224,6 +232,7 @@ data Dispatch
 
 data CreateContext
     = CreateContextResourceGroup ResourceGroup
+    | CreateContextStorageAccount StorageAccount
     | CreateContextVirtualMachine VirtualMachine
     | CreateContextCluster EntireCluster
     deriving (Show, Eq)
@@ -241,16 +250,22 @@ data PrivateConfiguration
     = PrivateConfiguration
     deriving (Show, Eq)
 
+data CreateConfiguration
+    = CreateConfiguration
+    { cconfResourceGroup  :: ResourceGroupConfig
+    , cconfStorageAccount :: StorageAccountConfig
+    , cconfVmsConfig      :: CreateVmsConfiguration
+    } deriving (Show, Eq)
+
 data ResourceGroupConfig
     = ResourceGroupConfig
     { rgcName     :: Maybe String
     , rgcLocation :: Maybe String
     } deriving (Show, Eq)
 
-data CreateConfiguration
-    = CreateConfiguration
-    { pconfResourceGroup :: ResourceGroupConfig
-    , cconfVmsConfig     :: CreateVmsConfiguration
+data StorageAccountConfig
+    = StorageAccountConfig
+    { sacName :: Maybe String
     } deriving (Show, Eq)
 
 data CreateVmsConfiguration
@@ -323,6 +338,7 @@ defaultCreateConfigFile = "create.cfg"
 configToCreateConfiguration :: Config -> IO CreateConfiguration
 configToCreateConfiguration c = CreateConfiguration
     <$> parseResourceGroup c
+    <*> configToStorageAccountConfiguration c
     <*> configToCreateVmsConfiguration c
 
 parseResourceGroup :: Config -> IO ResourceGroupConfig
@@ -335,6 +351,10 @@ configToCreateVmsConfiguration c = CreateVmsConfiguration
     <$> lookup c "vms.nr-clients"
     <*> lookup c "vms.nr-servers"
     <*> configToMachineSpecsConfig c
+
+configToStorageAccountConfiguration :: Config -> IO StorageAccountConfig
+configToStorageAccountConfiguration c = StorageAccountConfig
+    <$> lookup c "storage-account.name"
 
 configToMachineSpecsConfig :: Config -> IO MachineSpecsConfig
 configToMachineSpecsConfig c = MachineSpecsConfig
@@ -387,13 +407,23 @@ creationConfig :: CreateCommand -> Configuration -> IO CreateContext
 creationConfig cc Configuration{..} = do
     let vmsc = cconfVmsConfig confCreate
         msps = cconfVmsMspecs vmsc
-        rgc = pconfResourceGroup confCreate
+        sac = cconfStorageAccount confCreate
+        rgc = cconfResourceGroup confCreate
     case cc of
         CreateResourceGroup ->
             CreateContextResourceGroup
                 <$> fromMaybe
                     (die "No resource-group configured")
                     (pure <$> configResourceGroup rgc)
+        CreateStorageAccount ->
+            CreateContextStorageAccount
+                <$> (StorageAccount
+                    <$> fromMaybe
+                        (die "No resource-group configured")
+                        (pure <$> configResourceGroup rgc)
+                    <*> fromMaybe
+                        (die "No storage-account.name configured")
+                        (pure <$> sacName sac))
         CreateVirtualMachine mk -> do
             nrc <- fromMaybe
                         (die "vms.nr-clients not configured")

@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Create.Creatable where
 
+import           System.Directory
 import           System.Process
 
 import           AslBuild.Create.Types
@@ -16,20 +17,43 @@ instance Creatable ResourceGroup where
         , "--location", rgLocation
         ]
 
-instance Creatable VirtualMachine where
-    createOnAzure vm@VirtualMachine{..} = do
-        putStrLn $ "creating vm: " ++ show vm
+instance Creatable StorageAccount where
+    createOnAzure StorageAccount{..} =
         azure
-            [ "vm"
-            , "create"
-            , "--vm-size", vmSize
-            , "--resource-group", vmResourceGroupName
+            ["storage", "account", "create"
+            , "--resource-group", rgName saResourceGroup
+            , "--location", rgLocation saResourceGroup
+            , "--kind", "Storage"
+            , "--sku-name", "GRS"
+            , saName
+            ]
+
+instance Creatable NetworkInterfaceCard where
+    createOnAzure NetworkInterfaceCard{..} =
+        azure
+            [ "network", "nic", "create"
+            , "--resource-group", rgName nicResourceGroup
+            , "--location", rgLocation nicResourceGroup
+            ]
+
+instance Creatable VirtualMachine where
+    createOnAzure VirtualMachine{..} = do
+        home <- getHomeDirectory
+        azure
+            [ "vm", "create"
+            , "--resource-group", rgName vmResourceGroup
             , "--name", vmName
-            , "--location", vmLocation
+            , "--location", rgLocation vmResourceGroup
             , "--os-type", vmOs
+            , "--image-urn", vmImageUrn
             , "--admin-username", vmAdminUsername
             , "--admin-password", vmAdminPassword
-            , "--image-urn", vmImageUrn
+            , "--ssh-publickey-file", home ++ "/.ssh/id_rsa.pub"
+            -- , "--availset-name", TestAvailSet
+            -- , "--nic-name", LB-NIC1
+            -- , "--vnet-name", TestVnet
+            -- , "--vnet-subnet-name", FrontEnd
+            -- , "--storage-account-name", computeteststore
             ]
 
 instance Creatable EntireCluster where
