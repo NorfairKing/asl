@@ -11,7 +11,7 @@
         <delete dir="${jar.dir}"/>
     </target>
 
-    <target name="compile" description="build class files" depends="clean">
+    <target name="compile" description="build class files">
         <mkdir dir="${class.dir}"/>
         <javac srcdir="${source.dir}" destdir="${class.dir}" includeantruntime="false">
         </javac>
