@@ -19,6 +19,3 @@ doTheShake bctx = shakeArgs shakeOptions $
         reportRules
         testRules
         cleanRules
-
-javalib :: FilePath -> String -> Rules ()
-javalib out url = out %> cmd "curl" "-o" out url

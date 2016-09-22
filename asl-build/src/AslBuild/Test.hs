@@ -15,20 +15,28 @@ testRules = do
     lift $ do
         case c of
             BuildTest -> want ["test"]
+            BuildClean -> want ["cleantest"]
             _ -> return ()
+        liftIO $ print $ map fst javadeps
 
         phony "test" $ do
             need $ map fst javadeps
             cmd (Cwd codeSrcDir) ant "test"
 
+        phony "cleantest" $ removeFilesAfter javalibdir ["//"]
+
         mapM_ (uncurry javalib) javadeps
 
 
+
+javalibdir :: FilePath
+javalibdir = codeSrcDir </> lib
+
 javalib :: FilePath -> String -> Rules ()
-javalib outputfile url = out %> cmd "curl" "-o" outputfile url
+javalib outputfile url = outputfile %> \_ -> cmd "curl" "-o" outputfile url
 
 javadeps :: [(FilePath, String)]
-javadeps = map (\(name, url) -> (codeSrcDir </> lib </> name <.> jar, url))
+javadeps = map (\(name, url) -> (javalibdir </> name <.> jar, url))
     [ ("junit", "http://central.maven.org/maven2/junit/junit/4.12/junit-4.12.jar")
     , ("hamcrest-core", "http://central.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar")
     , ("truth", "http://central.maven.org/maven2/com/google/truth/truth/0.30/truth-0.30.jar")
