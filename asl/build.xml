@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="asl" default="all">
     <property name="source.dir" value="src"/>
-    <property name="class.dir" value="out"/>
+    <property name="test.dir" value="test"/>
+    <property name="source.build.dir" value="out/src"/>
+    <property name="test.build.dir" value="out/test"/>
     <property name="jar.dir" value="dist"/>
     <property name="jar.file" value="${jar.dir}/${ant.project.name}.jar"/>
     <property name="main-class" value="eu.cssyd.asl.AslMain"/>
-
     <target name="clean" description="delete old files">
-        <delete dir="${class.dir}"/>
+        <delete dir="${source.build.dir}"/>
         <delete dir="${jar.dir}"/>
     </target>
 
     <target name="compile" description="build class files">
-        <mkdir dir="${class.dir}"/>
-        <javac srcdir="${source.dir}" destdir="${class.dir}" includeantruntime="false">
+        <mkdir dir="${source.build.dir}"/>
+        <javac srcdir="${source.dir}" destdir="${source.build.dir}" includeantruntime="false">
         </javac>
     </target>
 
     <target name="jar" depends="compile">
         <mkdir dir="${jar.dir}"/>
 
-        <jar destfile="${jar.file}" basedir="${class.dir}">
+        <jar destfile="${jar.file}" basedir="${source.build.dir}">
             <manifest>
                 <attribute name="Main-Class" value="${main-class}"/>
             </manifest>
@@ -32,6 +33,33 @@
     </target>
 
     <target name="all" depends="compile, jar">
-        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true"/>
+    </target>
+
+    <path id="classpath.test">
+        <pathelement location="lib/junit.jar"/>
+        <pathelement location="lib/hamcrest-core.jar"/>
+        <pathelement location="lib/truth.jar"/>
+        <pathelement location="lib/guava.jar"/>
+        <pathelement location="${jar.file}"/>
+    </path>
+
+    <target name="test-compile" depends="jar">
+        <mkdir dir="${test.build.dir}"/>
+        <javac srcdir="${test.dir}" destdir="${test.build.dir}" includeantruntime="false">
+            <classpath refid="classpath.test"/>
+        </javac>
+    </target>
+
+    <target name="test" depends="test-compile">
+        <junit printsummary="on" haltonfailure="yes" fork="true">
+            <classpath>
+                <path refid="classpath.test"/>
+                <pathelement location="${test.build.dir}"/>
+            </classpath>
+            <formatter type="brief" usefile="false" />
+            <batchtest>
+                <fileset dir="${test.dir}" includes="**/*Test.java" />
+            </batchtest>
+        </junit>
     </target>
 </project>
