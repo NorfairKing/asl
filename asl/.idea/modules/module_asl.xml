@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_asl" default="compile.module.asl">
+  <dirname property="module.asl.basedir" file="${ant.file.module_asl}"/>
+  
+  <property name="module.jdk.home.asl" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.asl" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.asl" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.asl" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="asl.output.dir" value="${module.asl.basedir}/../../out/production/asl"/>
+  <property name="asl.testoutput.dir" value="${module.asl.basedir}/../../out/test/asl"/>
+  
+  <path id="asl.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="asl.module.production.classpath">
+    <path refid="${module.jdk.classpath.asl}"/>
+  </path>
+  
+  <path id="asl.runtime.production.module.classpath">
+    <pathelement location="${asl.output.dir}"/>
+  </path>
+  
+  <path id="asl.module.classpath">
+    <path refid="${module.jdk.classpath.asl}"/>
+    <pathelement location="${asl.output.dir}"/>
+  </path>
+  
+  <path id="asl.runtime.module.classpath">
+    <pathelement location="${asl.testoutput.dir}"/>
+    <pathelement location="${asl.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.asl">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.asl">
+    <patternset refid="excluded.from.module.asl"/>
+  </patternset>
+  
+  <path id="asl.module.sourcepath">
+    <dirset dir="${module.asl.basedir}/../../../asl">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.asl" depends="compile.module.asl.production,compile.module.asl.tests" description="Compile module asl"/>
+  
+  <target name="compile.module.asl.production" depends="register.custom.compilers" description="Compile module asl; production classes">
+    <mkdir dir="${asl.output.dir}"/>
+    <javac2 destdir="${asl.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.asl}/javac">
+      <compilerarg line="${compiler.args.asl}"/>
+      <bootclasspath refid="asl.module.bootclasspath"/>
+      <classpath refid="asl.module.production.classpath"/>
+      <src refid="asl.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.asl"/>
+    </javac2>
+    
+    <copy todir="${asl.output.dir}">
+      <fileset dir="${module.asl.basedir}/../../src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.asl.tests" depends="register.custom.compilers,compile.module.asl.production" description="compile module asl; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.asl" description="cleanup module">
+    <delete dir="${asl.output.dir}"/>
+    <delete dir="${asl.testoutput.dir}"/>
+  </target>
+</project>

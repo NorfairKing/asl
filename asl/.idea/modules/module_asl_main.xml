@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_asl_main" default="compile.module.asl_main">
+  <dirname property="module.asl_main.basedir" file="${ant.file.module_asl_main}"/>
+  
+  <property name="module.jdk.home.asl_main" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.asl_main" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.asl_main" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.asl_main" value="-encoding UTF-8 -source 1.5 -target 1.5 ${compiler.args}"/>
+  
+  <property name="asl_main.output.dir" value="${module.asl_main.basedir}/../../build/classes/main"/>
+  <property name="asl_main.testoutput.dir" value="${module.asl_main.basedir}/../../build/classes/main"/>
+  
+  <path id="asl_main.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="asl_main.module.production.classpath">
+    <path refid="${module.jdk.classpath.asl_main}"/>
+  </path>
+  
+  <path id="asl_main.runtime.production.module.classpath">
+    <pathelement location="${asl_main.output.dir}"/>
+  </path>
+  
+  <path id="asl_main.module.classpath">
+    <path refid="${module.jdk.classpath.asl_main}"/>
+    <pathelement location="${asl_main.output.dir}"/>
+  </path>
+  
+  <path id="asl_main.runtime.module.classpath">
+    <pathelement location="${asl_main.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.asl_main">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.asl_main">
+    <patternset refid="excluded.from.module.asl_main"/>
+  </patternset>
+  
+  
+  <target name="compile.module.asl_main" depends="compile.module.asl_main.production,compile.module.asl_main.tests" description="Compile module asl_main"/>
+  
+  <target name="compile.module.asl_main.production" depends="register.custom.compilers" description="Compile module asl_main; production classes"/>
+  
+  <target name="compile.module.asl_main.tests" depends="register.custom.compilers,compile.module.asl_main.production" description="compile module asl_main; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.asl_main" description="cleanup module">
+    <delete dir="${asl_main.output.dir}"/>
+    <delete dir="${asl_main.testoutput.dir}"/>
+  </target>
+</project>
