@@ -8,4 +8,5 @@ set -e
 ./scripts/install-build.sh
 ./scripts/build.sh
 ./scripts/test.sh
+./scripts/documentation.sh
 ./scripts/lines.sh
