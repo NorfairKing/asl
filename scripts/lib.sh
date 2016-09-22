@@ -42,8 +42,7 @@ check () {
   else
     print_colored_text RED "Failure\n"
     echo ${command}
-    cat $OUT
-    cat $ERR
+    cat $OUT $ERR
     return -1
   fi
 }
@@ -71,17 +70,3 @@ promptN () {
     return -1
   fi
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
