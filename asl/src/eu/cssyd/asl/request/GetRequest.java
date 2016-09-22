@@ -1,17 +1,12 @@
 package eu.cssyd.asl.request;
 
+import java.util.Arrays;
+
 public class GetRequest extends Request {
-  private final String key;
+  private final String[] keys;
 
-  public GetRequest(final String key) {
-    this.key = key;
-  }
-
-  @Override
-  public String toString() {
-    return "GetRequest{" +
-        "key='" + key + '\'' +
-        '}';
+  public GetRequest(final String... keys) {
+    this.keys = keys;
   }
 
   @Override
@@ -21,21 +16,29 @@ public class GetRequest extends Request {
 
     GetRequest that = (GetRequest) o;
 
-    return key != null ? key.equals(that.key) : that.key == null;
-
+    // Probably incorrect - comparing Object[] arrays with Arrays.equals
+    return Arrays.equals(keys, that.keys);
   }
 
   @Override
   public int hashCode() {
-    return key != null ? key.hashCode() : 0;
+    return Arrays.hashCode(keys);
+  }
+
+  @Override
+  public String toString() {
+    return "GetRequest{" +
+        "keys=" + Arrays.toString(keys) +
+        '}';
   }
 
   @Override
   public String render() {
-    return new StringBuilder()
-        .append("get")
-        .append(" ")
-        .append(this.key)
-        .toString();
+    StringBuilder sb = new StringBuilder("get");
+    for (String key : keys) {
+      sb.append(" ")
+          .append(key);
+    }
+    return sb.toString();
   }
 }

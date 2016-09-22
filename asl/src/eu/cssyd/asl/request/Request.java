@@ -11,8 +11,8 @@ public abstract class Request {
     String str = new String(byteBuffer.array());
     if (str.startsWith("get ")) {
       String keyssstr = str.substring("get ".length()).split("\r\n")[0];
-      return Optional.of(new GetRequest(keyssstr));
-      // String[] keys = keyssstr.split(" ");
+      String[] keys = keyssstr.split(" ");
+      return Optional.of(new GetRequest(keys));
     }
     return Optional.empty();
   }

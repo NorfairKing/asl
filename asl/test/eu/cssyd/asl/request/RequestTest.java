@@ -8,8 +8,14 @@ import java.util.Optional;
 
 public class RequestTest {
   @Test
-  public void evaluatesExpression() {
+  public void parseGetRequestSingleKey() {
     assertThat(Request.parseRequest(ByteBuffer.wrap("get foo".getBytes())))
         .isEqualTo(Optional.of(new GetRequest("foo")));
+  }
+
+  @Test
+  public void parseGetRequestMultipleKeys() {
+    assertThat(Request.parseRequest(ByteBuffer.wrap("get foo bar".getBytes())))
+        .isEqualTo(Optional.of(new GetRequest("foo", "bar")));
   }
 }
