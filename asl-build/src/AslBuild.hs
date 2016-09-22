@@ -22,6 +22,7 @@ aslBuild = do
             withArgs rest $
                 case command of
                     DispatchBuild buildCtx -> doTheShake buildCtx
+                    DispatchClean -> doTheShake BuildClean
                     DispatchTest -> doTheShake BuildTest
                     DispatchRun runCtx  -> run runCtx
                     DispatchCreate createCtx -> create createCtx

@@ -17,7 +17,6 @@ testRules = do
             BuildTest -> want ["test"]
             BuildClean -> want ["cleantest"]
             _ -> return ()
-        liftIO $ print $ map fst javadeps
 
         phony "test" $ do
             need $ map fst javadeps

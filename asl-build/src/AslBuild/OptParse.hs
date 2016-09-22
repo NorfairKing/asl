@@ -36,6 +36,7 @@ data Command
     | CommandRun RunContext
     | CommandCreate CreateCommand
     | CommandTest
+    | CommandClean
     deriving (Show, Eq)
 
 data BuildContext
@@ -93,6 +94,7 @@ parseArgs = (,) <$> parseCommand <*> parseFlags
 parseCommand :: Parser Command
 parseCommand = hsubparser $ mconcat
     [ command "build"   parseBuild
+    , command "clean"   parseClean
     , command "test"    parseTest
     , command "run"     parseRun
     , command "create"  parseCreate
@@ -104,7 +106,6 @@ parseBuild = info parser modifier
     parser = CommandBuild <$> subp
     subp = hsubparser $ mconcat
         [ command "all"     parseBuildAll
-        , command "clean"   parseBuildClean
         , command "reports" parseBuildReports
         ]
     modifier = fullDesc
@@ -120,19 +121,19 @@ parseBuildAll = info parser modifier
     modifier = fullDesc
             <> progDesc "Build all the parts"
 
-parseBuildClean :: ParserInfo BuildContext
-parseBuildClean = info parser modifier
-  where
-    parser = pure BuildClean
-    modifier = fullDesc
-            <> progDesc "Clean up the built parts"
-
 parseBuildReports :: ParserInfo BuildContext
 parseBuildReports = info parser modifier
   where
     parser = pure BuildReports
     modifier = fullDesc
             <> progDesc "Build the reports"
+
+parseClean :: ParserInfo Command
+parseClean = info parser modifier
+  where
+    parser = pure CommandClean
+    modifier = fullDesc
+            <> progDesc "Clean up"
 
 parseTest :: ParserInfo Command
 parseTest = info parser modifier
@@ -236,9 +237,10 @@ type Instructions = (Dispatch, Settings)
 
 data Dispatch
     = DispatchBuild BuildContext
+    | DispatchClean
+    | DispatchTest
     | DispatchRun RunContext
     | DispatchCreate CreateContext
-    | DispatchTest
     deriving (Show, Eq)
 
 data CreateContext
@@ -389,7 +391,8 @@ combineToInstructions c _ conf = do
     let sets = Settings
     case c of
         CommandBuild bctx -> pure (DispatchBuild bctx, sets)
-        CommandTest -> pure (DispatchTest, sets)
+        CommandClean      -> pure (DispatchClean, sets)
+        CommandTest       -> pure (DispatchTest, sets)
         CommandRun rctx   -> pure (DispatchRun rctx, sets)
         CommandCreate cc  -> do
                 cctx <- creationConfig cc conf
