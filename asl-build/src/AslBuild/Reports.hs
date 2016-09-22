@@ -19,8 +19,17 @@ reportRules = do
         case c of
             BuildAll onTravis -> unless onTravis $ want [reportStubOut]
             BuildReports -> want [reportStubOut]
+            BuildClean -> want ["cleanreports"]
             _ -> return ()
+
         reportStubInBuildDir %> \_ -> do
             need [reportstubtexInBuildDir]
             cmd (Cwd reportsDir) "latexmk" "-pdf" reportstubtex
+
         reportStubOut `byCopying` reportStubInBuildDir
+
+        phony "cleanreports" $ do
+            removeFilesAfter outDir ["//"]
+            removeFilesAfter reportsDir
+                ["//*.pdf", "//*.aux", "//*.log", "//*.fls", "//*.fdb_latexmk"]
+

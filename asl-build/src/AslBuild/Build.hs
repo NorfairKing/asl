@@ -4,7 +4,6 @@ import           Development.Shake
 
 import           Control.Monad.Reader
 
-import           AslBuild.Clean
 import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.OptParse
@@ -18,4 +17,3 @@ doTheShake bctx = shakeArgs shakeOptions $
         jarRules
         reportRules
         testRules
-        cleanRules

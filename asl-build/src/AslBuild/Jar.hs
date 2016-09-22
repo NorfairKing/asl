@@ -16,6 +16,7 @@ jarRules = do
     lift $ do
         case c of
             BuildAll _ -> want [outputJarFile]
+            BuildClean -> want ["cleanjar"]
             _ -> return ()
 
         let jarFile = asl <.> jar
@@ -30,5 +31,9 @@ jarRules = do
             let jarTarget = jar
                 antCmd = ant
             cmd (Cwd codeSrcDir) antCmd jarTarget
+
+        phony "cleanjar" $ do
+            removeFilesAfter outDir ["//"]
+            removeFilesAfter codeSrcDir ["//build", "//out"]
 
         outputJarFile `byCopying` jarInBuildDir
