@@ -34,6 +34,6 @@ jarRules = do
 
         phony "cleanjar" $ do
             removeFilesAfter outDir ["//"]
-            removeFilesAfter codeSrcDir ["//build", "//out"]
+            removeFilesAfter codeSrcDir ["//build", "//out", "//dist"]
 
         outputJarFile `byCopying` jarInBuildDir
