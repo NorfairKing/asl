@@ -1,0 +1,36 @@
+module AslBuild.Test where
+
+import           Development.Shake
+import           Development.Shake.FilePath
+
+import           Control.Monad.Reader
+
+import           AslBuild.Constants
+import           AslBuild.OptParse
+
+testRules :: AslBuilder ()
+testRules = do
+    c <- ask
+
+    lift $ do
+        case c of
+            BuildTest -> want ["test"]
+            _ -> return ()
+
+        phony "test" $ do
+            need $ map fst javadeps
+            cmd (Cwd codeSrcDir) ant "test"
+
+        mapM_ (uncurry javalib) javadeps
+
+
+javalib :: FilePath -> String -> Rules ()
+javalib outputfile url = out %> cmd "curl" "-o" outputfile url
+
+javadeps :: [(FilePath, String)]
+javadeps = map (\(name, url) -> (codeSrcDir </> lib </> name <.> jar, url))
+    [ ("junit", "http://central.maven.org/maven2/junit/junit/4.12/junit-4.12.jar")
+    , ("hamcrest-core", "http://central.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar")
+    , ("truth", "http://central.maven.org/maven2/com/google/truth/truth/0.30/truth-0.30.jar")
+    , ("guava", "http://central.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar")
+    ]

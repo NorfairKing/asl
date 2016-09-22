@@ -1,2 +1,2 @@
 source scripts/lib.sh
-check "Test" stack test
+check "Test" asl test

@@ -35,6 +35,7 @@ data Command
     = CommandBuild BuildContext
     | CommandRun RunContext
     | CommandCreate CreateCommand
+    | CommandTest
     deriving (Show, Eq)
 
 data BuildContext
@@ -43,6 +44,7 @@ data BuildContext
         }
     | BuildClean
     | BuildReports
+    | BuildTest
     deriving (Show, Eq)
 
 data RunContext
@@ -91,6 +93,7 @@ parseArgs = (,) <$> parseCommand <*> parseFlags
 parseCommand :: Parser Command
 parseCommand = hsubparser $ mconcat
     [ command "build"   parseBuild
+    , command "test"    parseTest
     , command "run"     parseRun
     , command "create"  parseCreate
     ]
@@ -130,6 +133,13 @@ parseBuildReports = info parser modifier
     parser = pure BuildReports
     modifier = fullDesc
             <> progDesc "Build the reports"
+
+parseTest :: ParserInfo Command
+parseTest = info parser modifier
+  where
+    parser = pure CommandTest
+    modifier = fullDesc
+            <> progDesc "Run the local tests"
 
 parseRun :: ParserInfo Command
 parseRun = info parser modifier
@@ -228,6 +238,7 @@ data Dispatch
     = DispatchBuild BuildContext
     | DispatchRun RunContext
     | DispatchCreate CreateContext
+    | DispatchTest
     deriving (Show, Eq)
 
 data CreateContext
@@ -378,6 +389,7 @@ combineToInstructions c _ conf = do
     let sets = Settings
     case c of
         CommandBuild bctx -> pure (DispatchBuild bctx, sets)
+        CommandTest -> pure (DispatchTest, sets)
         CommandRun rctx   -> pure (DispatchRun rctx, sets)
         CommandCreate cc  -> do
                 cctx <- creationConfig cc conf

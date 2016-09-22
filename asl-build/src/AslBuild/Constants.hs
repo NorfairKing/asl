@@ -18,6 +18,9 @@ src = "src"
 txt :: String
 txt = "txt"
 
+lib :: String
+lib = "lib"
+
 reports :: String
 reports = "reports"
 
