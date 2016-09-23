@@ -65,8 +65,7 @@ data CreateCommand
     deriving (Show, Eq)
 
 data Flags = Flags
-    { flagCreateConfig  :: Maybe FilePath
-    , flagPrivateConfig :: Maybe FilePath
+    { flagCreateConfig :: Maybe FilePath
     }
     deriving (Show, Eq)
 
@@ -223,11 +222,6 @@ parseCreateCluster = info parser modifier
 parseFlags :: Parser Flags
 parseFlags = Flags
     <$> option (Just <$> str)
-        ( long "private-config"
-        <> value Nothing
-        <> metavar "FILE"
-        <> help ("The path to the private config file to use. (Default: " ++ defaultPrivateConfigFile ++ ")"))
-    <*> option (Just <$> str)
         ( long "creation-config"
         <> value Nothing
         <> metavar "FILE"
@@ -255,13 +249,8 @@ data Settings = Settings
 
 data Configuration
     = Configuration
-    { confPrivate :: PrivateConfiguration
-    , confCreate  :: CreateConfiguration
+    { confCreate :: CreateConfiguration
     } deriving (Show, Eq)
-
-data PrivateConfiguration
-    = PrivateConfiguration
-    deriving (Show, Eq)
 
 data CreateConfiguration
     = CreateConfiguration
@@ -327,20 +316,9 @@ getInstructionsHelper args getConfig combine = do
 
 getConfiguration :: Command -> Flags -> IO Configuration
 getConfiguration _ flags = do
-    pconfig <- load [Optional $ privateConfigFile flags]
     cconfig <- load [Optional $ createConfigFile flags]
     Configuration
-        <$> configToPrivateConfiguration pconfig
-        <*> configToCreateConfiguration cconfig
-
-privateConfigFile :: Flags -> FilePath
-privateConfigFile Flags{..} = fromMaybe defaultPrivateConfigFile flagPrivateConfig
-
-defaultPrivateConfigFile :: FilePath
-defaultPrivateConfigFile = "private.cfg"
-
-configToPrivateConfiguration :: Config -> IO PrivateConfiguration
-configToPrivateConfiguration _ = pure PrivateConfiguration
+        <$> configToCreateConfiguration cconfig
 
 createConfigFile :: Flags -> FilePath
 createConfigFile Flags{..} = fromMaybe defaultCreateConfigFile flagCreateConfig

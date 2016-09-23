@@ -18,6 +18,9 @@ src = "src"
 txt :: String
 txt = "txt"
 
+tmp :: String
+tmp = "tmp"
+
 lib :: String
 lib = "lib"
 
@@ -57,6 +60,9 @@ settings = "settings"
 -- Directories
 outDir :: FilePath
 outDir = out
+
+tmpDir :: FilePath
+tmpDir = tmp
 
 reportsDir :: FilePath
 reportsDir = reports
