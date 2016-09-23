@@ -7,6 +7,9 @@ import           AslBuild.Constants
 import           AslBuild.OptParse
 import           AslBuild.Utils
 
+cleanReportsRule :: String
+cleanReportsRule = "cleanreports"
+
 reportRules :: AslBuilder ()
 reportRules = do
     c <- ask
@@ -19,7 +22,7 @@ reportRules = do
         case c of
             BuildAll onTravis -> unless onTravis $ want [reportStubOut]
             BuildReports -> want [reportStubOut]
-            BuildClean -> want ["cleanreports"]
+            BuildClean -> want [cleanReportsRule]
             _ -> return ()
 
         reportStubInBuildDir %> \_ -> do
@@ -28,7 +31,7 @@ reportRules = do
 
         reportStubOut `byCopying` reportStubInBuildDir
 
-        phony "cleanreports" $ do
+        phony cleanReportsRule $ do
             removeFilesAfter outDir ["//"]
             removeFilesAfter reportsDir
                 ["//*.pdf", "//*.aux", "//*.log", "//*.fls", "//*.fdb_latexmk"]

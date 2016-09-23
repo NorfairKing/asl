@@ -10,13 +10,16 @@ import           AslBuild.Utils
 outputJarFile :: FilePath
 outputJarFile = outDir </> asl <.> jar
 
+cleanJarRule :: String
+cleanJarRule = "cleanjar"
+
 jarRules :: AslBuilder ()
 jarRules = do
     c <- ask
     lift $ do
         case c of
             BuildAll _ -> want [outputJarFile]
-            BuildClean -> want ["cleanjar"]
+            BuildClean -> want [cleanJarRule]
             _ -> return ()
 
         let jarFile = asl <.> jar
@@ -32,7 +35,7 @@ jarRules = do
                 antCmd = ant
             cmd (Cwd codeSrcDir) antCmd jarTarget
 
-        phony "cleanjar" $ do
+        phony cleanJarRule $ do
             removeFilesAfter outDir ["//"]
             removeFilesAfter codeSrcDir ["//build", "//out", "//dist"]
 
