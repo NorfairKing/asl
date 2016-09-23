@@ -19,11 +19,11 @@ memcachedRules = do
             BuildClean -> want [cleanMemcachedRule]
             _ -> return ()
 
-        memaslapBinRules
         memcachedBinRules
+        memaslapBinRules
 
         phony cleanMemcachedRule $ do
-            removeFilesAfter outDir ["//"]
+            removeFilesAfter outDir [memcachedBin, memaslapBin]
             removeFilesAfter tmpDir ["//"]
 
 memaslapBinName :: String

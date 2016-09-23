@@ -35,8 +35,8 @@ jarRules = do
                 antCmd = ant
             cmd (Cwd codeSrcDir) antCmd jarTarget
 
-        phony cleanJarRule $ do
-            removeFilesAfter outDir ["//"]
-            removeFilesAfter codeSrcDir ["//build", "//out", "//dist"]
-
         outputJarFile `byCopying` jarInBuildDir
+
+        phony cleanJarRule $ do
+            removeFilesAfter outDir [outputJarFile]
+            removeFilesAfter codeSrcDir ["//build", "//out", "//dist"]
