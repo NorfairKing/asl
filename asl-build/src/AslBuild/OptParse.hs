@@ -33,7 +33,7 @@ getArguments args = do
 type Arguments = (Command, Flags)
 data Command
     = CommandBuild BuildContext
-    | CommandRun RunContext
+    | CommandRun Experiment
     | CommandCreate CreateCommand
     | CommandTest
     | CommandClean
@@ -46,17 +46,13 @@ data BuildContext
     | BuildClean
     | BuildReports
     | BuildTest
+    | BuildRunExperiment Experiment
     deriving (Show, Eq)
 
-data RunContext
-    = RunBaseLine BaseLineConfig
-    | RunLocally
+data Experiment
+    = BaselineExperiment
+    | LocalExperiment
     deriving (Show, Eq)
-
-data BaseLineConfig
-    = BaseLineConfig
-    { baseLineNrClients :: Int
-    } deriving (Show, Eq)
 
 data CreateCommand
     = CreateResourceGroup
@@ -152,24 +148,17 @@ parseRun = info parser modifier
     modifier = fullDesc
             <> progDesc "Run the system"
 
-parseRunBaseLine :: ParserInfo RunContext
+parseRunBaseLine :: ParserInfo Experiment
 parseRunBaseLine = info parser modifier
   where
-    parser = RunBaseLine <$> parseBaseLineConfig
+    parser = pure BaselineExperiment
     modifier = fullDesc
             <> progDesc "Run the baseline experiment"
 
-parseBaseLineConfig :: Parser BaseLineConfig
-parseBaseLineConfig = BaseLineConfig
-    <$> option auto
-        ( long "nr-clients"
-        <> metavar "INT"
-        <> help "The number of clients to connect to the server.")
-
-parseRunLocalExperiment :: ParserInfo RunContext
+parseRunLocalExperiment :: ParserInfo Experiment
 parseRunLocalExperiment = info parser modifier
   where
-    parser = pure RunLocally
+    parser = pure LocalExperiment
     modifier = fullDesc
             <> progDesc "Run a local experiment to test log processing."
 
@@ -241,7 +230,7 @@ data Dispatch
     = DispatchBuild BuildContext
     | DispatchClean
     | DispatchTest
-    | DispatchRun RunContext
+    | DispatchRun Experiment
     | DispatchCreate CreateContext
     deriving (Show, Eq)
 
@@ -379,7 +368,7 @@ combineToInstructions c _ conf = do
         CommandBuild bctx -> pure (DispatchBuild bctx, sets)
         CommandClean      -> pure (DispatchClean, sets)
         CommandTest       -> pure (DispatchTest, sets)
-        CommandRun rctx   -> pure (DispatchRun rctx, sets)
+        CommandRun ex     -> pure (DispatchRun ex, sets)
         CommandCreate cc  -> do
                 cctx <- creationConfig cc conf
                 return (DispatchCreate cctx, sets)

@@ -5,6 +5,7 @@ import           Development.Shake
 import           Control.Monad.Reader
 
 import           AslBuild.CommitHash
+import           AslBuild.Experiments
 import           AslBuild.Jar
 import           AslBuild.Memcached
 import           AslBuild.OptParse
@@ -12,10 +13,15 @@ import           AslBuild.Reports
 import           AslBuild.Test
 
 doTheShake :: BuildContext -> IO ()
-doTheShake bctx = shakeArgs shakeOptions $
-    flip runReaderT bctx $ do
-        commitHashRules
-        jarRules
-        memcachedRules
-        reportRules
-        testRules
+doTheShake bctx
+    = shakeArgs shakeOptions { shakeVerbosity = Loud }
+    $ theShake bctx
+
+theShake :: BuildContext -> Rules ()
+theShake bctx = flip runReaderT bctx $ do
+    commitHashRules
+    jarRules
+    memcachedRules
+    reportRules
+    testRules
+    experimentRules

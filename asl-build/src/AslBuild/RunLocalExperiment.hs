@@ -1,28 +1,25 @@
 module AslBuild.RunLocalExperiment where
 
-import           Control.Exception
-import           Data.List
-import           System.Directory
-import           System.Exit
-import           System.IO
 import           System.Process
 
+import           Development.Shake
+
+import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.OptParse
 
-runLocalExperiment :: IO ()
-runLocalExperiment = do
-    logExists <- doesFileExist logFile
-    unless logExists $
-        bracket
-            startMemcached
-            terminateProcess
-            $ const runMemaslap
+localExperimentRules :: AslBuilder ()
+localExperimentRules = do
+    c <- ask
+    lift $ do
+        case c of
+            BuildRunExperiment LocalExperiment -> want [localExperimentRule]
+            _ -> return ()
 
-    explog <- readFile logFile
-    let parsedLog = parseLog explog
-    print parsedLog
+        localExperiment
 
+localExperimentRule :: String
+localExperimentRule = "local-experiment"
 
 logFile :: FilePath
 logFile = "tmp/memaslaplog.txt"
@@ -30,51 +27,40 @@ logFile = "tmp/memaslaplog.txt"
 memaslapConfigFile :: FilePath
 memaslapConfigFile = "tmp/distribution.txt"
 
-startMemcached :: IO ProcessHandle
-startMemcached = do
-    (_, _, _, ph) <- createProcess $ proc memcachedBin []
-    return ph
+csvOut :: FilePath
+csvOut = "out/local_experiment.csv"
 
-runMemaslap :: IO ()
-runMemaslap =
-    withFile logFile WriteMode $ \outh -> do
-        (_, _, _, ph) <- createProcess $ (proc memaslapBin
-            ["-s", "localhost:11211"
-            , "--threads=64"
-            , "--concurrency=64"
-            , "--overwrite=1"
-            , "--stat_freq=2s"
-            , "--time=2s"
-            , "--cfg_cmd=" ++ memaslapConfigFile
-            ]) { std_out = UseHandle outh }
-        ec <- waitForProcess ph
-        case ec of
-            ExitSuccess -> return ()
-            ExitFailure eci -> do
-                putStrLn $ "memaslap failed with exit code " ++ show eci ++ " aborting"
-                exitFailure
+msFlags :: MemaslapFlags
+msFlags = MemaslapFlags
+    { msServers = [RemoteServerUrl "localhost" 11211]
+    , msThreads = 64
+    , msConcurrency = 64
+    , msOverwrite = 1
+    , msStatFreq = Seconds 2
+    , msTime = Seconds 2
+    , msConfigFile = memaslapConfigFile
+    }
 
-data ParsedLog
-    = ParsedLog
-    { avg :: Double
-    , std :: Double
-    , tps :: Double
-    } deriving (Show, Eq)
+localExperiment :: Rules ()
+localExperiment = do
+    phony localExperimentRule $ need [csvOut]
+    logFile %> \_ -> do
+        need [memcachedBin, memaslapConfigFile, memaslapBin]
 
-parseLog :: String -> Maybe ParsedLog
-parseLog s = do
-        -- Required because there are also set statistics.
-    let skippedFirsts = dropWhile (\l -> not $ "Total Statistics" `isPrefixOf` l) $ lines s
-        avgPrefix = "   Avg:"
-        stdPrefix = "   Std:"
-    let getDoubleFromPrefix prefix
-            = (read . drop (length prefix)) <$> find (\l -> prefix `isPrefixOf` l) skippedFirsts
-    expavg <- getDoubleFromPrefix avgPrefix
-    expstd <- getDoubleFromPrefix stdPrefix
-    let getTps = (read . (!! 6) . words) <$> find (\l -> "Run time" `isPrefixOf` l) skippedFirsts
-    exptps <- getTps
-    return ParsedLog
-        { avg = expavg
-        , std = expstd
-        , tps = exptps
-        }
+        -- Start memcached locally
+        ph <- cmd memcachedBin
+
+        -- Run memaslap locally
+        let runMemaslap :: Action ()
+            runMemaslap = command [FileStdout logFile] memaslapBin (memaslapArgs msFlags)
+
+        -- Make sure to stop memcached
+        actionFinally
+            runMemaslap
+            (terminateProcess ph)
+
+    csvOut %>  \_ -> do
+        explog <- readFile' logFile
+        case parseLog explog of
+            Nothing -> fail "Could not parse logfile."
+            Just parsedLog -> writeFile' csvOut $ parsedLogsCsv [parsedLog]

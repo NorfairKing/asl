@@ -17,20 +17,22 @@ library
   exposed-modules:
       AslBuild
       AslBuild.Build
-      AslBuild.Test
       AslBuild.CommitHash
       AslBuild.Constants
+      AslBuild.Create
+      AslBuild.Create.Creatable
+      AslBuild.Create.Types
+      AslBuild.Experiments
       AslBuild.Jar
+      AslBuild.Memaslap
+      AslBuild.Memcached
       AslBuild.OptParse
       AslBuild.Reports
       AslBuild.Run
       AslBuild.RunBaseLine
       AslBuild.RunLocalExperiment
+      AslBuild.Test
       AslBuild.Utils
-      AslBuild.Memcached
-      AslBuild.Create
-      AslBuild.Create.Types
-      AslBuild.Create.Creatable
   build-depends:
       base                          >= 4.7    && < 5
     , shake                         >= 0.15   && < 0.16
@@ -40,7 +42,9 @@ library
     , text                          >= 1.2    && < 1.3
     , configurator                  >= 0.3    && < 0.4
     , process                       >= 1.4    && < 1.5
-    , directory                     >= 1.2    && <1.3
+    , directory                     >= 1.2    && < 1.3
+    , cassava                       >= 0.4    && < 0.5
+    , bytestring                    >= 0.10   && < 0.11
   default-language:    Haskell2010
 
 executable asl
