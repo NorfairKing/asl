@@ -50,6 +50,7 @@ data BuildContext
 
 data RunContext
     = RunBaseLine BaseLineConfig
+    | RunLocally
     deriving (Show, Eq)
 
 data BaseLineConfig
@@ -66,8 +67,7 @@ data CreateCommand
 
 data Flags = Flags
     { flagCreateConfig :: Maybe FilePath
-    }
-    deriving (Show, Eq)
+    } deriving (Show, Eq)
 
 runArgumentsParser :: [String] -> ParserResult Arguments
 runArgumentsParser = execParserPure pfs argParser
@@ -146,7 +146,8 @@ parseRun = info parser modifier
   where
     parser = CommandRun <$> subp
     subp = hsubparser $ mconcat
-        [ command "baseline" parseRunBaseLine
+        [ command "baseline"            parseRunBaseLine
+        , command "local-experiment"    parseRunLocalExperiment
         ]
     modifier = fullDesc
             <> progDesc "Run the system"
@@ -164,6 +165,13 @@ parseBaseLineConfig = BaseLineConfig
         ( long "nr-clients"
         <> metavar "INT"
         <> help "The number of clients to connect to the server.")
+
+parseRunLocalExperiment :: ParserInfo RunContext
+parseRunLocalExperiment = info parser modifier
+  where
+    parser = pure RunLocally
+    modifier = fullDesc
+            <> progDesc "Run a local experiment to test log processing."
 
 parseCreate :: ParserInfo Command
 parseCreate = info parser modifier
