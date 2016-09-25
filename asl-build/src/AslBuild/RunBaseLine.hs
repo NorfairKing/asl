@@ -4,20 +4,18 @@
 module AslBuild.RunBaseLine where
 
 import           Development.Shake
-import           Development.Shake.FilePath
 
-import           Control.Concurrent
-import           Data.Aeson                 (FromJSON, ToJSON)
-import qualified Data.Aeson                 as A
-import qualified Data.ByteString.Lazy       as LB
+import           Data.Aeson             (FromJSON, ToJSON)
+import qualified Data.Aeson             as A
+import qualified Data.ByteString.Lazy   as LB
 import           Data.Csv
-import           Data.Hashable
 import           GHC.Generics
-import           System.Directory
 
+import           AslBuild.CommonActions
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.OptParse
+import           AslBuild.Types
 
 baselineExperimentRules :: AslBuilder ()
 baselineExperimentRules = do
@@ -40,23 +38,6 @@ memaslapConfigFile = "tmp/distribution.txt"
 
 csvOut :: FilePath
 csvOut = "results/baseline_experiment_localhost.csv"
-
-wait :: Int -> Action ()
-wait i = do
-    putLoud $ unwords ["Waiting for", show i, "seconds."]
-    liftIO $ threadDelay $ i * 1000 * 1000
-
-data Script
-    = Script
-    { scriptName    :: FilePath
-    , scriptContent :: [String]
-    }
-
-namedScript :: FilePath -> [String] -> Script
-namedScript name contents = Script name $ "#!/bin/bash" : contents
-
-script :: [String] -> Script
-script contents = namedScript (show $ hash contents) contents
 
 tmpMemaslap :: FilePath
 tmpMemaslap = "/tmp/memaslap"
@@ -216,47 +197,3 @@ instance ToNamedRecord ExperimentResults where
             , "std" .= std
             , "tps" .= tps
             ]
-
-scriptAt :: RemoteLogin -> Script -> Action ()
-scriptAt rl Script{..} = do
-    let path = "/tmp" </> scriptName <.> "bash"
-    let fullScript = unlines scriptContent
-    writeFile' path fullScript
-    -- Make sure it's executable before we copy the script
-    -- rsync will retain the permissions.
-    liftIO $ do
-        p <- getPermissions path
-        setPermissions path (p {executable = True})
-    -- Copy over the script
-    rsyncTo rl path path
-    liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
-    -- Run the script
-    overSsh rl path
-
-overSsh :: RemoteLogin -> String -> Action ()
-overSsh rl commandOverSsh =
-    command [] "ssh" [remoteLoginStr rl, commandOverSsh]
-
-rsyncTo :: RemoteLogin -> FilePath -> FilePath -> Action ()
-rsyncTo rl localThing remoteThing = do
-    need [localThing]
-    command [] "rsync"
-        [ localThing
-        , remoteLoginStr rl ++ ":" ++ remoteThing
-        ]
-
-rsyncFrom :: RemoteLogin -> FilePath -> FilePath -> Action ()
-rsyncFrom rl remoteThing localThing =
-    command [] "rsync"
-        [ remoteLoginStr rl ++ ":" ++ remoteThing
-        , localThing
-        ]
-
-remoteLoginStr :: RemoteLogin -> String
-remoteLoginStr RemoteLogin{..} = remoteUser ++ "@" ++ remoteHost
-
-data RemoteLogin
-    = RemoteLogin
-    { remoteUser :: String
-    , remoteHost :: String
-    }
