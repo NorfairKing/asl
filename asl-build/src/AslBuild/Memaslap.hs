@@ -1,10 +1,13 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Memaslap where
 
+import           Data.Aeson                 (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy.Char8 as LB8
 import           Data.Csv
 import           Data.List
+import           GHC.Generics
 
 
 memaslapArgs :: MemaslapFlags -> [String]
@@ -27,35 +30,54 @@ data MemaslapFlags
     , msStatFreq    :: TimeUnit
     , msTime        :: TimeUnit
     , msConfigFile  :: FilePath
-    }
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   MemaslapFlags
+instance FromJSON MemaslapFlags
 
 data RemoteServerUrl
     = RemoteServerUrl
     { serverUrl  :: String
     , serverPort :: Int
-    }
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   RemoteServerUrl
+instance FromJSON RemoteServerUrl
 
 remoteServerUrl :: RemoteServerUrl -> String
 remoteServerUrl RemoteServerUrl{..} = serverUrl ++ ":" ++ show serverPort
 
 data TimeUnit
     = Seconds Int
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   TimeUnit
+instance FromJSON TimeUnit
+
+instance ToField TimeUnit where
+    toField = toField . toSeconds
+
+toSeconds :: TimeUnit -> Int
+toSeconds (Seconds i) = i
 
 timeUnit :: TimeUnit -> String
 timeUnit (Seconds i) = show i ++ "s"
 
-data ParsedLog
-    = ParsedLog
+data MemaslapLog
+    = MemaslapLog
     { avg :: Double
     , std :: Double
     , tps :: Double
-    } deriving (Show, Eq)
+    } deriving (Show, Eq, Generic)
 
-instance ToNamedRecord ParsedLog where
-    toNamedRecord ParsedLog{..} = namedRecord
+instance ToJSON   MemaslapLog
+instance FromJSON MemaslapLog
+
+instance ToNamedRecord MemaslapLog where
+    toNamedRecord MemaslapLog{..} = namedRecord
         [ "avg" .= avg, "std" .= std, "tps" .= tps]
 
-parseLog :: String -> Maybe ParsedLog
+parseLog :: String -> Maybe MemaslapLog
 parseLog s = do
         -- Required because there are also set statistics.
     let skippedFirsts = dropWhile (\l -> not $ "Total Statistics" `isPrefixOf` l) $ lines s
@@ -67,11 +89,13 @@ parseLog s = do
     expstd <- getDoubleFromPrefix stdPrefix
     let getTps = (read . (!! 6) . words) <$> find (\l -> "Run time" `isPrefixOf` l) skippedFirsts
     exptps <- getTps
-    return ParsedLog
+    return MemaslapLog
         { avg = expavg
         , std = expstd
         , tps = exptps
         }
 
-parsedLogsCsv :: [ParsedLog] -> String
-parsedLogsCsv = LB8.unpack . encodeByName (header ["avg", "std", "tps"])
+memaslapLogsCsv :: [MemaslapLog] -> String
+memaslapLogsCsv = LB8.unpack . encodeByName (header ["avg", "std", "tps"])
+
+

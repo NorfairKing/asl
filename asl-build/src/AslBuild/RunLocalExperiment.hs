@@ -63,4 +63,4 @@ localExperiment = do
         explog <- readFile' logFile
         case parseLog explog of
             Nothing -> fail "Could not parse logfile."
-            Just parsedLog -> writeFile' csvOut $ parsedLogsCsv [parsedLog]
+            Just parsedLog -> writeFile' csvOut $ memaslapLogsCsv [parsedLog]
