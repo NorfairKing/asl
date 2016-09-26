@@ -1,22 +1,46 @@
 package eu.cssyd.asl.request;
 
 import java.nio.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
-
 
 interface Request {
 
   String render();
 
   static final String NEWLINE = "\r\n";
+  static final String KEYWORD_GET = "get ";
+
+  static final ArrayList<String> KEYWORD_GET_PREFIXES = nonemptyPrefixes(KEYWORD_GET);
+
+  // "get" -> ["g", "ge", "get"]
+  static ArrayList<String> nonemptyPrefixes(String str) {
+    ArrayList<String> result = new ArrayList<String>(str.length());
+    for (int i = 0; i < str.length(); i++) {
+      result.add(i, str.substring(0, i + 1));
+    }
+    return result;
+  }
 
   static ParseResult parseRequest(ByteBuffer byteBuffer) {
     String str = new String(byteBuffer.array());
-    if (str.startsWith("get ")) {
+    if (str.isEmpty()) {
+      return ParseResult.needsMoreData();
+    }
+    for (String prefix : KEYWORD_GET_PREFIXES) {
+      if (str.equals(prefix)) {
+        return ParseResult.needsMoreData();
+      }
+    }
+    if (str.length() < KEYWORD_GET.length()) {
+      return ParseResult.failed();
+    }
+    if (KEYWORD_GET.startsWith(str.substring(0, KEYWORD_GET.length()))) {
       if (!str.contains(NEWLINE)) {
         return ParseResult.needsMoreData();
       } else {
-        String key = str.substring("get ".length()).split("\r\n")[0];
+        String key = str.substring(KEYWORD_GET.length()).split(NEWLINE)[0];
         GetRequest result = new GetRequest(key);
         return ParseResult.done(result);
       }
@@ -24,6 +48,7 @@ interface Request {
     return ParseResult.failed();
   }
 }
+
 
 enum ParseResultType {
   Done,
