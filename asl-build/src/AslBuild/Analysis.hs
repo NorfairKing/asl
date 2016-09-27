@@ -9,8 +9,6 @@ import           AslBuild.Constants
 import           AslBuild.OptParse
 import           AslBuild.RunBaseLine
 
-import           AslBuild.Analysis.BuildR
-
 analysisRules :: AslBuilder ()
 analysisRules = do
     c <- ask
@@ -22,7 +20,6 @@ analysisRules = do
             _ -> return ()
 
         analysis
-    rBuildRules
 
 localResults :: FilePath
 localResults = csvOut
@@ -45,10 +42,13 @@ localhostPlots = [localhostPlotTps, localhostPlotAvg]
 analysisScript :: FilePath
 analysisScript = analysisDir </> "analyze.r"
 
+rCmd :: String
+rCmd = "Rscript"
+
 analysis :: Rules ()
 analysis =
     localhostPlots &%> \_ -> do
-        need [rScriptBin, analysisScript]--, localResults]
-        cmd rScriptBin analysisScript localResults localhostPlotTps localhostPlotAvg
+        need [analysisScript]--, localResults]
+        cmd rCmd analysisScript localResults localhostPlotTps localhostPlotAvg
 
 

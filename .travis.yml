@@ -26,10 +26,7 @@ addons:
     packages: 
       - libgmp
       - libgmp-dev
-      - gfortran
-      - libpng-dev
-      - zlib1g-dev
-      - zlib
+      - r-base
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
