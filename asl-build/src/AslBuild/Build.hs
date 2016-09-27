@@ -4,6 +4,7 @@ import           Development.Shake
 
 import           Control.Monad.Reader
 
+import           AslBuild.Analysis
 import           AslBuild.CommitHash
 import           AslBuild.Experiments
 import           AslBuild.Jar
@@ -25,3 +26,4 @@ theShake bctx = flip runReaderT bctx $ do
     reportRules
     testRules
     experimentRules
+    analysisRules

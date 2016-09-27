@@ -24,6 +24,9 @@ tmp = "tmp"
 lib :: String
 lib = "lib"
 
+png :: String
+png = "png"
+
 reports :: String
 reports = "reports"
 
@@ -87,6 +90,9 @@ txtExt = txt
 
 jarExt :: Extension
 jarExt = jar
+
+pngExt :: Extension
+pngExt = png
 
 javaExt :: Extension
 javaExt = java

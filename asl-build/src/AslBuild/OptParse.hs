@@ -47,6 +47,7 @@ data BuildContext
     | BuildReports
     | BuildTest
     | BuildRunExperiment Experiment
+    | BuildAnalysis
     deriving (Show, Eq)
 
 data Experiment
@@ -88,11 +89,11 @@ parseArgs = (,) <$> parseCommand <*> parseFlags
 
 parseCommand :: Parser Command
 parseCommand = hsubparser $ mconcat
-    [ command "build"   parseBuild
-    , command "clean"   parseClean
-    , command "test"    parseTest
-    , command "run"     parseRun
-    , command "create"  parseCreate
+    [ command "build"       parseBuild
+    , command "clean"       parseClean
+    , command "test"        parseTest
+    , command "run"         parseRun
+    , command "create"      parseCreate
     ]
 
 parseBuild :: ParserInfo Command
@@ -100,8 +101,9 @@ parseBuild = info parser modifier
   where
     parser = CommandBuild <$> subp
     subp = hsubparser $ mconcat
-        [ command "all"     parseBuildAll
-        , command "reports" parseBuildReports
+        [ command "all"      parseBuildAll
+        , command "reports"  parseBuildReports
+        , command "analysis" parseBuildAnalysis
         ]
     modifier = fullDesc
             <> progDesc "Build parts of the system"
@@ -122,6 +124,13 @@ parseBuildReports = info parser modifier
     parser = pure BuildReports
     modifier = fullDesc
             <> progDesc "Build the reports"
+
+parseBuildAnalysis :: ParserInfo BuildContext
+parseBuildAnalysis = info parser modifier
+  where
+    parser = pure BuildAnalysis
+    modifier = fullDesc
+            <> progDesc "Run the analysis scripts"
 
 parseClean :: ParserInfo Command
 parseClean = info parser modifier
