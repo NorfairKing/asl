@@ -15,12 +15,15 @@ cache:
   - $HOME/.cabal
   - $HOME/.stack
 
-matrix:
-  include:
-  - env: ARGS="--resolver nightly"
-    compiler: ": #stack nightly"
-    jdk: oraclejdk8
-    addons: {apt: {packages: [libgmp,libgmp-dev]}}
+env: ARGS="--resolver nightly"
+
+compiler: ": #stack nightly"
+
+jdk: oraclejdk8
+
+addons:   
+  apt: 
+    packages: [libgmp,libgmp-dev,gcc-fortran]
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
