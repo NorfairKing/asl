@@ -23,7 +23,7 @@ jdk: oraclejdk8
 
 addons:   
   apt: 
-    packages: [libgmp,libgmp-dev,gcc-fortran]
+    packages: [libgmp,libgmp-dev,gfortran]
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
