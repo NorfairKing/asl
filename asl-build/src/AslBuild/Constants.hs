@@ -6,6 +6,9 @@ import           Development.Shake.FilePath
 asl :: String
 asl = "asl"
 
+bin :: String
+bin = "bin"
+
 out :: String
 out = "out"
 
@@ -60,6 +63,12 @@ libs = "libs"
 settings :: String
 settings = "settings"
 
+configure :: String
+configure = "configure"
+
+makefile :: String
+makefile = "Makefile"
+
 -- Directories
 outDir :: FilePath
 outDir = out
@@ -103,8 +112,20 @@ xmlExt = xml
 propertiesExt :: Extension
 propertiesExt = properties
 
+tarGzExt :: Extension
+tarGzExt = "tar.gz"
+
 -- Rules
 cleanTarget :: String
 cleanTarget = "clean"
 
 
+-- Commands
+curlCmd :: String
+curlCmd = "curl"
+
+tarCmd :: String
+tarCmd = "tar"
+
+makeCmd :: String
+makeCmd = "make"

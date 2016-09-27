@@ -47,9 +47,6 @@ libmemcachedArchiveFullFile = tmpDir </> libmemcachedArchiveFile
 libmemcachedArchiveFullDir :: FilePath
 libmemcachedArchiveFullDir = tmpDir </> libmemcachedArchiveFileName
 
-configure :: String
-configure = "configure"
-
 libmemcachedArchiveConfigureFile :: FilePath
 libmemcachedArchiveConfigureFile = libmemcachedArchiveFullDir </> configure
 
@@ -58,9 +55,6 @@ libmemcachedUrl = "https://launchpad.net/libmemcached/1.0"
     </> libmemcachedVersion
     </> "+download"
     </> libmemcachedArchiveFile
-
-makefile :: String
-makefile = "Makefile"
 
 makeFileInMemaslapDir :: FilePath
 makeFileInMemaslapDir = libmemcachedArchiveFullDir </> makefile
@@ -92,7 +86,7 @@ memaslapBinRules = do
         need [libmemcachedArchiveConfigureFile]
         cmd (Cwd libmemcachedArchiveFullDir)
             (AddEnv "LDFLAGS" "-lpthread")
-            "./configure" "--enable-memaslap"
+            ("." </> configure) "--enable-memaslap"
 
     memaslapBinInCacheDir %> \_ -> do
         need [makeFileInMemaslapDir]
@@ -154,7 +148,7 @@ memcachedBinRules = do
     makeFileInMemcachedDir %> \_ -> do
         need [memcachedArchiveConfigureFile]
         cmd (Cwd memcachedArchiveFullDir)
-            "./configure" "--enable-memaslap"
+            ("." </> configure) "--enable-memaslap"
 
     memcachedBinInCacheDir %> \_ -> do
         need [makeFileInMemcachedDir]

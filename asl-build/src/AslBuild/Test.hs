@@ -32,7 +32,7 @@ javalibdir :: FilePath
 javalibdir = codeSrcDir </> lib
 
 javalib :: FilePath -> String -> Rules ()
-javalib outputfile url = outputfile %> \_ -> cmd "curl" "-o" outputfile url
+javalib outputfile url = outputfile %> \_ -> cmd curlCmd "--output" outputfile url
 
 javadeps :: [(FilePath, String)]
 javadeps = map (\(name, url) -> (javalibdir </> name <.> jar, url))

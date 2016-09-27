@@ -19,7 +19,8 @@ aslBuild = do
         (first:rests) -> do
             let rest = concat rests
             (command, _) <- getInstructions first
-            withArgs rest $
+            let shakeArgs = "--color" : rest -- Always use color for shake
+            withArgs shakeArgs $
                 case command of
                     DispatchBuild buildCtx -> doTheShake buildCtx
                     DispatchClean -> doTheShake BuildClean
