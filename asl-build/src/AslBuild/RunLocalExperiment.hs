@@ -3,7 +3,10 @@ module AslBuild.RunLocalExperiment where
 import           System.Process
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
+import           AslBuild.CommonActions
+import           AslBuild.Constants
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.OptParse
@@ -13,26 +16,27 @@ localExperimentRules = do
     c <- ask
     lift $ do
         case c of
+            BuildAll _ -> want [localExperimentRule]
             BuildRunExperiment LocalExperiment -> want [localExperimentRule]
             _ -> return ()
 
         localExperiment
 
 localExperimentRule :: String
-localExperimentRule = "local-experiment"
+localExperimentRule = "local-logfile-test"
 
 logFile :: FilePath
-logFile = "tmp/memaslaplog.txt"
+logFile = tmpDir </> "local_logfile_test_log.txt"
 
 memaslapConfigFile :: FilePath
-memaslapConfigFile = "tmp/distribution.txt"
+memaslapConfigFile = tmpDir </> "local_logfile_test_memaslap_cfg.txt"
 
 csvOut :: FilePath
-csvOut = "out/local_experiment.csv"
+csvOut = resultsDir </> "local_logfile_test.csv"
 
 msFlags :: MemaslapFlags
 msFlags = MemaslapFlags
-    { msServers = [RemoteServerUrl "localhost" 11211]
+    { msServers = [RemoteServerUrl localhost defaultMemcachedPort]
     , msThreads = 64
     , msConcurrency = 64
     , msOverwrite = 1
@@ -45,7 +49,16 @@ localExperiment :: Rules ()
 localExperiment = do
     phony localExperimentRule $ need [csvOut]
     logFile %> \_ -> do
-        need [memcachedBin, memaslapConfigFile, memaslapBin]
+        need [memcachedBin, memaslapBin]
+
+        -- Choose a memaslap config and write it to the config file.
+        let memaslapConfig = MemaslapConfig
+                { keysizeDistributions = [Distribution 128 128 1]
+                , valueDistributions = [Distribution 2048 2048 1]
+                , setProportion = 0.1
+                , getProportion = 0.9
+                }
+        writeMemaslapConfig memaslapConfigFile memaslapConfig
 
         -- Start memcached locally
         ph <- cmd memcachedBin

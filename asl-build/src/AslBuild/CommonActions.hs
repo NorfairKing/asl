@@ -7,6 +7,7 @@ import           System.Directory
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import           AslBuild.Memaslap
 import           AslBuild.Types
 
 wait :: Int -> Action ()
@@ -48,3 +49,6 @@ rsyncFrom rl remoteThing localThing =
         [ remoteLoginStr rl ++ ":" ++ remoteThing
         , localThing
         ]
+
+writeMemaslapConfig :: FilePath -> MemaslapConfig -> Action ()
+writeMemaslapConfig file config = writeFile' file $ renderMemaslapConfig config

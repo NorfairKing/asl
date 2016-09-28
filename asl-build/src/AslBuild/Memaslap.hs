@@ -21,6 +21,37 @@ memaslapArgs MemaslapFlags{..} =
     , "--cfg_cmd=" ++ msConfigFile
     ]
 
+data MemaslapConfig
+    = MemaslapConfig
+    { keysizeDistributions :: [Distribution]
+    , valueDistributions   :: [Distribution]
+    , setProportion        :: Double
+    , getProportion        :: Double
+    }
+
+data Distribution
+    = Distribution
+    { distrMin  :: Int
+    , distrMax  :: Int
+    , distrProp :: Double
+    }
+
+renderMemaslapConfig :: MemaslapConfig -> String
+renderMemaslapConfig MemaslapConfig{..} =
+    unlines $
+    [ "key"
+    ] ++ map renderDistribution keysizeDistributions ++
+    [ "value"
+    ] ++ map renderDistribution valueDistributions ++
+    [ "cmd"
+    , unwords ["0", show setProportion]
+    , unwords ["1", show getProportion]
+    ]
+
+renderDistribution :: Distribution -> String
+renderDistribution Distribution{..} = unwords
+    [ show distrMin, show distrMax, show distrProp ]
+
 data MemaslapFlags
     = MemaslapFlags
     { msServers     :: [RemoteServerUrl]

@@ -76,6 +76,9 @@ outDir = out
 tmpDir :: FilePath
 tmpDir = tmp
 
+resultsDir :: FilePath
+resultsDir = "results"
+
 reportsDir :: FilePath
 reportsDir = reports
 
@@ -129,3 +132,11 @@ tarCmd = "tar"
 
 makeCmd :: String
 makeCmd = "make"
+
+-- Hosts
+localhost :: String
+localhost = "localhost"
+
+-- Memcached
+defaultMemcachedPort :: Int
+defaultMemcachedPort = 11211
