@@ -9,6 +9,7 @@ import           Data.Csv
 import           Data.List
 import           GHC.Generics
 
+import           AslBuild.Types
 
 memaslapArgs :: MemaslapFlags -> [String]
 memaslapArgs MemaslapFlags{..} =
@@ -21,20 +22,35 @@ memaslapArgs MemaslapFlags{..} =
     , "--cfg_cmd=" ++ msConfigFile
     ]
 
+data MemaslapSettings
+    = MemaslapSettings
+    { msConfig :: MemaslapConfig
+    , msFlags  :: MemaslapFlags
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   MemaslapSettings
+instance FromJSON MemaslapSettings
+
 data MemaslapConfig
     = MemaslapConfig
     { keysizeDistributions :: [Distribution]
     , valueDistributions   :: [Distribution]
     , setProportion        :: Double
     , getProportion        :: Double
-    }
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   MemaslapConfig
+instance FromJSON MemaslapConfig
 
 data Distribution
     = Distribution
     { distrMin  :: Int
     , distrMax  :: Int
     , distrProp :: Double
-    }
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   Distribution
+instance FromJSON Distribution
 
 renderMemaslapConfig :: MemaslapConfig -> String
 renderMemaslapConfig MemaslapConfig{..} =
@@ -65,18 +81,6 @@ data MemaslapFlags
 
 instance ToJSON   MemaslapFlags
 instance FromJSON MemaslapFlags
-
-data RemoteServerUrl
-    = RemoteServerUrl
-    { serverUrl  :: String
-    , serverPort :: Int
-    } deriving (Show, Eq, Generic)
-
-instance ToJSON   RemoteServerUrl
-instance FromJSON RemoteServerUrl
-
-remoteServerUrl :: RemoteServerUrl -> String
-remoteServerUrl RemoteServerUrl{..} = serverUrl ++ ":" ++ show serverPort
 
 data TimeUnit
     = Seconds Int

@@ -34,8 +34,9 @@ data Command
     deriving (Show, Eq)
 
 data Experiment
-    = BaselineExperiment
-    | LocalExperiment
+    = LocalLogTestExperiment
+    | LocalBaselineExperiment
+    | RemoteBaselineExperiment
     deriving (Show, Eq)
 
 data CreateCommand
@@ -106,25 +107,33 @@ parseRun = info parser modifier
   where
     parser = CommandRun <$> subp
     subp = hsubparser $ mconcat
-        [ command "baseline"            parseRunBaseLine
-        , command "local-experiment"    parseRunLocalExperiment
+        [ command "local-experiment"    parseRunLocalLogTestExperiment
+        , command "local-baseline"      parseRunLocalBaseline
+        , command "remote-baseline"     parseRunRemoteBaseline
         ]
     modifier = fullDesc
             <> progDesc "Run the system"
 
-parseRunBaseLine :: ParserInfo Experiment
-parseRunBaseLine = info parser modifier
+parseRunLocalLogTestExperiment :: ParserInfo Experiment
+parseRunLocalLogTestExperiment = info parser modifier
   where
-    parser = pure BaselineExperiment
-    modifier = fullDesc
-            <> progDesc "Run the baseline experiment"
-
-parseRunLocalExperiment :: ParserInfo Experiment
-parseRunLocalExperiment = info parser modifier
-  where
-    parser = pure LocalExperiment
+    parser = pure LocalLogTestExperiment
     modifier = fullDesc
             <> progDesc "Run a local experiment to test log processing."
+
+parseRunLocalBaseline :: ParserInfo Experiment
+parseRunLocalBaseline = info parser modifier
+  where
+    parser = pure LocalBaselineExperiment
+    modifier = fullDesc
+            <> progDesc "Run the baseline experiment locally"
+
+parseRunRemoteBaseline :: ParserInfo Experiment
+parseRunRemoteBaseline = info parser modifier
+  where
+    parser = pure RemoteBaselineExperiment
+    modifier = fullDesc
+            <> progDesc "Run the baseline experiment remotely (on azure)"
 
 parseCreate :: ParserInfo Command
 parseCreate = info parser modifier

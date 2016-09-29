@@ -1,4 +1,4 @@
-module AslBuild.RunLocalExperiment where
+module AslBuild.LocalLogTest where
 
 import           System.Process
 
@@ -9,21 +9,22 @@ import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
+import           AslBuild.Types
 
-localExperimentRule :: String
-localExperimentRule = "local-logfile-test"
+localLogTestRule :: String
+localLogTestRule = "local-logfile-test"
 
 logFile :: FilePath
-logFile = tmpDir </> "local_logfile_test_log.txt"
+logFile = tmpDir </> "local-logfile-test-log.txt"
 
 memaslapConfigFile :: FilePath
-memaslapConfigFile = tmpDir </> "local_logfile_test_memaslap_cfg.txt"
+memaslapConfigFile = tmpDir </> "local-logfile-test-memaslap-cfg.txt"
 
 csvOut :: FilePath
-csvOut = resultsDir </> "local_logfile_test.csv"
+csvOut = resultsDir </> "local-logfile-test.csv"
 
-msFlags :: MemaslapFlags
-msFlags = MemaslapFlags
+currentMemaslapFlags :: MemaslapFlags
+currentMemaslapFlags = MemaslapFlags
     { msServers = [RemoteServerUrl localhost defaultMemcachedPort]
     , msThreads = 64
     , msConcurrency = 64
@@ -33,9 +34,9 @@ msFlags = MemaslapFlags
     , msConfigFile = memaslapConfigFile
     }
 
-localExperimentRules :: Rules ()
-localExperimentRules = do
-    phony localExperimentRule $ need [csvOut]
+localLogTestRules :: Rules ()
+localLogTestRules = do
+    phony localLogTestRule $ need [csvOut]
     logFile %> \_ -> do
         need [memcachedBin, memaslapBin]
 
@@ -53,7 +54,7 @@ localExperimentRules = do
 
         -- Run memaslap locally
         let runMemaslap :: Action ()
-            runMemaslap = command [FileStdout logFile] memaslapBin (memaslapArgs msFlags)
+            runMemaslap = command [FileStdout logFile] memaslapBin (memaslapArgs currentMemaslapFlags)
 
         -- Make sure to stop memcached
         actionFinally

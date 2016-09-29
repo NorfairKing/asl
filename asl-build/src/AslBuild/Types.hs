@@ -20,7 +20,7 @@ script contents = namedScript (show $ hash contents) contents
 
 data RemoteLogin
     = RemoteLogin
-    { remoteUser :: String
+    { remoteUser :: Maybe String
     , remoteHost :: String
     } deriving (Show, Eq, Generic)
 
@@ -28,4 +28,23 @@ instance ToJSON   RemoteLogin
 instance FromJSON RemoteLogin
 
 remoteLoginStr :: RemoteLogin -> String
-remoteLoginStr RemoteLogin{..} = remoteUser ++ "@" ++ remoteHost
+remoteLoginStr RemoteLogin{..} =
+    case remoteUser of
+        Nothing -> remoteHost
+        Just user -> user ++ "@" ++ remoteHost
+
+
+data RemoteServerUrl
+    = RemoteServerUrl
+    { serverUrl  :: String
+    , serverPort :: Int
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   RemoteServerUrl
+instance FromJSON RemoteServerUrl
+
+remoteServerUrl :: RemoteServerUrl -> String
+remoteServerUrl RemoteServerUrl{..} = serverUrl ++ ":" ++ show serverPort
+
+loginToMemcachedServerUrl :: RemoteLogin -> RemoteServerUrl
+loginToMemcachedServerUrl RemoteLogin{..} = RemoteServerUrl remoteHost 11211

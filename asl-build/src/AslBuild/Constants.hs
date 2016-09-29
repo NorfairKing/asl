@@ -158,3 +158,11 @@ localhost = "localhost"
 -- Memcached
 defaultMemcachedPort :: Int
 defaultMemcachedPort = 11211
+
+-- Remote paths (for caching)
+remoteMemaslapBin :: FilePath
+remoteMemaslapBin = "/tmp/memaslap"
+
+remoteMemcachedBin :: FilePath
+remoteMemcachedBin = "/tmp/memcached"
+

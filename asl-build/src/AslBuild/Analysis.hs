@@ -3,12 +3,13 @@ module AslBuild.Analysis where
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import           AslBuild.Baseline
+import           AslBuild.Baseline.Types
 import           AslBuild.Constants
-import           AslBuild.RunBaseLine
 
 
 localResults :: FilePath
-localResults = csvOut
+localResults = csvOutFile localBaselineExperiment
 
 analysisDir :: FilePath
 analysisDir = "analysis"
@@ -43,3 +44,4 @@ analysisRules = do
         cmd rCmd analysisScript localResults localhostPlotTps localhostPlotAvg
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]
+

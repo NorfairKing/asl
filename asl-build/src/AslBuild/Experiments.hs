@@ -2,10 +2,10 @@ module AslBuild.Experiments where
 
 import           Development.Shake
 
-import           AslBuild.RunBaseLine
-import           AslBuild.RunLocalExperiment
+import           AslBuild.Baseline
+import           AslBuild.LocalLogTest
 
 experimentRules :: Rules ()
 experimentRules = do
-    localExperimentRules
+    localLogTestRules
     baselineExperimentRules

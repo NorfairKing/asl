@@ -3,10 +3,11 @@ module AslBuild.Travis where
 import           Development.Shake
 
 import           AslBuild.Analysis
+import           AslBuild.Baseline
 import           AslBuild.CommitHash
 import           AslBuild.Jar
+import           AslBuild.LocalLogTest
 import           AslBuild.Memcached
-import           AslBuild.RunLocalExperiment
 import           AslBuild.Test
 
 travisRule :: String
@@ -18,10 +19,11 @@ travisRules = travisRule ~> need
     , outputJarFile
     , memaslapBin
     , memcachedBin
-    -- Don't build reports on travis
     , testRule
+
     -- Experiments
-    , localExperimentRule
-    -- TODO baseline experiment
+    , localLogTestRule
+    , localBaselineExperimentRule
+
     , analysisRule
     ]

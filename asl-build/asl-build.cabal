@@ -17,6 +17,8 @@ library
   exposed-modules:
       AslBuild
       AslBuild.Analysis
+      AslBuild.Baseline
+      AslBuild.Baseline.Types
       AslBuild.Build
       AslBuild.Clean
       AslBuild.CommitHash
@@ -27,13 +29,12 @@ library
       AslBuild.Create.Types
       AslBuild.Experiments
       AslBuild.Jar
+      AslBuild.LocalLogTest
       AslBuild.Memaslap
       AslBuild.Memcached
       AslBuild.OptParse
       AslBuild.PreCommit
       AslBuild.Reports
-      AslBuild.RunBaseLine
-      AslBuild.RunLocalExperiment
       AslBuild.Test
       AslBuild.Travis
       AslBuild.Types
