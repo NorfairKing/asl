@@ -57,11 +57,12 @@ before_install:
 - PACKAGES=$(stack --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
 
 # Have travis generate its own ssh keys
-- ssh-keygen -t rsa -C whatever@example.com -P '' -f ~/.ssh/id_rsa
-- cat /home/travis/.ssh/id_rsa.pub >> /home/travis/.ssh/authorized_keys
+- ssh-keygen -t rsa -C whatever@example.com -P '' -f ~/.ssh/custom_id_rsa
+- cat /home/travis/.ssh/custom_id_rsa.pub >> /home/travis/.ssh/authorized_keys
 - ln -s /home/travis/.ssh/authorized_keys /home/travis/.ssh/authorized_keys2
 - echo "Host localhost" >> /home/travis/.ssh/config
 - echo "    StrictHostKeyChecking no" >> /home/travis/.ssh/config
+- echo "    IdentityFile custom_id_rsa" >> /home/travis/.ssh/config
 - chmod g-rw,o-rw /home/travis/.ssh/*
 
 install:

@@ -10,7 +10,7 @@ outputJarFile :: FilePath
 outputJarFile = outDir </> asl <.> jar
 
 cleanJarRule :: String
-cleanJarRule = "cleanjar"
+cleanJarRule = "clean-jar"
 
 jarRule :: String
 jarRule = "jar"
