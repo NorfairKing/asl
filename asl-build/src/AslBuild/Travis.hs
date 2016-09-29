@@ -6,7 +6,6 @@ import           AslBuild.Analysis
 import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.Memcached
-import           AslBuild.PreCommit
 import           AslBuild.RunLocalExperiment
 import           AslBuild.Test
 
@@ -25,5 +24,4 @@ travisRules = travisRule ~> need
     , localExperimentRule
     -- TODO baseline experiment
     , analysisRule
-    , preCommitRule
     ]
