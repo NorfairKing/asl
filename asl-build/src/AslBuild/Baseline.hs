@@ -57,7 +57,7 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
 startMemcachedScript :: Script
 startMemcachedScript = Script
     "start-memcached-detached"
-    ["screen -d -m " ++ remoteMemcachedBin]
+    [remoteMemcachedBin ++ "-d"]
 
 rulesForGivenBaselineExperiment :: BaselineExperimentRuleCfg -> Rules ()
 rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
