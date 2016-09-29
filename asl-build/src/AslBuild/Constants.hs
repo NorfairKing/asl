@@ -85,6 +85,9 @@ reportsDir = reports
 codeSrcDir :: FilePath
 codeSrcDir = asl
 
+scriptsDir :: FilePath
+scriptsDir = "scripts"
+
 javaSourceDir :: FilePath
 javaSourceDir = codeSrcDir </> src
 
@@ -127,11 +130,23 @@ cleanTarget = "clean"
 curlCmd :: String
 curlCmd = "curl"
 
+wgetCmd :: String
+wgetCmd = "wget"
+
 tarCmd :: String
 tarCmd = "tar"
 
 makeCmd :: String
 makeCmd = "make"
+
+gitCmd :: String
+gitCmd = "git"
+
+stackCmd :: String
+stackCmd = "stack"
+
+javaCmd :: String
+javaCmd = "java"
 
 -- Hosts
 localhost :: String

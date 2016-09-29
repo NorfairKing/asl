@@ -8,21 +8,27 @@ import           Control.Monad.Reader
 import           AslBuild.Constants
 import           AslBuild.OptParse
 
+testRule :: String
+testRule = "test"
+
+cleanTestRule :: String
+cleanTestRule = "cleantest"
+
 testRules :: AslBuilder ()
 testRules = do
     c <- ask
 
     lift $ do
         case c of
-            BuildTest -> want ["test"]
-            BuildClean -> want ["cleantest"]
+            BuildTest -> want [testRule]
+            BuildClean -> want [cleanTestRule]
             _ -> return ()
 
-        phony "test" $ do
+        testRule ~> do
             need $ map fst javadeps
             cmd (Cwd codeSrcDir) ant "test"
 
-        phony "cleantest" $ removeFilesAfter javalibdir ["//"]
+        cleanTestRule ~> removeFilesAfter javalibdir ["//"]
 
         mapM_ (uncurry javalib) javadeps
 

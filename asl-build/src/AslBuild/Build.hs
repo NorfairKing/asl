@@ -10,6 +10,7 @@ import           AslBuild.Experiments
 import           AslBuild.Jar
 import           AslBuild.Memcached
 import           AslBuild.OptParse
+import           AslBuild.PreCommit
 import           AslBuild.Reports
 import           AslBuild.Test
 
@@ -27,3 +28,4 @@ theShake bctx = flip runReaderT bctx $ do
     testRules
     experimentRules
     analysisRules
+    preCommitRules
