@@ -3,22 +3,9 @@ module AslBuild.Analysis where
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           Control.Monad.Reader
-
 import           AslBuild.Constants
-import           AslBuild.OptParse
 import           AslBuild.RunBaseLine
 
-analysisRules :: AslBuilder ()
-analysisRules = do
-    c <- ask
-    lift $ do
-        case c of
-            BuildAll -> want [analysisRule]
-            BuildAnalysis -> want [analysisRule]
-            _ -> return ()
-
-        analysis
 
 localResults :: FilePath
 localResults = csvOut
@@ -44,12 +31,15 @@ analysisScript = analysisDir </> "analyze.r"
 analysisRule :: String
 analysisRule = "analysis"
 
-analysis :: Rules ()
-analysis = do
+cleanAnalysisRule :: String
+cleanAnalysisRule = "clean-analysis"
+
+analysisRules :: Rules ()
+analysisRules = do
     analysisRule ~> need localhostPlots
 
     localhostPlots &%> \_ -> do
         need [analysisScript]--, localResults]
         cmd rCmd analysisScript localResults localhostPlotTps localhostPlotAvg
 
-
+    cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]

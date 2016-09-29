@@ -4,37 +4,45 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.OptParse
 import           AslBuild.Utils
 
+milestone1Reportname :: String
+milestone1Reportname = "r1"
+
+milestone1ReportOut :: FilePath
+milestone1ReportOut = outDir </> "tom_sydney_kerckhove_asl_report_milestone1" <.> pdfExt
+
+milestone1ReportInBuildDir :: FilePath
+milestone1ReportInBuildDir = reportsDir </> milestone1Reportname <.> pdfExt
+
+milestone1Reporttex :: FilePath
+milestone1Reporttex = milestone1Reportname  <.> texExt
+
+milestone1ReporttexInBuildDir :: FilePath
+milestone1ReporttexInBuildDir = reportsDir </> milestone1Reporttex
+
+commonTex :: FilePath
+commonTex = reportsDir </> "common" <.> texExt
+
+reportsRule :: String
+reportsRule = "reports"
+
 cleanReportsRule :: String
-cleanReportsRule = "cleanreports"
+cleanReportsRule = "clean-reports"
 
-reportRules :: AslBuilder ()
+reportRules :: Rules ()
 reportRules = do
-    c <- ask
-    lift $ do
-        let milestone1Reportname = "r1"
-        let milestone1ReportOut = outDir </> "tom_sydney_kerckhove_asl_report_milestone1" <.> pdfExt
-        let milestone1ReportInBuildDir = reportsDir </> milestone1Reportname <.> pdfExt
-        let milestone1Reporttex = milestone1Reportname  <.> texExt
-        let milestone1ReporttexInBuildDir = reportsDir </> milestone1Reporttex
-        let commonTex = reportsDir </> "common" <.> texExt
-        case c of
-            BuildAll -> want [milestone1ReportOut]
-            BuildReports -> want [milestone1ReportOut]
-            BuildClean -> want [cleanReportsRule]
-            _ -> return ()
+    reportsRule ~> need [milestone1ReportOut]
 
-        milestone1ReportInBuildDir %> \_ -> do
-            need [commonTex]
-            need [milestone1ReporttexInBuildDir]
-            cmd (Cwd reportsDir) "latexmk" "-pdf" milestone1Reporttex
+    milestone1ReportInBuildDir %> \_ -> do
+        need [commonTex]
+        need [milestone1ReporttexInBuildDir]
+        cmd (Cwd reportsDir) "latexmk" "-pdf" milestone1Reporttex
 
-        milestone1ReportOut `byCopying` milestone1ReportInBuildDir
+    milestone1ReportOut `byCopying` milestone1ReportInBuildDir
 
-        phony cleanReportsRule $ do
-            removeFilesAfter outDir [milestone1ReportOut]
-            removeFilesAfter reportsDir
-                ["//*.pdf", "//*.aux", "//*.log", "//*.fls", "//*.fdb_latexmk"]
+    phony cleanReportsRule $ do
+        removeFilesAfter outDir [milestone1ReportOut]
+        removeFilesAfter reportsDir
+            ["//*.pdf", "//*.aux", "//*.log", "//*.fls", "//*.fdb_latexmk"]
 

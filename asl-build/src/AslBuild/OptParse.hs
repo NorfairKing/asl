@@ -14,16 +14,10 @@ import           Data.List.Split
 import           Data.Maybe
 import           Data.Monoid
 import           Data.Text               (Text)
-import           Development.Shake       (Rules)
 import           Options.Applicative
 import           System.Exit
 
 import           AslBuild.Create.Types
-
-type AslBuilder = ReaderT BuildContext Rules
-
-getSetting :: (BuildContext -> a) -> AslBuilder a
-getSetting = asks
 
 getArguments :: [String] -> IO Arguments
 getArguments args = do
@@ -32,21 +26,11 @@ getArguments args = do
 
 type Arguments = (Command, Flags)
 data Command
-    = CommandBuild BuildContext
+    = CommandBuild String -- Target
     | CommandRun Experiment
     | CommandCreate CreateCommand
     | CommandTest
     | CommandClean
-    deriving (Show, Eq)
-
-data BuildContext
-    = BuildAll
-    | BuildClean
-    | BuildReports
-    | BuildTest
-    | BuildRunExperiment Experiment
-    | BuildAnalysis
-    | BuildTravis
     deriving (Show, Eq)
 
 data Experiment
@@ -98,43 +82,10 @@ parseCommand = hsubparser $ mconcat
 parseBuild :: ParserInfo Command
 parseBuild = info parser modifier
   where
-    parser = CommandBuild <$> subp
-    subp = hsubparser $ mconcat
-        [ command "all"      parseBuildAll
-        , command "reports"  parseBuildReports
-        , command "analysis" parseBuildAnalysis
-        , command "travis"   parseBuildTravis
-        ]
+    parser = CommandBuild <$> strArgument
+        (help "the target to build")
     modifier = fullDesc
             <> progDesc "Build parts of the system"
-
-parseBuildAll :: ParserInfo BuildContext
-parseBuildAll = info parser modifier
-  where
-    parser = pure BuildAll
-    modifier = fullDesc
-            <> progDesc "Build all the parts"
-
-parseBuildReports :: ParserInfo BuildContext
-parseBuildReports = info parser modifier
-  where
-    parser = pure BuildReports
-    modifier = fullDesc
-            <> progDesc "Build the reports"
-
-parseBuildAnalysis :: ParserInfo BuildContext
-parseBuildAnalysis = info parser modifier
-  where
-    parser = pure BuildAnalysis
-    modifier = fullDesc
-            <> progDesc "Run the analysis scripts"
-
-parseBuildTravis :: ParserInfo BuildContext
-parseBuildTravis = info parser modifier
-  where
-    parser = pure BuildTravis
-    modifier = fullDesc
-            <> progDesc "Run everything travis will run"
 
 parseClean :: ParserInfo Command
 parseClean = info parser modifier
@@ -240,7 +191,7 @@ parseFlags = Flags
 type Instructions = (Dispatch, Settings)
 
 data Dispatch
-    = DispatchBuild BuildContext
+    = DispatchBuild String
     | DispatchClean
     | DispatchTest
     | DispatchRun Experiment
@@ -378,7 +329,7 @@ combineToInstructions :: Command -> Flags -> Configuration -> IO (Dispatch, Sett
 combineToInstructions c _ conf = do
     let sets = Settings
     case c of
-        CommandBuild bctx -> pure (DispatchBuild bctx, sets)
+        CommandBuild targ -> pure (DispatchBuild targ, sets)
         CommandClean      -> pure (DispatchClean, sets)
         CommandTest       -> pure (DispatchTest, sets)
         CommandRun ex     -> pure (DispatchRun ex, sets)

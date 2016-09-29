@@ -2,26 +2,23 @@ module AslBuild.Build where
 
 import           Development.Shake
 
-import           Control.Monad.Reader
-
 import           AslBuild.Analysis
+import           AslBuild.Clean
 import           AslBuild.CommitHash
 import           AslBuild.Experiments
 import           AslBuild.Jar
 import           AslBuild.Memcached
-import           AslBuild.OptParse
 import           AslBuild.PreCommit
 import           AslBuild.Reports
 import           AslBuild.Test
 import           AslBuild.Travis
 
-doTheShake :: BuildContext -> IO ()
-doTheShake bctx
-    = shakeArgs shakeOptions { shakeVerbosity = Loud }
-    $ theShake bctx
+doTheShake :: IO ()
+doTheShake = shakeArgs args theShake
+  where args = shakeOptions {shakeVerbosity = Loud}
 
-theShake :: BuildContext -> Rules ()
-theShake bctx = flip runReaderT bctx $ do
+theShake :: Rules ()
+theShake  = do
     commitHashRules
     jarRules
     memcachedRules
@@ -29,5 +26,17 @@ theShake bctx = flip runReaderT bctx $ do
     testRules
     experimentRules
     analysisRules
+    cleanRules
     preCommitRules
     travisRules
+
+    allRule ~> need
+        [ commithashRule
+        , jarRule
+        , memcachedRule
+        , reportsRule
+        , analysisRule
+        ]
+
+allRule :: String
+allRule = "all"

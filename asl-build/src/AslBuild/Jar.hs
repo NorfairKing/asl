@@ -4,7 +4,6 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.OptParse
 import           AslBuild.Utils
 
 outputJarFile :: FilePath
@@ -13,30 +12,28 @@ outputJarFile = outDir </> asl <.> jar
 cleanJarRule :: String
 cleanJarRule = "cleanjar"
 
-jarRules :: AslBuilder ()
+jarRule :: String
+jarRule = "jar"
+
+jarRules :: Rules ()
 jarRules = do
-    c <- ask
-    lift $ do
-        case c of
-            BuildAll -> want [outputJarFile]
-            BuildClean -> want [cleanJarRule]
-            _ -> return ()
+    jarRule ~> need [outputJarFile]
 
-        let jarFile = asl <.> jar
-        let jarInBuildDir = codeSrcDir </> dist </> jarFile
+    let jarFile = asl <.> jar
+    let jarInBuildDir = codeSrcDir </> dist </> jarFile
 
-        jarInBuildDir %> \_ -> do
-            let buildFile = codeSrcDir </> build <.> xmlExt
-                propertiesFile = codeSrcDir </> build <.> propertiesExt
-            need [buildFile, propertiesFile]
-            sourceFiles <- absFilesInDir javaSourceDir ["//*" <.> java]
-            need sourceFiles
-            let jarTarget = jar
-                antCmd = ant
-            cmd (Cwd codeSrcDir) antCmd jarTarget
+    jarInBuildDir %> \_ -> do
+        let buildFile = codeSrcDir </> build <.> xmlExt
+            propertiesFile = codeSrcDir </> build <.> propertiesExt
+        need [buildFile, propertiesFile]
+        sourceFiles <- absFilesInDir javaSourceDir ["//*" <.> java]
+        need sourceFiles
+        let jarTarget = jar
+            antCmd = ant
+        cmd (Cwd codeSrcDir) antCmd jarTarget
 
-        outputJarFile `byCopying` jarInBuildDir
+    outputJarFile `byCopying` jarInBuildDir
 
-        phony cleanJarRule $ do
-            removeFilesAfter outDir [outputJarFile]
-            removeFilesAfter codeSrcDir ["//build", "//out", "//dist"]
+    cleanJarRule ~> do
+        removeFilesAfter outDir [outputJarFile]
+        removeFilesAfter codeSrcDir ["//build", "//out", "//dist"]

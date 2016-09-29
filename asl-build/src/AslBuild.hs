@@ -3,12 +3,15 @@ module AslBuild
     ) where
 
 import           Data.List.Split
-import           System.Environment (getArgs, withArgs)
+import           System.Environment          (getArgs, withArgs)
 
 import           AslBuild.Build
+import           AslBuild.Clean
 import           AslBuild.Create
 import           AslBuild.OptParse
-import           AslBuild.Run
+import           AslBuild.RunBaseLine
+import           AslBuild.RunLocalExperiment
+import           AslBuild.Test
 
 aslBuild :: IO ()
 aslBuild = do
@@ -20,10 +23,12 @@ aslBuild = do
             let rest = concat rests
             (command, _) <- getInstructions first
             let shakeArgs = "--color" : rest -- Always use color for shake
-            withArgs shakeArgs $
-                case command of
-                    DispatchBuild buildCtx -> doTheShake buildCtx
-                    DispatchClean -> doTheShake BuildClean
-                    DispatchTest -> doTheShake BuildTest
-                    DispatchRun runCtx  -> run runCtx
-                    DispatchCreate createCtx -> create createCtx
+                buildTarget target = withArgs (target : shakeArgs) doTheShake
+            case command of
+                DispatchBuild target -> buildTarget target
+                DispatchClean -> buildTarget cleanRule
+                DispatchTest -> buildTarget testRule
+                DispatchRun experiment -> buildTarget $ case experiment of
+                    LocalExperiment -> localExperimentRule
+                    BaselineExperiment -> baselineExperimentRule
+                DispatchCreate createCtx -> create createCtx

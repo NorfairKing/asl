@@ -1,10 +1,11 @@
 module AslBuild.Experiments where
 
-import           AslBuild.OptParse
+import           Development.Shake
+
 import           AslBuild.RunBaseLine
 import           AslBuild.RunLocalExperiment
 
-experimentRules :: AslBuilder ()
+experimentRules :: Rules ()
 experimentRules = do
     localExperimentRules
     baselineExperimentRules

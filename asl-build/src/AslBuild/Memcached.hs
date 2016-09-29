@@ -4,27 +4,24 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.OptParse
 import           AslBuild.Utils
+
+memcachedRule :: String
+memcachedRule = "memcached"
 
 cleanMemcachedRule :: String
 cleanMemcachedRule = "cleanmemcached"
 
-memcachedRules :: AslBuilder ()
+memcachedRules :: Rules ()
 memcachedRules = do
-    c <- ask
-    lift $ do
-        case c of
-            BuildAll -> want [memaslapBin, memcachedBin]
-            BuildClean -> want [cleanMemcachedRule]
-            _ -> return ()
+    memcachedBinRules
+    memaslapBinRules
 
-        memcachedBinRules
-        memaslapBinRules
+    memcachedRule ~> need [memcachedBin, memaslapBin]
 
-        phony cleanMemcachedRule $ do
-            removeFilesAfter outDir [memcachedBin, memaslapBin]
-            removeFilesAfter tmpDir ["//"]
+    cleanMemcachedRule ~> do
+        removeFilesAfter outDir [memcachedBin, memaslapBin]
+        removeFilesAfter tmpDir ["//"]
 
 memaslapBinName :: String
 memaslapBinName = "memaslap"

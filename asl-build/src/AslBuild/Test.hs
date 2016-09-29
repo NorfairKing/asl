@@ -3,35 +3,23 @@ module AslBuild.Test where
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           Control.Monad.Reader
-
 import           AslBuild.Constants
-import           AslBuild.OptParse
 
 testRule :: String
 testRule = "test"
 
 cleanTestRule :: String
-cleanTestRule = "cleantest"
+cleanTestRule = "clean-test"
 
-testRules :: AslBuilder ()
+testRules :: Rules ()
 testRules = do
-    c <- ask
+    testRule ~> do
+        need $ map fst javadeps
+        cmd (Cwd codeSrcDir) ant "test"
 
-    lift $ do
-        case c of
-            BuildTest -> want [testRule]
-            BuildClean -> want [cleanTestRule]
-            _ -> return ()
+    cleanTestRule ~> removeFilesAfter javalibdir ["//"]
 
-        testRule ~> do
-            need $ map fst javadeps
-            cmd (Cwd codeSrcDir) ant "test"
-
-        cleanTestRule ~> removeFilesAfter javalibdir ["//"]
-
-        mapM_ (uncurry javalib) javadeps
-
+    mapM_ (uncurry javalib) javadeps
 
 
 javalibdir :: FilePath

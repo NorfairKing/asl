@@ -4,7 +4,6 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.OptParse
 
 commithash :: String
 commithash = "commit"
@@ -12,9 +11,16 @@ commithash = "commit"
 commithashFile :: FilePath
 commithashFile = commithash <.> txtExt
 
-commitHashRules :: AslBuilder ()
-commitHashRules = lift $ do
-    want [commithashFile]
+commithashRule :: String
+commithashRule = "commithash"
+
+cleanCommithashRule :: String
+cleanCommithashRule = "clean-commithash"
+
+commitHashRules :: Rules ()
+commitHashRules = do
+    commithashRule ~> need [commithashFile]
+
     commithashFile %> \_ -> do
         alwaysRerun
         -- Make the hash as short as possible with --short
@@ -23,3 +29,5 @@ commitHashRules = lift $ do
         -- # init to remove newline
         let contents = init hash ++ if null (dirtyStr :: String) then [] else "-dirty"
         writeFileChanged commithashFile contents
+
+    cleanCommithashRule ~> removeFilesAfter "." [commithashFile]

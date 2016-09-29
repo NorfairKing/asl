@@ -18,8 +18,8 @@ linesScript = scriptsDir </> "lines.sh"
 preCommitRule :: String
 preCommitRule = "pre-commit"
 
-preCommitRules :: AslBuilder ()
-preCommitRules = lift $ do
+preCommitRules :: Rules ()
+preCommitRules = do
     preCommitRule ~> do
         need
             [ outputJarFile

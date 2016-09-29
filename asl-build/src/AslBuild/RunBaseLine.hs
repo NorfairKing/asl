@@ -5,6 +5,7 @@ module AslBuild.RunBaseLine where
 
 import           Development.Shake
 
+import           Control.Monad
 import           Data.Aeson             (FromJSON, ToJSON)
 import qualified Data.Aeson             as A
 import qualified Data.ByteString.Lazy   as LB
@@ -15,19 +16,8 @@ import           GHC.Generics
 import           AslBuild.CommonActions
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
-import           AslBuild.OptParse
 import           AslBuild.Types
 import           AslBuild.Utils
-
-baselineExperimentRules :: AslBuilder ()
-baselineExperimentRules = do
-    c <- ask
-    lift $ do
-        case c of
-            BuildRunExperiment BaselineExperiment -> want [baselineExperimentRule]
-            _ -> return ()
-
-        baselineExperiment
 
 baselineExperimentRule :: String
 baselineExperimentRule = "baseline-experiment"
@@ -163,8 +153,8 @@ baselineExperiments BaseLineSetup{..} = do
         , serverSetup = curServerSetup
         }
 
-baselineExperiment :: Rules ()
-baselineExperiment = do
+baselineExperimentRules :: Rules ()
+baselineExperimentRules = do
     phony baselineExperimentRule $ need [csvOut]
 
     let experiments = baselineExperiments baseLineSetup

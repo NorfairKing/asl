@@ -9,18 +9,6 @@ import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
-import           AslBuild.OptParse
-
-localExperimentRules :: AslBuilder ()
-localExperimentRules = do
-    c <- ask
-    lift $ do
-        case c of
-            BuildAll -> want [localExperimentRule]
-            BuildRunExperiment LocalExperiment -> want [localExperimentRule]
-            _ -> return ()
-
-        localExperiment
 
 localExperimentRule :: String
 localExperimentRule = "local-logfile-test"
@@ -45,8 +33,8 @@ msFlags = MemaslapFlags
     , msConfigFile = memaslapConfigFile
     }
 
-localExperiment :: Rules ()
-localExperiment = do
+localExperimentRules :: Rules ()
+localExperimentRules = do
     phony localExperimentRule $ need [csvOut]
     logFile %> \_ -> do
         need [memcachedBin, memaslapBin]
