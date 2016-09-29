@@ -62,9 +62,9 @@ before_install:
 - ln -s /home/travis/.ssh/authorized_keys /home/travis/.ssh/authorized_keys2
 - echo "Host localhost" >> /home/travis/.ssh/config
 - echo "    StrictHostKeyChecking no" >> /home/travis/.ssh/config
-- echo "    IdentityFile custom_id_rsa" >> /home/travis/.ssh/config
+- echo "    IdentityFile ~/.ssh/custom_id_rsa" >> /home/travis/.ssh/config
 - chmod g-rw,o-rw /home/travis/.ssh/*
-- cat ~/.ssh/custom_id_rsa
+- cat ~/.ssh/config
 
 install:
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
