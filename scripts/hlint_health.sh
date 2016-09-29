@@ -1,3 +1,4 @@
+#!/bin/bash
 source scripts/lib.sh
 h () {
   hlint \
