@@ -18,7 +18,7 @@ jarRules = do
     c <- ask
     lift $ do
         case c of
-            BuildAll _ -> want [outputJarFile]
+            BuildAll -> want [outputJarFile]
             BuildClean -> want [cleanJarRule]
             _ -> return ()
 

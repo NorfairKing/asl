@@ -16,7 +16,7 @@ localExperimentRules = do
     c <- ask
     lift $ do
         case c of
-            BuildAll _ -> want [localExperimentRule]
+            BuildAll -> want [localExperimentRule]
             BuildRunExperiment LocalExperiment -> want [localExperimentRule]
             _ -> return ()
 

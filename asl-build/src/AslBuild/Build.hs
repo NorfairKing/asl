@@ -13,6 +13,7 @@ import           AslBuild.OptParse
 import           AslBuild.PreCommit
 import           AslBuild.Reports
 import           AslBuild.Test
+import           AslBuild.Travis
 
 doTheShake :: BuildContext -> IO ()
 doTheShake bctx
@@ -29,3 +30,4 @@ theShake bctx = flip runReaderT bctx $ do
     experimentRules
     analysisRules
     preCommitRules
+    travisRules

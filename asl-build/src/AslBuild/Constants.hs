@@ -148,6 +148,9 @@ stackCmd = "stack"
 javaCmd :: String
 javaCmd = "java"
 
+rCmd :: String
+rCmd = "Rscript"
+
 -- Hosts
 localhost :: String
 localhost = "localhost"

@@ -6,10 +6,14 @@ import           Development.Shake.FilePath
 import           AslBuild.Constants
 import           AslBuild.OptParse
 
+commithash :: String
+commithash = "commit"
+
+commithashFile :: FilePath
+commithashFile = commithash <.> txtExt
+
 commitHashRules :: AslBuilder ()
 commitHashRules = lift $ do
-    let commithash = "commit"
-        commithashFile = commithash <.> txtExt
     want [commithashFile]
     commithashFile %> \_ -> do
         alwaysRerun

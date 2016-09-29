@@ -15,7 +15,7 @@ memcachedRules = do
     c <- ask
     lift $ do
         case c of
-            BuildAll _ -> want [memaslapBin, memcachedBin]
+            BuildAll -> want [memaslapBin, memcachedBin]
             BuildClean -> want [cleanMemcachedRule]
             _ -> return ()
 

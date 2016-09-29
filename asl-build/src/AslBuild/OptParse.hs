@@ -41,13 +41,12 @@ data Command
 
 data BuildContext
     = BuildAll
-        { buildTravis :: Bool
-        }
     | BuildClean
     | BuildReports
     | BuildTest
     | BuildRunExperiment Experiment
     | BuildAnalysis
+    | BuildTravis
     deriving (Show, Eq)
 
 data Experiment
@@ -104,6 +103,7 @@ parseBuild = info parser modifier
         [ command "all"      parseBuildAll
         , command "reports"  parseBuildReports
         , command "analysis" parseBuildAnalysis
+        , command "travis"   parseBuildTravis
         ]
     modifier = fullDesc
             <> progDesc "Build parts of the system"
@@ -111,10 +111,7 @@ parseBuild = info parser modifier
 parseBuildAll :: ParserInfo BuildContext
 parseBuildAll = info parser modifier
   where
-    parser = BuildAll
-        <$> switch
-            ( long "travis"
-            <> help "Run on travis")
+    parser = pure BuildAll
     modifier = fullDesc
             <> progDesc "Build all the parts"
 
@@ -131,6 +128,13 @@ parseBuildAnalysis = info parser modifier
     parser = pure BuildAnalysis
     modifier = fullDesc
             <> progDesc "Run the analysis scripts"
+
+parseBuildTravis :: ParserInfo BuildContext
+parseBuildTravis = info parser modifier
+  where
+    parser = pure BuildTravis
+    modifier = fullDesc
+            <> progDesc "Run everything travis will run"
 
 parseClean :: ParserInfo Command
 parseClean = info parser modifier

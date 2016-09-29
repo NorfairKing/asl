@@ -21,7 +21,7 @@ reportRules = do
         let milestone1ReporttexInBuildDir = reportsDir </> milestone1Reporttex
         let commonTex = reportsDir </> "common" <.> texExt
         case c of
-            BuildAll onTravis -> unless onTravis $ want [milestone1ReportOut]
+            BuildAll -> want [milestone1ReportOut]
             BuildReports -> want [milestone1ReportOut]
             BuildClean -> want [cleanReportsRule]
             _ -> return ()

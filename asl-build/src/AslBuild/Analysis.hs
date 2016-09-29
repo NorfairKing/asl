@@ -13,10 +13,9 @@ analysisRules :: AslBuilder ()
 analysisRules = do
     c <- ask
     lift $ do
-        let analysisTargets = localhostPlots
         case c of
-            BuildAll _ -> want analysisTargets
-            BuildAnalysis -> want analysisTargets
+            BuildAll -> want [analysisRule]
+            BuildAnalysis -> want [analysisRule]
             _ -> return ()
 
         analysis
@@ -42,11 +41,13 @@ localhostPlots = [localhostPlotTps, localhostPlotAvg]
 analysisScript :: FilePath
 analysisScript = analysisDir </> "analyze.r"
 
-rCmd :: String
-rCmd = "Rscript"
+analysisRule :: String
+analysisRule = "analysis"
 
 analysis :: Rules ()
-analysis =
+analysis = do
+    analysisRule ~> need localhostPlots
+
     localhostPlots &%> \_ -> do
         need [analysisScript]--, localResults]
         cmd rCmd analysisScript localResults localhostPlotTps localhostPlotAvg
