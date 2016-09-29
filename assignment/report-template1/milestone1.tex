@@ -1,8 +1,21 @@
 \documentclass[11pt]{article}
 \usepackage[a4paper, portrait, margin=1in]{geometry}
 \usepackage{hyperref}
+% Fancy header package for version number
 
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
 
+\fancypagestyle{firstpagefooter}
+{
+\lfoot{Version: 29.09.2016}
+\cfoot{}
+\rfoot{\thepage}
+}
+\cfoot{\thepage}
 
 \begin{document}
 
@@ -32,6 +45,7 @@ number}}}
 }
 
 \maketitle
+\thispagestyle{firstpagefooter}
 \newpage
 
 \section*{Notes on writing the report \small{(remove this page for submission)}}
@@ -97,6 +111,7 @@ How are reads handled in the system? How does the middleware make sure that the 
 \section{Memcached Baselines}\label{sec:baseline}
 
 This section will report experimental results. All such parts will start with a short description of the experimental setup. The log files should be identified by a short name, or number, which will be explicitly listed at the end of the document (see Logfile Listing at the end).  \textbf{If this table is missing or the logfiles listed can't be found in your repository the experiment could be considered invalid, and no points will be awarded!}
+For baseline measurement of memcached provide \textbf{two} graphs (Section~\ref{sec:baseline:tput} and \ref{sec:baseline:rt}), one with aggregated throughput and one with average response time and standard deviation as a function of number of virtual clients. Increase these in steps from 1 to 128. Give a short explanation of memcache's behavior and find the number of virtual clients that saturate the server.
 
 \small{
 \smallskip
@@ -104,13 +119,17 @@ This section will report experimental results. All such parts will start with a 
 \hline Number of servers & 1 \\ 
 \hline Number of client machines & 1 to 2 \\ 
 \hline Virtual clients / machine & 1 to 64 \\ 
+\hline Workload & Key 16B, Value 128B, Writes 1\% \footnotemark \\
 \hline Middleware & Not present \\ 
 \hline Runtime x repetitions & 30s x 5 \\ 
 \hline Log files & microbench1, microbench2, \ldots \\
 \hline 
 \end{tabular} }
 
-For baseline measurement of memcached provide \textbf{two} graphs (Section~\ref{sec:baseline:tput} and \ref{sec:baseline:rt}), one with aggregated throughput and one with average response time and standard deviation as a function of number of virtual clients. Increase these in steps from 1 to 128. Give a short explanation of memcache's behavior and find the number of virtual clients that saturate the server.
+\footnotetext{As starting point use the workloads provided in \url{http://www.systems.ethz.ch/sites/default/files/file/asl2016/memaslap-workloads.tar}. Use by default the \emph{small} workload. In later experiments you can and should change read-write ratios and potentially use other value sizes.}
+
+
+
 
 \subsection{Throughput}\label{sec:baseline:tput}
 See previous explanation.
@@ -119,7 +138,8 @@ See previous explanation.
 
 \section{Stability Trace}\label{sec:trace}
 
-In this section you will have to show that the middleware is functional and it can handle a long-running workload without crashing or degrading in performance. For this you will run it without replication for one hour connected to three memcache instances and three load generator machines. The experiment has to be repeated for the case when writes are replicated to 1+2 nodes, that is to all three of them.
+In this section you will have to show that the middleware is functional and it can handle a long-running workload without crashing or degrading in performance. For this you will run it with full replication for one hour connected to three memcache instances and three load generator machines.
+You will have to provide two graphs. The x-axis is time and the y-axis is either throughput or response time. Include standard deviation whenever applicable. 
 
 \small{
 \smallskip
@@ -127,13 +147,14 @@ In this section you will have to show that the middleware is functional and it c
 \hline Number of servers & 3 \\ 
 \hline Number of client machines & 3 \\ 
 \hline Virtual clients / machine &  64 (explain if chosen otherwise) \\ 
-\hline Middleware & No replication, Replicate to all \\ 
+\hline Workload & Key 16B, Value 128B, Writes 1\% (see footnote) \\
+\hline Middleware & Replicate to all (R=3) \\ 
 \hline Runtime x repetitions & 1h x 1 \\ 
 \hline Log files & trace1, \ldots \\
 \hline 
 \end{tabular} }
 
-You will have to provide two graphs each depicting two separate measurements of the middleware (with and without replication). The x-axis is time and the y-axis is either throughput or response time. Include standard deviation whenever applicable. 
+
 
 \subsection{Throughput}
 See previous explanation.
@@ -158,6 +179,5 @@ Compare the performance you expect based on the baselines and the one you observ
 \hline \dots & \dots \\ 
 \hline 
 \end{tabular} 
-
 
 \end{document}
