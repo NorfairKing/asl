@@ -57,7 +57,7 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
 startMemcachedScript :: Script
 startMemcachedScript = Script
     "start-memcached-detached"
-    [remoteMemcachedBin ++ "-d"]
+    [remoteMemcachedBin ++ " -d"]
 
 rulesForGivenBaselineExperiment :: BaselineExperimentRuleCfg -> Rules ()
 rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
@@ -66,8 +66,8 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
     let experiments = mkBaselineExperiments berc
 
     let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
-    resultsFiles &%> \_ ->
-
+    resultsFiles &%> \_ -> do
+        need [memcachedBin, memaslapBin]
         -- Intentionally no parallelism here.
         forM_ (indexed experiments) $ \(ix, eSetup@BaselineExperimentSetup{..}) -> do
             putLoud $ "Running experiment: [" ++ show ix ++ "/" ++ show (length experiments) ++ "]"
