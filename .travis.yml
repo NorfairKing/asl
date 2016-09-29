@@ -68,6 +68,10 @@ script:
 - |
   set -ex
   stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps --copy-bins
-  echo "yes" | ssh localhost "echo hi"
+
+  if [ -z `ssh-keygen -F localhost` ]; then
+    ssh-keyscan -H localhost >> ~/.ssh/known_hosts
+  fi
+
   asl build travis
   set +ex
