@@ -1,10 +1,12 @@
 module AslBuild.Build where
 
 import           Development.Shake
+import           Development.Shake.Config
 
 import           AslBuild.Analysis
 import           AslBuild.Clean
 import           AslBuild.CommitHash
+import           AslBuild.Create
 import           AslBuild.Experiments
 import           AslBuild.Jar
 import           AslBuild.Memcached
@@ -19,6 +21,8 @@ doTheShake = shakeArgs args theShake
 
 theShake :: Rules ()
 theShake  = do
+    usingConfigFile "config.cfg"
+
     commitHashRules
     jarRules
     memcachedRules
@@ -26,6 +30,7 @@ theShake  = do
     testRules
     experimentRules
     analysisRules
+    createRules
     cleanRules
     preCommitRules
     travisRules

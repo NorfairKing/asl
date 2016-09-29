@@ -76,6 +76,9 @@ outDir = out
 tmpDir :: FilePath
 tmpDir = tmp
 
+assignmentDir :: FilePath
+assignmentDir = "assignment"
+
 resultsDir :: FilePath
 resultsDir = "results"
 
@@ -150,6 +153,12 @@ javaCmd = "java"
 
 rCmd :: String
 rCmd = "Rscript"
+
+sedCmd :: String
+sedCmd = "sed"
+
+azureCmd :: String
+azureCmd = "azure"
 
 -- Hosts
 localhost :: String

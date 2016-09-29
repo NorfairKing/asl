@@ -73,7 +73,7 @@ memaslapBinRules = do
 
     libmemcachedArchiveConfigureFile %> \_ -> do
         need [libmemcachedArchiveFullFile]
-        cmd "tar"
+        cmd tarCmd
             "--extract"
             "--verbose"
             "--file" libmemcachedArchiveFullFile
