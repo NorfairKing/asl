@@ -56,6 +56,14 @@ before_install:
 # Get the list of packages from the stack.yaml file
 - PACKAGES=$(stack --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
 
+# Have travis generate its own ssh keys
+- ssh-keygen -t rsa -C whatever@example.com -P '' -f ~/.ssh/id_rsa
+- cat /home/travis/.ssh/id_rsa.pub >> /home/travis/.ssh/authorized_keys
+- ln -s /home/travis/.ssh/authorized_keys /home/travis/.ssh/authorized_keys2
+- echo "Host localhost" >> /home/travis/.ssh/config
+- echo "    StrictHostKeyChecking no" >> /home/travis/.ssh/config
+- chmod g-rw,o-rw /home/travis/.ssh/*
+
 install:
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 - if [ -f configure.ac ]; then autoreconf -i; fi
@@ -68,10 +76,5 @@ script:
 - |
   set -ex
   stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps --copy-bins
-
-  if [ -z `ssh-keygen -F localhost` ]; then
-    ssh-keyscan -H localhost >> ~/.ssh/known_hosts
-  fi
-
   asl build travis
   set +ex
