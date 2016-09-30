@@ -1,21 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.OptParse
     ( module AslBuild.OptParse
     , module Control.Monad.Reader
     ) where
 
-import           Prelude                 hiding (lookup)
+import           Prelude              hiding (lookup)
 
 import           Control.Monad.Reader
-import           Data.Configurator
-import           Data.Configurator.Types (Config)
-import           Data.List.Split
-import           Data.Maybe
 import           Data.Monoid
-import           Data.Text               (Text)
 import           Options.Applicative
-import           System.Exit
 
 getArguments :: [String] -> IO Arguments
 getArguments args = do
@@ -158,11 +151,12 @@ getInstructionsHelper args getConfig combine = do
     combine cmd flags configuration
 
 combineToInstructions :: Command -> Flags -> Configuration -> IO (Dispatch, Settings)
-combineToInstructions c _ conf = do
+combineToInstructions c _ _ = do
     let sets = Settings
-    case c of
-        CommandBuild targ -> pure (DispatchBuild targ, sets)
-        CommandClean      -> pure (DispatchClean, sets)
-        CommandTest       -> pure (DispatchTest, sets)
-        CommandRun ex     -> pure (DispatchRun ex, sets)
+    let d = case c of
+            CommandBuild targ -> DispatchBuild targ
+            CommandClean      -> DispatchClean
+            CommandTest       -> DispatchTest
+            CommandRun ex     -> DispatchRun ex
+    return (d, sets)
 

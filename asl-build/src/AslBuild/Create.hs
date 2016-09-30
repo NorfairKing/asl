@@ -4,12 +4,11 @@ import           Data.List                  (intercalate)
 import           System.Directory           (getHomeDirectory)
 
 import           Development.Shake
-import           Development.Shake.Config
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.OptParse
 import           AslBuild.Utils
+import           AslBuild.Vm.Config
 
 create3VmsRule :: String
 create3VmsRule = "create-3vms"
@@ -46,11 +45,14 @@ createRules = do
                 "--file" templateArchive
                 "--directory" dir
 
+            netzhId <- getStrictConfig "netzh-id"
+            publicKeyFile <- getStrictConfig "public-key-file"
+
             let personalize :: FilePath -> FilePath -> Action ()
                 personalize fileIn fileOut = do
                     home <- liftIO getHomeDirectory
                     -- Init: remove trailing newline
-                    pubkey <- init <$> readFile' (home </> ".ssh/id_rsa.pub")
+                    pubkey <- init <$> readFile' (home </> ".ssh" </> publicKeyFile)
                     let escape = concatMap replace
                         replace ' ' = "\\ "
                         replace '/' = "\\/"
@@ -59,7 +61,7 @@ createRules = do
                     unit $ cmd (FileStdout fileOut) sedCmd
                         [intercalate ";"
                             [ "s/your_public_SSH_key/" ++ escape pubkey ++ "/g"
-                            , "s/your_nethz/tomk/g"
+                            , "s/your_nethz/" ++ escape netzhId ++ "/g"
                             , "s/defaultValue\\\":\\ null/defaultValue\\\":\\ \\\"pass\\\"/g"
                             ]]
                         fileIn
@@ -71,7 +73,7 @@ createRules = do
     create11VmsRule ~> createResourceGroupFromTemplate template11vms
 
     deleteVmsRule ~> do
-        resourceGroupName <- getStrictConfig "resource-group-name"
+        resourceGroupName <- getResourceGroupName
         cmd azureCmd "group" "delete"
             "--name" resourceGroupName
             "--nowait"
@@ -79,8 +81,8 @@ createRules = do
 createResourceGroupFromTemplate :: FilePath -> Action ()
 createResourceGroupFromTemplate template = do
     need [template]
-    resourceGroupName <- getStrictConfig "resource-group-name"
-    resourceGroupLocation <- getStrictConfig "resource-group-location"
+    resourceGroupName <- getResourceGroupName
+    resourceGroupLocation <- getResourceGroupLocation
     cmd azureCmd "group" "create"
         "--name" resourceGroupName
         "--location" resourceGroupLocation

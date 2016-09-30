@@ -7,6 +7,7 @@ import           Development.Shake.FilePath
 
 import           Control.Monad
 import qualified Data.Aeson                 as A
+import qualified Data.Aeson.Encode.Pretty   as A
 import qualified Data.ByteString.Lazy       as LB
 import           Data.List
 
@@ -119,7 +120,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                                 , erClientSetup = cSetup
                                 , erMemaslapLog = parsedLog
                                 }
-                        liftIO $ LB.writeFile cResultsFile $ A.encode results
+                        liftIO $ LB.writeFile cResultsFile $ A.encodePretty results
 
             -- Make sure no memcached servers are running anymore
             overSsh server $ unwords ["killall", memcachedBinName]

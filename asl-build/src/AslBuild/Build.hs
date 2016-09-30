@@ -14,6 +14,7 @@ import           AslBuild.PreCommit
 import           AslBuild.Reports
 import           AslBuild.Test
 import           AslBuild.Travis
+import           AslBuild.Vm
 
 doTheShake :: IO ()
 doTheShake = shakeArgs args theShake
@@ -31,6 +32,7 @@ theShake  = do
     experimentRules
     analysisRules
     createRules
+    vmRules
     cleanRules
     preCommitRules
     travisRules

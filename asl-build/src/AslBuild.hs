@@ -8,7 +8,6 @@ import           System.Environment    (getArgs, withArgs)
 import           AslBuild.Baseline
 import           AslBuild.Build
 import           AslBuild.Clean
-import           AslBuild.Create
 import           AslBuild.LocalLogTest
 import           AslBuild.OptParse
 import           AslBuild.Test
