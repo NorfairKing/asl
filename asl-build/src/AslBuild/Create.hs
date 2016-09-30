@@ -1,6 +1,7 @@
 module AslBuild.Create where
 
 import           Data.List                  (intercalate)
+import           System.Directory           (getHomeDirectory)
 
 import           Development.Shake
 import           Development.Shake.Config
@@ -47,9 +48,17 @@ createRules = do
 
             let personalize :: FilePath -> FilePath -> Action ()
                 personalize fileIn fileOut = do
+                    home <- liftIO getHomeDirectory
+                    -- Init: remove trailing newline
+                    pubkey <- init <$> readFile' (home </> ".ssh/id_rsa.pub")
+                    let escape = concatMap replace
+                        replace ' ' = "\\ "
+                        replace '/' = "\\/"
+                        replace '\\' = "\\\\"
+                        replace c = [c]
                     unit $ cmd (FileStdout fileOut) sedCmd
                         [intercalate ";"
-                            [ "s/your_public_SSH_key/id_rsa.pub/g"
+                            [ "s/your_public_SSH_key/" ++ escape pubkey ++ "/g"
                             , "s/your_nethz/tomk/g"
                             , "s/defaultValue\\\":\\ null/defaultValue\\\":\\ \\\"pass\\\"/g"
                             ]]
@@ -65,6 +74,7 @@ createRules = do
         resourceGroupName <- getStrictConfig "resource-group-name"
         cmd azureCmd "group" "delete"
             "--name" resourceGroupName
+            "--nowait"
 
 createResourceGroupFromTemplate :: FilePath -> Action ()
 createResourceGroupFromTemplate template = do
