@@ -18,6 +18,7 @@ import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.Types
 import           AslBuild.Utils
+import           AslBuild.Vm
 
 baselineExperimentRules :: Rules ()
 baselineExperimentRules = do
@@ -32,6 +33,8 @@ localBaselineExperiment = BaselineExperimentRuleCfg
     { target = localBaselineExperimentRule
     , csvOutFile = resultsDir </> "local-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "local-baseline_memaslaplog.txt"
+    , baselineExperimentsCacheFile = tmpDir </> "local-baseline-experiments.json"
+    , baselineLocation = BaselineLocal
     , baselineSetup = BaseLineSetup
         { repetitions = 2
         , runtime = 5
@@ -47,6 +50,8 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
     { target = remoteBaselineExperimentRule
     , csvOutFile = resultsDir </> "remote-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "remote-baseline_memaslaplog.txt"
+    , baselineExperimentsCacheFile = tmpDir </> "remote-baseline-experiments.json"
+    , baselineLocation = BaselineRemote
     , baselineSetup = BaseLineSetup
         { repetitions = 5
         , runtime = 30
@@ -60,15 +65,29 @@ startMemcachedScript = Script
     "start-memcached-detached"
     [remoteMemcachedBin ++ " -d"]
 
+localhostLogin :: RemoteLogin
+localhostLogin = RemoteLogin Nothing "localhost"
+
 rulesForGivenBaselineExperiment :: BaselineExperimentRuleCfg -> Rules ()
 rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
     target ~> need [csvOutFile]
 
-    let experiments = mkBaselineExperiments berc
+    baselineExperimentsCacheFile %> \_ -> do
+        (clients, server) <- case baselineLocation of
+                BaselineLocal -> return (replicate 2 localhostLogin, localhostLogin)
+                BaselineRemote -> (\(c,_,[s]) -> (c, s)) <$> getVms 2 0 1
+        experiments <- mkBaselineExperiments berc clients server
+        liftIO $ LB.writeFile baselineExperimentsCacheFile $ A.encodePretty experiments
 
-    let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
-    resultsFiles &%> \_ -> do
-        need [memcachedBin, memaslapBin]
+
+    csvOutFile %> \_ -> do
+        need [memcachedBin, memaslapBin, baselineExperimentsCacheFile]
+        experiments <- do
+            contents <- liftIO $ LB.readFile baselineExperimentsCacheFile
+            case A.eitherDecode contents of
+                Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
+                Right exps -> return exps
+
         -- Intentionally no parallelism here.
         forM_ (indexed experiments) $ \(ix, eSetup@BaselineExperimentSetup{..}) -> do
             putLoud $ "Running experiment: [" ++ show ix ++ "/" ++ show (length experiments) ++ "]"
@@ -125,34 +144,33 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             -- Make sure no memcached servers are running anymore
             overSsh server $ unwords ["killall", memcachedBinName]
 
-    csvOutFile %>  \_ -> do
-        need resultsFiles
+        let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles
         case mapM A.decode' explogs of
             Nothing -> fail "Could not parse result files."
             Just results -> liftIO $ LB.writeFile csvOutFile $ resultsCsv results
 
-mkBaselineExperiments :: BaselineExperimentRuleCfg -> [BaselineExperimentSetup]
-mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
+
+-- TODO separate login url from internal URL for cluster
+mkBaselineExperiments
+    :: BaselineExperimentRuleCfg
+    -> [RemoteLogin] -- ^ available Clients
+    -> RemoteLogin -- ^ Server
+    -> Action [BaselineExperimentSetup]
+mkBaselineExperiments BaselineExperimentRuleCfg{..} clientLogins serverLogin = return $ do
     let BaseLineSetup{..} = baselineSetup
-    let localhostLogin = RemoteLogin Nothing "localhost"
-    let serverLogin = localhostLogin
-    let clientLogin = localhostLogin
 
     let curServerSetup = ServerSetup
             { sRemoteLogin = serverLogin
             }
 
-
     let servers = [loginToMemcachedServerUrl serverLogin]
+
     let threads = length servers
     concurrents <- takeWhile (<= maxNrVirtualClients) $ iterate (*2) threads
     rep <- [1 .. repetitions]
 
-
-    let allClients = [clientLogin, clientLogin]
-
-    nrClients <- [1, 2]
+    nrClients <- [1 .. length clientLogins]
 
     let signature = intercalate "-"
             [ show nrClients
@@ -164,7 +182,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
 
     let experimentTmpDir = tmpDir </> target
 
-    let curclients = take nrClients allClients
+    let curclients = take nrClients clientLogins
     let curClientSetups = flip map (indexed curclients) $ \(i, login) -> ClientSetup
             { cRemoteLogin = login
             , cLocalLog = sign i $ experimentTmpDir </> "baselinelog"

@@ -11,20 +11,28 @@ import           GHC.Generics
 import           AslBuild.Memaslap
 import           AslBuild.Types
 
+
 data BaselineExperimentRuleCfg
     = BaselineExperimentRuleCfg
-    { target        :: String
-    , csvOutFile    :: FilePath
-    , localLogfile  :: FilePath
-    , baselineSetup :: BaseLineSetup
-    }
+    { target                       :: String
+    , csvOutFile                   :: FilePath
+    , localLogfile                 :: FilePath
+    , baselineExperimentsCacheFile :: FilePath
+    , baselineLocation             :: BaselineLocation
+    , baselineSetup                :: BaseLineSetup
+    } deriving (Show, Eq, Generic)
+
+data BaselineLocation
+    = BaselineLocal
+    | BaselineRemote
+    deriving (Show, Eq, Generic)
 
 data BaseLineSetup
     = BaseLineSetup
     { repetitions         :: Int
     , runtime             :: Int
     , maxNrVirtualClients :: Int
-    }
+    } deriving (Show, Eq, Generic)
 
 data BaselineExperimentSetup
     = BaselineExperimentSetup

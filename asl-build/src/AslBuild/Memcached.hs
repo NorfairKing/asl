@@ -56,14 +56,8 @@ libmemcachedUrl = "https://launchpad.net/libmemcached/1.0"
 makeFileInMemaslapDir :: FilePath
 makeFileInMemaslapDir = libmemcachedArchiveFullDir </> makefile
 
-clients :: String
-clients = "clients"
-
-memaslapMakeTarget :: FilePath
-memaslapMakeTarget = clients </> memaslapBinName
-
 memaslapBinInCacheDir :: FilePath
-memaslapBinInCacheDir = libmemcachedArchiveFullDir </> clients </> memaslapBinName
+memaslapBinInCacheDir = libmemcachedArchiveFullDir </> "clients" </> memaslapBinName
 
 memaslapBinRules :: Rules ()
 memaslapBinRules = do

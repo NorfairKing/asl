@@ -10,6 +10,7 @@ data VmData
     { vmName      :: String
     , vmPublicIp  :: String
     , vmPrivateIp :: String
+    , vmAdmin     :: String
     , vmFullUrl   :: String
     } deriving (Show, Eq, Generic)
 
@@ -21,6 +22,8 @@ newtype VmDataInAzureFormat = VmDataInAzureFormat { azureUnpack :: VmData }
 instance FromJSON VmDataInAzureFormat where
     parseJSON (Object o) = do
         name <- o .: "name"
+        (Object osp) <- o .: "osProfile"
+        admin <- osp .: "adminUsername"
         (Object np) <- o .: "networkProfile"
         [Object ni] <- np .: "networkInterfaces"
         (Object nie) <- ni .: "expanded"
@@ -36,6 +39,7 @@ instance FromJSON VmDataInAzureFormat where
             { vmName = name
             , vmPublicIp = publip
             , vmPrivateIp = privip
+            , vmAdmin = admin
             , vmFullUrl = fullUrl
             }
 

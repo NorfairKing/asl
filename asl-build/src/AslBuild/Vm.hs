@@ -9,6 +9,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
+import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm.Config
 import           AslBuild.Vm.Types
@@ -63,3 +64,27 @@ getRawVmData = do
     case eitherDecode contents :: Either String [VmData] of
         Left err -> fail $ "Raw vm data file failed to decode: " ++ err
         Right vms -> return vms
+
+getVms
+    :: Int -- Number of clients
+    -> Int -- Number of middles
+    -> Int -- Number of servers
+    -> Action ([RemoteLogin], [RemoteLogin], [RemoteLogin])
+getVms nrc nrm nrs = do
+    rawVms <- getRawVmData
+    let total = nrc + nrm + nrs
+    let nrAvailable = length rawVms
+    if total >= nrAvailable
+    then fail $ unwords
+        [ "Requested too many servers:"
+        , show total ++ ", only"
+        , show nrAvailable
+        , "available."
+        ]
+    else do
+        let logins = map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmFullUrl) rawVms
+        let clients = take nrc logins
+            middles = take nrm $ drop nrc logins
+            servers = take nrs $ drop (nrc + nrm) logins
+        return (clients, middles, servers)
+
