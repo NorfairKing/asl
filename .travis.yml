@@ -59,7 +59,7 @@ before_install:
 
 - echo "Host localhost" >> /home/travis/.ssh/config
 - echo "    StrictHostKeyChecking no" >> /home/travis/.ssh/config
-- echo "    NoHostAuthenticationForLocalhost=yes no" >> /home/travis/.ssh/config
+- echo "    NoHostAuthenticationForLocalhost yes" >> /home/travis/.ssh/config
 - chmod g-rw,o-rw /home/travis/.ssh/*
 - cat ~/.ssh/config
 
