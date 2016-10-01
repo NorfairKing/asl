@@ -1,5 +1,7 @@
 module AslBuild.Ssh where
 
+import           System.Directory           (getHomeDirectory)
+
 import           Development.Shake
 import           Development.Shake.FilePath
 
@@ -25,13 +27,18 @@ sshRules = do
         , customSshConfigFile
         ]
 
-    [customSshKeyFile, customSshPublicKeyFile] &%> \_ ->
-        cmd "ssh-keygen"
+    [customSshKeyFile, customSshPublicKeyFile] &%> \_ -> do
+        unit $ cmd "ssh-keygen"
             "-t" "rsa"
             "-C" "whatever@example.com"
             "-P" [""]
             "-N" [""]
             "-f" customSshKeyFile
+        liftIO $ do
+            home <- getHomeDirectory
+            pubKey <- readFile customSshPublicKeyFile
+            appendFile (home </> ".ssh" </> "authorized_keys") pubKey
+
 
     customSshConfigFile %> \_ ->
         writeFile' customSshConfigFile $ unlines

@@ -51,12 +51,26 @@ rsyncTo :: RemoteLogin -> FilePath -> FilePath -> Action ()
 rsyncTo rl localThing remoteThing = do
     need [localThing]
     cmd "rsync"
+        "-e"
+        [ unwords
+            [ "ssh"
+            , "-i", customSshKeyFile
+            , "-F", customSshConfigFile
+            ]
+        ]
         localThing
         (remoteLoginStr rl ++ ":" ++ remoteThing)
 
 rsyncFrom :: RemoteLogin -> FilePath -> FilePath -> Action ()
 rsyncFrom rl remoteThing localThing =
     cmd "rsync"
+        "-e"
+        [ unwords
+            [ "ssh"
+            , "-i", customSshKeyFile
+            , "-F", customSshConfigFile
+            ]
+        ]
         (remoteLoginStr rl ++ ":" ++ remoteThing)
         localThing
 
