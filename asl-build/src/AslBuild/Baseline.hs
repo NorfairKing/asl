@@ -39,7 +39,7 @@ localBaselineExperiment = BaselineExperimentRuleCfg
     , baselineLocation = BaselineLocal
     , baselineSetup = BaseLineSetup
         { repetitions = 2
-        , runtime = 5
+        , runtime = 2
         , maxNrVirtualClients = 2
         }
     }
@@ -98,6 +98,34 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                 Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
                 Right exps -> return exps
 
+        -- Get the servers set up
+        let allServers = nub $ map (sRemoteLogin . serverSetup) experiments
+        forP_ allServers $ \srl -> do
+            -- Copy ssh key to server
+            copySshIdTo srl
+
+            -- Copy memcached and its config to the server
+            -- Will do nothing if it's already there. Luckily
+            rsyncTo srl memcachedBin remoteMemcachedBin
+
+        -- Get the clients set up
+        let allClientLogins = nub $ concatMap (map cRemoteLogin . clientSetups) experiments
+        forP_ allClientLogins $ \crl -> do
+            -- Copy the ssh id to the server
+            copySshIdTo crl
+
+            -- Copy the memaslap binary to the client
+            rsyncTo crl memaslapBin remoteMemaslapBin
+
+        -- Get the clients configs set up
+        let allClientSetups = nub $ concatMap clientSetups experiments
+        forP_ allClientSetups $ \ClientSetup{..} -> do
+            -- Generate the memsalap config locally
+            writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
+
+            -- Copy the memaslap config to the client
+            rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
+
         -- Intentionally no parallelism here.
         -- We need to do experiments one at a time.
         forM_ (indexed experiments) $ \(ix, eSetup@BaselineExperimentSetup{..}) -> do
@@ -106,21 +134,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             let maxClientTime = maximum $ map (toSeconds . msTime . msFlags . cMemaslapSettings) clientSetups
             putLoud $ "Approximately " ++ toClockString ((1 + 5 + maxClientTime) * (nrOfExperiments - ix)) ++ " remaining."
 
-
             let ServerSetup{..} = serverSetup
-
-            -- Copy memcached and its config to the server
-            -- Will do nothing if it's already there. Luckily
-            rsyncTo sRemoteLogin memcachedBin remoteMemcachedBin
-
-            -- Copy memaslap and its config to the clients
-            forP_ clientSetups $ \ClientSetup{..} -> do
-                -- Copy the memaslap binary to the client
-                rsyncTo cRemoteLogin memaslapBin remoteMemaslapBin
-                -- Generate the memsalap config locally
-                writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
-                -- Copy the memaslap config to the client
-                rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
 
             -- Start memcached on the server
             scriptAt sRemoteLogin $ script

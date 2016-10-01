@@ -1,12 +1,12 @@
 module AslBuild.Create where
 
 import           Data.List                  (intercalate)
-import           System.Directory           (getHomeDirectory)
 
 import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
+import           AslBuild.Ssh
 import           AslBuild.Utils
 import           AslBuild.Vm.Config
 
@@ -46,13 +46,11 @@ createRules = do
                 "--directory" dir
 
             netzhId <- getStrictConfig "netzh-id"
-            publicKeyFile <- getStrictConfig "public-key-file"
 
             let personalize :: FilePath -> FilePath -> Action ()
                 personalize fileIn fileOut = do
-                    home <- liftIO getHomeDirectory
                     -- Init: remove trailing newline
-                    pubkey <- init <$> readFile' (home </> ".ssh" </> publicKeyFile)
+                    pubkey <- init <$> readFile' customSshKeyFile
                     let escape = concatMap replace
                         replace ' ' = "\\ "
                         replace '/' = "\\/"

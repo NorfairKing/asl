@@ -12,6 +12,7 @@ import           AslBuild.Jar
 import           AslBuild.Memcached
 import           AslBuild.PreCommit
 import           AslBuild.Reports
+import           AslBuild.Ssh
 import           AslBuild.Test
 import           AslBuild.Travis
 import           AslBuild.Vm
@@ -31,6 +32,7 @@ theShake  = do
     testRules
     experimentRules
     analysisRules
+    sshRules
     createRules
     vmRules
     cleanRules

@@ -16,30 +16,31 @@ library
   hs-source-dirs:      src
   exposed-modules:
       AslBuild
-      AslBuild.Analysis
-      AslBuild.Baseline
-      AslBuild.Baseline.Types
-      AslBuild.Build
-      AslBuild.Clean
-      AslBuild.CommitHash
-      AslBuild.CommonActions
-      AslBuild.Constants
-      AslBuild.Create
-      AslBuild.Experiments
-      AslBuild.Jar
-      AslBuild.LocalLogTest
-      AslBuild.Memaslap
-      AslBuild.Memcached
-      AslBuild.OptParse
-      AslBuild.PreCommit
-      AslBuild.Reports
-      AslBuild.Test
-      AslBuild.Travis
-      AslBuild.Types
-      AslBuild.Utils
-      AslBuild.Vm
-      AslBuild.Vm.Config
-      AslBuild.Vm.Types
+    , AslBuild.Analysis
+    , AslBuild.Baseline
+    , AslBuild.Baseline.Types
+    , AslBuild.Build
+    , AslBuild.Clean
+    , AslBuild.CommitHash
+    , AslBuild.CommonActions
+    , AslBuild.Constants
+    , AslBuild.Create
+    , AslBuild.Experiments
+    , AslBuild.Jar
+    , AslBuild.LocalLogTest
+    , AslBuild.Memaslap
+    , AslBuild.Memcached
+    , AslBuild.OptParse
+    , AslBuild.PreCommit
+    , AslBuild.Reports
+    , AslBuild.Ssh
+    , AslBuild.Test
+    , AslBuild.Travis
+    , AslBuild.Types
+    , AslBuild.Utils
+    , AslBuild.Vm
+    , AslBuild.Vm.Config
+    , AslBuild.Vm.Types
   build-depends:
       base                          >= 4.7    && < 5
     , shake                         >= 0.15   && < 0.16

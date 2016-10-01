@@ -8,6 +8,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Memaslap
+import           AslBuild.Ssh
 import           AslBuild.Types
 
 wait :: Int -> Action ()
@@ -32,23 +33,33 @@ scriptAt rl Script{..} = do
     overSsh rl path
 
 overSsh :: RemoteLogin -> String -> Action ()
-overSsh rl commandOverSsh =
-    command [] "ssh" [remoteLoginStr rl, commandOverSsh]
+overSsh rl commandOverSsh = do
+    need [customSshKeyFile, customSshConfigFile]
+    cmd "ssh"
+        "-i" customSshKeyFile
+        "-F" customSshConfigFile
+        (remoteLoginStr rl)
+        commandOverSsh
+
+copySshIdTo :: RemoteLogin -> Action ()
+copySshIdTo rl = do
+    need [customSshKeyFile]
+    cmd "ssh-copy-id"
+        "-i" customSshKeyFile
+        (remoteLoginStr rl)
 
 rsyncTo :: RemoteLogin -> FilePath -> FilePath -> Action ()
 rsyncTo rl localThing remoteThing = do
     need [localThing]
-    command [] "rsync"
-        [ localThing
-        , remoteLoginStr rl ++ ":" ++ remoteThing
-        ]
+    cmd "rsync"
+        localThing
+        (remoteLoginStr rl ++ ":" ++ remoteThing)
 
 rsyncFrom :: RemoteLogin -> FilePath -> FilePath -> Action ()
 rsyncFrom rl remoteThing localThing =
-    command [] "rsync"
-        [ remoteLoginStr rl ++ ":" ++ remoteThing
-        , localThing
-        ]
+    cmd "rsync"
+        (remoteLoginStr rl ++ ":" ++ remoteThing)
+        localThing
 
 writeMemaslapConfig :: FilePath -> MemaslapConfig -> Action ()
 writeMemaslapConfig file config = do
