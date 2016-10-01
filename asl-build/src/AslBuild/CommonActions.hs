@@ -2,7 +2,6 @@
 module AslBuild.CommonActions where
 
 import           Control.Concurrent
-import qualified Data.ByteString.Lazy.Char8 as LB8
 import           System.Directory
 
 import           Development.Shake
@@ -45,10 +44,8 @@ overSsh rl commandOverSsh = do
 copySshIdTo :: RemoteLogin -> Action ()
 copySshIdTo rl = do
     need [customSshKeyFile]
-    cmd "ssh-copy-id"
-        (StdinBS $ LB8.pack "yes\n")
-        "-i" customSshKeyFile
-        (remoteLoginStr rl)
+    pubkey <- readFile' customSshPublicKeyFile
+    overSsh rl $ "echo " ++ pubkey ++ " >> ~/.ssh/authorized_keys"
 
 rsyncTo :: RemoteLogin -> FilePath -> FilePath -> Action ()
 rsyncTo rl localThing remoteThing = do
