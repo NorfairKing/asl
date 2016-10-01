@@ -98,25 +98,6 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                 Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
                 Right exps -> return exps
 
-        -- Get the servers set up
-        let allServers = nub $ map (sRemoteLogin . serverSetup) experiments
-        forP_ allServers $ \srl -> do
-            -- Copy ssh key to server
-            copySshIdTo srl
-
-            -- Copy memcached and its config to the server
-            -- Will do nothing if it's already there. Luckily
-            rsyncTo srl memcachedBin remoteMemcachedBin
-
-        -- Get the clients set up
-        let allClientLogins = nub $ concatMap (map cRemoteLogin . clientSetups) experiments
-        forP_ allClientLogins $ \crl -> do
-            -- Copy the ssh id to the server
-            copySshIdTo crl
-
-            -- Copy the memaslap binary to the client
-            rsyncTo crl memaslapBin remoteMemaslapBin
-
         -- Get the clients configs set up
         let allClientSetups = nub $ concatMap clientSetups experiments
         forP_ allClientSetups $ \ClientSetup{..} -> do
