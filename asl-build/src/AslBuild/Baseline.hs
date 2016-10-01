@@ -188,32 +188,31 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
 
 mkBaselineExperiments :: BaselineExperimentRuleCfg -> Action [BaselineExperimentSetup]
 mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
-    (clients, server) <- case baselineLocation of
+    (clientLogins, memcachedServer, serverSetup) <- case baselineLocation of
         BaselineLocal -> do
-            let localhost = VmData
-                    { vmName = "localhost"
-                    , vmPublicIp = "localhost"
-                    , vmPrivateIp = "localhsot"
-                    , vmAdmin = "syd"
-                    , vmFullUrl = "localhost"
-                    }
-            return (replicate 2 localhost, localhost)
-        BaselineRemote -> (\(c,_,[s]) -> (c, s)) <$> getVms 2 0 1
+            let l = "localhost"
+                p = 11211
+                c = replicate 2 $ RemoteLogin Nothing l
+                m = RemoteServerUrl l p
+                s = ServerSetup (RemoteLogin Nothing l) p
+            return (c, m, s)
+        BaselineRemote -> do
+            (cs, s) <- (\(c,_,[s]) -> (c, s)) <$> getVms 2 0 1
+            let p = 11211
+                c_ = map (\vm -> RemoteLogin (Just $ vmAdmin vm) (vmFullUrl vm)) cs
+                m_ = RemoteServerUrl (vmPrivateIp s) p
+                s_ = ServerSetup (RemoteLogin (Just $ vmAdmin s) (vmFullUrl s)) p
+            return (c_, m_, s_)
     return $ do
         let BaseLineSetup{..} = baselineSetup
 
-        let curServerSetup = ServerSetup
-                { sRemoteLogin = RemoteLogin (Just $ vmAdmin server) (vmFullUrl server)
-                , sMemcachedPort = 11211
-                }
-
-        let servers = [RemoteServerUrl (vmFullUrl server) (sMemcachedPort curServerSetup)]
+        let servers = [memcachedServer]
         let threads = length servers
 
         concurrents <- takeWhile (<= maxNrVirtualClients) $ iterate (*2) threads
         rep <- [1 .. repetitions]
 
-        nrClients <- [1 .. length clients]
+        nrClients <- [1 .. length clientLogins]
 
         let signature = intercalate "-"
                 [ show nrClients
@@ -225,9 +224,9 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
 
         let experimentTmpDir = tmpDir </> target
 
-        let curclients = take nrClients clients
-        let curClientSetups = flip map (indexed curclients) $ \(i, client) -> ClientSetup
-                { cRemoteLogin = RemoteLogin (Just $ vmAdmin client) (vmFullUrl client)
+        let curclients = take nrClients clientLogins
+        let curClientSetups = flip map (indexed curclients) $ \(i, clientLogin) -> ClientSetup
+                { cRemoteLogin = clientLogin
                 , cLocalLog = sign i $ experimentTmpDir </> "baselinelog"
                 , cRemoteLog = sign i $ "/tmp" </> "baselinelog" ++ "-" ++ target
                 , cResultsFile = sign i $ experimentTmpDir </> "baselinetmpresults"
@@ -254,5 +253,5 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
 
         return BaselineExperimentSetup
             { clientSetups = curClientSetups
-            , serverSetup = curServerSetup
+            , serverSetup = serverSetup
             }
