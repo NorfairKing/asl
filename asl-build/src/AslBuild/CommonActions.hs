@@ -2,6 +2,7 @@
 module AslBuild.CommonActions where
 
 import           Control.Concurrent
+import qualified Data.ByteString.Lazy.Char8 as LB8
 import           System.Directory
 
 import           Development.Shake
@@ -45,7 +46,7 @@ copySshIdTo :: RemoteLogin -> Action ()
 copySshIdTo rl = do
     need [customSshKeyFile]
     cmd "ssh-copy-id"
-        (Stdin "yes\n")
+        (StdinBS $ LB8.pack "yes\n")
         "-i" customSshKeyFile
         (remoteLoginStr rl)
 
