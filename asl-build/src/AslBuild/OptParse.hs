@@ -26,6 +26,7 @@ data Command
 data Experiment
     = LocalLogTestExperiment
     | LocalBaselineExperiment
+    | BigLocalBaselineExperiment
     | RemoteBaselineExperiment
     deriving (Show, Eq)
 
@@ -89,6 +90,7 @@ parseRun = info parser modifier
     subp = hsubparser $ mconcat
         [ command "local-experiment"    parseRunLocalLogTestExperiment
         , command "local-baseline"      parseRunLocalBaseline
+        , command "big-local-baseline"  parseRunBigLocalBaseline
         , command "remote-baseline"     parseRunRemoteBaseline
         ]
     modifier = fullDesc
@@ -107,6 +109,13 @@ parseRunLocalBaseline = info parser modifier
     parser = pure LocalBaselineExperiment
     modifier = fullDesc
             <> progDesc "Run the baseline experiment locally"
+
+parseRunBigLocalBaseline :: ParserInfo Experiment
+parseRunBigLocalBaseline = info parser modifier
+  where
+    parser = pure BigLocalBaselineExperiment
+    modifier = fullDesc
+            <> progDesc "Run the big baseline experiment locally"
 
 parseRunRemoteBaseline :: ParserInfo Experiment
 parseRunRemoteBaseline = info parser modifier

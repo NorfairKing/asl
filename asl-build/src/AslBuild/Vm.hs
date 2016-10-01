@@ -9,7 +9,6 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm.Config
 import           AslBuild.Vm.Types
@@ -69,7 +68,7 @@ getVms
     :: Int -- Number of clients
     -> Int -- Number of middles
     -> Int -- Number of servers
-    -> Action ([RemoteLogin], [RemoteLogin], [RemoteLogin])
+    -> Action ([VmData], [VmData], [VmData])
 getVms nrc nrm nrs = do
     rawVms <- getRawVmData
     let total = nrc + nrm + nrs
@@ -82,9 +81,8 @@ getVms nrc nrm nrs = do
         , "available."
         ]
     else do
-        let logins = map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmFullUrl) rawVms
-        let clients = take nrc logins
-            middles = take nrm $ drop nrc logins
-            servers = take nrs $ drop (nrc + nrm) logins
+        let clients = take nrc rawVms
+            middles = take nrm $ drop nrc rawVms
+            servers = take nrs $ drop (nrc + nrm) rawVms
         return (clients, middles, servers)
 

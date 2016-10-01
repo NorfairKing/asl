@@ -25,7 +25,7 @@ csvOut = resultsDir </> "local-logfile-test.csv"
 
 currentMemaslapFlags :: MemaslapFlags
 currentMemaslapFlags = MemaslapFlags
-    { msServers = [RemoteServerUrl localhost defaultMemcachedPort]
+    { msServers = [RemoteServerUrl "localhost" defaultMemcachedPort]
     , msThreads = 64
     , msConcurrency = 64
     , msOverwrite = 1

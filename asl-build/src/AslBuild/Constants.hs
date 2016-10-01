@@ -160,10 +160,6 @@ sedCmd = "sed"
 azureCmd :: String
 azureCmd = "azure"
 
--- Hosts
-localhost :: String
-localhost = "localhost"
-
 -- Memcached
 defaultMemcachedPort :: Int
 defaultMemcachedPort = 11211

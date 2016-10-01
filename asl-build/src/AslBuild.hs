@@ -30,4 +30,5 @@ aslBuild = do
                 DispatchRun experiment -> buildTarget $ case experiment of
                     LocalLogTestExperiment -> localLogTestRule
                     LocalBaselineExperiment -> localBaselineExperimentRule
+                    BigLocalBaselineExperiment -> bigLocalBaselineExperimentRule
                     RemoteBaselineExperiment -> remoteBaselineExperimentRule

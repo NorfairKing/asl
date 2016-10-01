@@ -19,10 +19,12 @@ import           AslBuild.Memcached
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm
+import           AslBuild.Vm.Types
 
 baselineExperimentRules :: Rules ()
 baselineExperimentRules = do
     rulesForGivenBaselineExperiment localBaselineExperiment
+    rulesForGivenBaselineExperiment bigLocalBaselineExperiment
     rulesForGivenBaselineExperiment remoteBaselineExperiment
 
 localBaselineExperimentRule :: String
@@ -39,6 +41,23 @@ localBaselineExperiment = BaselineExperimentRuleCfg
         { repetitions = 2
         , runtime = 5
         , maxNrVirtualClients = 2
+        }
+    }
+
+bigLocalBaselineExperimentRule :: String
+bigLocalBaselineExperimentRule = "big-local-baseline-experiment"
+
+bigLocalBaselineExperiment :: BaselineExperimentRuleCfg
+bigLocalBaselineExperiment = BaselineExperimentRuleCfg
+    { target = bigLocalBaselineExperimentRule
+    , csvOutFile = resultsDir </> "big-local-baseline-experiment-results.csv"
+    , localLogfile = tmpDir </> "big-local-baseline_memaslaplog.txt"
+    , baselineExperimentsCacheFile = tmpDir </> "big-local-baseline-experiments.json"
+    , baselineLocation = BaselineLocal
+    , baselineSetup = BaseLineSetup
+        { repetitions = 25
+        , runtime = 60
+        , maxNrVirtualClients = 128
         }
     }
 
@@ -60,11 +79,6 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
     }
 
 
-startMemcachedScript :: Script
-startMemcachedScript = Script
-    "start-memcached-detached"
-    [remoteMemcachedBin ++ " -d"]
-
 localhostLogin :: RemoteLogin
 localhostLogin = RemoteLogin Nothing "localhost"
 
@@ -73,12 +87,8 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
     target ~> need [csvOutFile]
 
     baselineExperimentsCacheFile %> \_ -> do
-        (clients, server) <- case baselineLocation of
-                BaselineLocal -> return (replicate 2 localhostLogin, localhostLogin)
-                BaselineRemote -> (\(c,_,[s]) -> (c, s)) <$> getVms 2 0 1
-        experiments <- mkBaselineExperiments berc clients server
+        experiments <- mkBaselineExperiments berc
         liftIO $ LB.writeFile baselineExperimentsCacheFile $ A.encodePretty experiments
-
 
     csvOutFile %> \_ -> do
         need [memcachedBin, memaslapBin, baselineExperimentsCacheFile]
@@ -89,16 +99,22 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                 Right exps -> return exps
 
         -- Intentionally no parallelism here.
+        -- We need to do experiments one at a time.
         forM_ (indexed experiments) $ \(ix, eSetup@BaselineExperimentSetup{..}) -> do
-            putLoud $ "Running experiment: [" ++ show ix ++ "/" ++ show (length experiments) ++ "]"
-            let server = sRemoteLogin serverSetup
+            let nrOfExperiments = length experiments
+            putLoud $ "Running experiment: [" ++ show ix ++ "/" ++ show nrOfExperiments ++ "]"
+            let maxClientTime = maximum $ map (toSeconds . msTime . msFlags . cMemaslapSettings) clientSetups
+            putLoud $ "Approximately " ++ toClockString ((1 + 5 + maxClientTime) * (nrOfExperiments - ix)) ++ " remaining."
+
+
+            let ServerSetup{..} = serverSetup
 
             -- Copy memcached and its config to the server
             -- Will do nothing if it's already there. Luckily
-            rsyncTo server memcachedBin remoteMemcachedBin
+            rsyncTo sRemoteLogin memcachedBin remoteMemcachedBin
 
             -- Copy memaslap and its config to the clients
-            forM_ clientSetups $ \ClientSetup{..} -> do
+            forP_ clientSetups $ \ClientSetup{..} -> do
                 -- Copy the memaslap binary to the client
                 rsyncTo cRemoteLogin memaslapBin remoteMemaslapBin
                 -- Generate the memsalap config locally
@@ -107,7 +123,13 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                 rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
 
             -- Start memcached on the server
-            scriptAt server startMemcachedScript
+            scriptAt sRemoteLogin $ script
+                [ unwords
+                    [ remoteMemcachedBin
+                    , "-d" -- Daemon mode
+                    , "-p", show sMemcachedPort -- Port
+                    ]
+                ]
 
             -- Wait for the server to get started
             wait 1
@@ -120,8 +142,6 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                             ++ [">", cRemoteLog, "2>&1", "&"]
                         ]
                 scriptAt cRemoteLogin memaslapScript
-
-            let maxClientTime = maximum $ map (toSeconds . msTime . msFlags . cMemaslapSettings) clientSetups
 
             -- Wait long enough to be sure that memaslap is fully done.
             wait (maxClientTime + 5)
@@ -138,11 +158,12 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                                 { erSetup = eSetup
                                 , erClientSetup = cSetup
                                 , erMemaslapLog = parsedLog
+                                , erClientIndex = cIndex
                                 }
                         liftIO $ LB.writeFile cResultsFile $ A.encodePretty results
 
             -- Make sure no memcached servers are running anymore
-            overSsh server $ unwords ["killall", memcachedBinName]
+            overSsh sRemoteLogin $ unwords ["killall", memcachedBinName]
 
         let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles
@@ -151,64 +172,73 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             Just results -> liftIO $ LB.writeFile csvOutFile $ resultsCsv results
 
 
--- TODO separate login url from internal URL for cluster
-mkBaselineExperiments
-    :: BaselineExperimentRuleCfg
-    -> [RemoteLogin] -- ^ available Clients
-    -> RemoteLogin -- ^ Server
-    -> Action [BaselineExperimentSetup]
-mkBaselineExperiments BaselineExperimentRuleCfg{..} clientLogins serverLogin = return $ do
-    let BaseLineSetup{..} = baselineSetup
-
-    let curServerSetup = ServerSetup
-            { sRemoteLogin = serverLogin
-            }
-
-    let servers = [loginToMemcachedServerUrl serverLogin]
-
-    let threads = length servers
-    concurrents <- takeWhile (<= maxNrVirtualClients) $ iterate (*2) threads
-    rep <- [1 .. repetitions]
-
-    nrClients <- [1 .. length clientLogins]
-
-    let signature = intercalate "-"
-            [ show nrClients
-            , show concurrents
-            , show rep
-            ]
-    let sign :: Int -> FilePath -> FilePath
-        sign i f = f ++ "-" ++ show i ++ "-" ++ signature
-
-    let experimentTmpDir = tmpDir </> target
-
-    let curclients = take nrClients clientLogins
-    let curClientSetups = flip map (indexed curclients) $ \(i, login) -> ClientSetup
-            { cRemoteLogin = login
-            , cLocalLog = sign i $ experimentTmpDir </> "baselinelog"
-            , cRemoteLog = sign i $ "/tmp" </> "baselinelog" ++ "-" ++ target
-            , cResultsFile = sign i $ experimentTmpDir </> "baselinetmpresults"
-            , cLocalMemaslapConfigFile = sign i $ experimentTmpDir </> "distribution"
-            , cMemaslapSettings = MemaslapSettings
-                { msConfig = MemaslapConfig
-                    { keysizeDistributions = [Distribution 128 128 1]
-                    , valueDistributions = [Distribution 2048 2048 1]
-                    , setProportion = 0.1
-                    , getProportion = 0.9
+mkBaselineExperiments :: BaselineExperimentRuleCfg -> Action [BaselineExperimentSetup]
+mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
+    (clients, server) <- case baselineLocation of
+        BaselineLocal -> do
+            let localhost = VmData
+                    { vmName = "localhost"
+                    , vmPublicIp = "localhost"
+                    , vmPrivateIp = "localhsot"
+                    , vmAdmin = "syd"
+                    , vmFullUrl = "localhost"
                     }
-                , msFlags = MemaslapFlags
-                    { msServers = servers
-                    , msThreads = threads
-                    , msConcurrency = concurrents
-                    , msOverwrite = 1
-                    , msStatFreq = Seconds runtime
-                    , msTime = Seconds runtime
-                    , msConfigFile = "/tmp/memaslapcfg" ++ show i ++ "-" ++ signature
+            return (replicate 2 localhost, localhost)
+        BaselineRemote -> (\(c,_,[s]) -> (c, s)) <$> getVms 2 0 1
+    return $ do
+        let BaseLineSetup{..} = baselineSetup
+
+        let curServerSetup = ServerSetup
+                { sRemoteLogin = RemoteLogin (Just $ vmAdmin server) (vmFullUrl server)
+                , sMemcachedPort = 11211
+                }
+
+        let servers = [RemoteServerUrl (vmFullUrl server) (sMemcachedPort curServerSetup)]
+        let threads = length servers
+
+        concurrents <- takeWhile (<= maxNrVirtualClients) $ iterate (*2) threads
+        rep <- [1 .. repetitions]
+
+        nrClients <- [1 .. length clients]
+
+        let signature = intercalate "-"
+                [ show nrClients
+                , show concurrents
+                , show rep
+                ]
+        let sign :: Int -> FilePath -> FilePath
+            sign i f = f ++ "-" ++ show i ++ "-" ++ signature
+
+        let experimentTmpDir = tmpDir </> target
+
+        let curclients = take nrClients clients
+        let curClientSetups = flip map (indexed curclients) $ \(i, client) -> ClientSetup
+                { cRemoteLogin = RemoteLogin (Just $ vmAdmin client) (vmFullUrl client)
+                , cLocalLog = sign i $ experimentTmpDir </> "baselinelog"
+                , cRemoteLog = sign i $ "/tmp" </> "baselinelog" ++ "-" ++ target
+                , cResultsFile = sign i $ experimentTmpDir </> "baselinetmpresults"
+                , cLocalMemaslapConfigFile = sign i $ experimentTmpDir </> "distribution"
+                , cIndex = i
+                , cMemaslapSettings = MemaslapSettings
+                    { msConfig = MemaslapConfig
+                        { keysizeDistributions = [Distribution 128 128 1]
+                        , valueDistributions = [Distribution 2048 2048 1]
+                        , setProportion = 0.1
+                        , getProportion = 0.9
+                        }
+                    , msFlags = MemaslapFlags
+                        { msServers = servers
+                        , msThreads = threads
+                        , msConcurrency = concurrents
+                        , msOverwrite = 1
+                        , msStatFreq = Seconds runtime
+                        , msTime = Seconds runtime
+                        , msConfigFile = sign i "/tmp/memaslapcfg"
+                        }
                     }
                 }
-            }
 
-    return BaselineExperimentSetup
-        { clientSetups = curClientSetups
-        , serverSetup = curServerSetup
-        }
+        return BaselineExperimentSetup
+            { clientSetups = curClientSetups
+            , serverSetup = curServerSetup
+            }

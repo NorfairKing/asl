@@ -51,4 +51,6 @@ rsyncFrom rl remoteThing localThing =
         ]
 
 writeMemaslapConfig :: FilePath -> MemaslapConfig -> Action ()
-writeMemaslapConfig file config = writeFile' file $ renderMemaslapConfig config
+writeMemaslapConfig file config = do
+    liftIO $ createDirectoryIfMissing True $ takeDirectory file
+    writeFile' file $ renderMemaslapConfig config

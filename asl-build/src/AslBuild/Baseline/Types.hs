@@ -50,6 +50,7 @@ data ClientSetup
     , cRemoteLog               :: FilePath
     , cResultsFile             :: FilePath
     , cLocalMemaslapConfigFile :: FilePath
+    , cIndex                   :: Int
     , cMemaslapSettings        :: MemaslapSettings
     } deriving (Show, Eq, Generic)
 
@@ -58,7 +59,8 @@ instance FromJSON ClientSetup
 
 data ServerSetup
     = ServerSetup
-    { sRemoteLogin :: RemoteLogin
+    { sRemoteLogin   :: RemoteLogin
+    , sMemcachedPort :: Int
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ServerSetup
@@ -69,6 +71,7 @@ data ExperimentResults
     { erSetup       :: BaselineExperimentSetup
     , erClientSetup :: ClientSetup
     , erMemaslapLog :: MemaslapLog
+    , erClientIndex :: Int
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ExperimentResults
@@ -77,6 +80,7 @@ instance FromJSON ExperimentResults
 resultsCsv :: [ExperimentResults] -> LB.ByteString
 resultsCsv = encodeByName $ header
     [ "nrClients"
+    , "clientIndex"
     , "threads"
     , "concurrency"
     , "overwrite"
@@ -95,6 +99,7 @@ instance ToNamedRecord ExperimentResults where
             MemaslapFlags{..} = msFlags
         in namedRecord
             [ "nrClients" .= length clientSetups
+            , "clientIndex" .= erClientIndex
             , "threads" .= msThreads
             , "concurrency" .= msConcurrency
             , "overwrite" .= msOverwrite
