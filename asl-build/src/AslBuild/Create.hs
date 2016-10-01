@@ -50,7 +50,7 @@ createRules = do
             let personalize :: FilePath -> FilePath -> Action ()
                 personalize fileIn fileOut = do
                     -- Init: remove trailing newline
-                    pubkey <- init <$> readFile' customSshKeyFile
+                    pubkey <- init <$> readFile' customSshPublicKeyFile
                     let escape = concatMap replace
                         replace ' ' = "\\ "
                         replace '/' = "\\/"

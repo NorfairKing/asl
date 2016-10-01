@@ -56,6 +56,13 @@ before_install:
 # Get the list of packages from the stack.yaml file
 - PACKAGES=$(stack --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
 
+
+- echo "Host localhost" >> /home/travis/.ssh/config
+- echo "    StrictHostKeyChecking no" >> /home/travis/.ssh/config
+- echo "    NoHostAuthenticationForLocalhost=yes no" >> /home/travis/.ssh/config
+- chmod g-rw,o-rw /home/travis/.ssh/*
+- cat ~/.ssh/config
+
 install:
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 - if [ -f configure.ac ]; then autoreconf -i; fi

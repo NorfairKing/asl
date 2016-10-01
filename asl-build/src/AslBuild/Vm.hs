@@ -73,7 +73,7 @@ getVms nrc nrm nrs = do
     rawVms <- getRawVmData
     let total = nrc + nrm + nrs
     let nrAvailable = length rawVms
-    if total >= nrAvailable
+    if total > nrAvailable
     then fail $ unwords
         [ "Requested too many servers:"
         , show total ++ ", only"
