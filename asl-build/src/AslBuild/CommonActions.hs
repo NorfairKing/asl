@@ -45,8 +45,8 @@ copySshIdTo :: RemoteLogin -> Action ()
 copySshIdTo rl = do
     need [customSshKeyFile]
     cmd "ssh-copy-id"
-        "-i" customSshKeyFile
         "-o" "StrictHostKeyChecking=no"
+        "-i" customSshKeyFile
         (remoteLoginStr rl)
 
 rsyncTo :: RemoteLogin -> FilePath -> FilePath -> Action ()
