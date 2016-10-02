@@ -4,12 +4,13 @@ import           Development.Shake
 import           Development.Shake.Config
 
 import           AslBuild.Analysis
+import           AslBuild.BuildMemcached
 import           AslBuild.Clean
 import           AslBuild.CommitHash
 import           AslBuild.Create
 import           AslBuild.Experiments
 import           AslBuild.Jar
-import           AslBuild.Memcached
+import           AslBuild.LocalMiddlewareTest
 import           AslBuild.PreCommit
 import           AslBuild.Provision
 import           AslBuild.Reports
@@ -28,9 +29,10 @@ theShake  = do
 
     commitHashRules
     jarRules
-    memcachedRules
+    buildMemcachedRules
     reportRules
     testRules
+    localMiddlewareTestRules
     experimentRules
     analysisRules
     sshRules

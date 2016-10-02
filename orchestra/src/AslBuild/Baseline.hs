@@ -12,6 +12,7 @@ import qualified Data.ByteString.Lazy       as LB
 import           Data.List
 
 import           AslBuild.Baseline.Types
+import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Memaslap
@@ -119,11 +120,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
 
             -- Start memcached on the server
             scriptAt sRemoteLogin $ script
-                [ unwords
-                    [ remoteMemcachedBin
-                    , "-d" -- Daemon mode
-                    , "-p", show sMemcachedPort -- Port
-                    ]
+                [ unwords $ remoteMemcachedBin : memcachedArgs sMemcachedFlags
                 ]
 
             -- Wait for the server to get started
@@ -175,14 +172,20 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                 p = 11211
                 c = replicate 2 $ RemoteLogin Nothing l
                 m = RemoteServerUrl l p
-                s = ServerSetup (RemoteLogin Nothing l) p
+                s = ServerSetup (RemoteLogin Nothing l) $ MemcachedFlags
+                    { memcachedPort = p
+                    , memcachedAsDaemon = True
+                    }
             return (c, m, s)
         BaselineRemote -> do
             (cs, s) <- (\(c,_,[s]) -> (c, s)) <$> getVms 2 0 1
             let p = 11211
                 c_ = map (\vm -> RemoteLogin (Just $ vmAdmin vm) (vmFullUrl vm)) cs
                 m_ = RemoteServerUrl (vmPrivateIp s) p
-                s_ = ServerSetup (RemoteLogin (Just $ vmAdmin s) (vmFullUrl s)) p
+                s_ = ServerSetup (RemoteLogin (Just $ vmAdmin s) (vmFullUrl s)) $ MemcachedFlags
+                    { memcachedPort = p
+                    , memcachedAsDaemon = True
+                    }
             return (c_, m_, s_)
     return $ do
         let BaseLineSetup{..} = baselineSetup

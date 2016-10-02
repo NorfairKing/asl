@@ -3,6 +3,7 @@ module AslBuild.Provision where
 
 import           Development.Shake
 
+import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Memcached

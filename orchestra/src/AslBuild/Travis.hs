@@ -4,10 +4,10 @@ import           Development.Shake
 
 import           AslBuild.Analysis
 import           AslBuild.Baseline
+import           AslBuild.BuildMemcached
 import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
-import           AslBuild.Memcached
 import           AslBuild.Provision
 import           AslBuild.Test
 

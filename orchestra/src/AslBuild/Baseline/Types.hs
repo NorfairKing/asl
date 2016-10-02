@@ -3,12 +3,13 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Baseline.Types where
 
-import           Data.Aeson           (FromJSON, ToJSON)
-import qualified Data.ByteString.Lazy as LB
+import           Data.Aeson               (FromJSON, ToJSON)
+import qualified Data.ByteString.Lazy     as LB
 import           Data.Csv
 import           GHC.Generics
 
 import           AslBuild.Memaslap
+import           AslBuild.Memcached.Types
 import           AslBuild.Types
 
 
@@ -59,8 +60,8 @@ instance FromJSON ClientSetup
 
 data ServerSetup
     = ServerSetup
-    { sRemoteLogin   :: RemoteLogin
-    , sMemcachedPort :: Int
+    { sRemoteLogin    :: RemoteLogin
+    , sMemcachedFlags :: MemcachedFlags
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ServerSetup

@@ -5,6 +5,7 @@ import           System.Process
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Memaslap
