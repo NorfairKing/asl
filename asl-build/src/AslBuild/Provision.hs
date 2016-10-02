@@ -11,26 +11,56 @@ import           AslBuild.Utils
 import           AslBuild.Vm
 import           AslBuild.Vm.Types
 
-provisionRule :: String
-provisionRule = "provision-vms"
-
-provisionMemcachedRule :: String
-provisionMemcachedRule = "provision-memcached"
-
-provisionMemaslapRule :: String
-provisionMemaslapRule = "provision-memaslap"
-
 provisionRules :: Rules ()
 provisionRules = do
-    provisionRule ~> need
-        [ provisionMemcachedRule
-        , provisionMemaslapRule
+    provisionLocalhostRules
+    provisionVmsRules
+
+provisionLocalhostRule :: String
+provisionLocalhostRule = "provision-localhost"
+
+provisionLocalhostMemcachedRule :: String
+provisionLocalhostMemcachedRule = "provision-localhost-memcached"
+
+provisionLocalhostMemaslapRule :: String
+provisionLocalhostMemaslapRule = "provision-localhost-memaslap"
+
+provisionLocalhostRules :: Rules ()
+provisionLocalhostRules = do
+    provisionLocalhostRule ~> need
+        [ provisionLocalhostMemcachedRule
+        , provisionLocalhostMemaslapRule
         ]
 
-    provisionMemcachedRule ~>
+    provisionLocalhostMemcachedRule ~>
+        rsyncTo localhostLogin memcachedBin remoteMemcachedBin
+
+    provisionLocalhostMemaslapRule ~>
+        rsyncTo localhostLogin memaslapBin remoteMemaslapBin
+
+localhostLogin :: RemoteLogin
+localhostLogin = RemoteLogin Nothing "localhost"
+
+provisionVmsRule :: String
+provisionVmsRule = "provision-vms"
+
+provisionVmsMemcachedRule :: String
+provisionVmsMemcachedRule = "provision-vms-memcached"
+
+provisionVmsMemaslapRule :: String
+provisionVmsMemaslapRule = "provision-vms-memaslap"
+
+provisionVmsRules :: Rules ()
+provisionVmsRules = do
+    provisionVmsRule ~> need
+        [ provisionVmsMemcachedRule
+        , provisionVmsMemaslapRule
+        ]
+
+    provisionVmsMemcachedRule ~>
         eachVm (\rl -> rsyncTo rl memcachedBin remoteMemcachedBin)
 
-    provisionMemaslapRule ~>
+    provisionVmsMemaslapRule ~>
         eachVm (\rl -> rsyncTo rl memaslapBin remoteMemaslapBin)
 
 eachVm :: (RemoteLogin -> Action ()) -> Action ()
@@ -41,6 +71,5 @@ eachVm func = do
 getVmsToProvision :: Action [RemoteLogin]
 getVmsToProvision = do
     vms <- getRawVmData
-    return $
-        RemoteLogin Nothing "localhost"
-        : map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmFullUrl) vms
+    return $ map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmFullUrl) vms
+

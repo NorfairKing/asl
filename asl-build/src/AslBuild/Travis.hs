@@ -8,22 +8,25 @@ import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 import           AslBuild.Memcached
+import           AslBuild.Provision
 import           AslBuild.Test
 
 travisRule :: String
 travisRule = "travis"
 
 travisRules :: Rules ()
-travisRules = travisRule ~> need
-    [ commithashFile
-    , outputJarFile
-    , memaslapBin
-    , memcachedBin
-    , testRule
+travisRules = travisRule ~> do
+    need
+        [ commithashFile
+        , outputJarFile
+        , memaslapBin
+        , memcachedBin
+        , testRule
+        , localLogTestRule
+        ]
 
-    -- Experiments
-    , localLogTestRule
-    , localBaselineExperimentRule
-
-    , analysisRule
-    ]
+    need [provisionLocalhostRule]
+    need
+        [ localBaselineExperimentRule
+        , analysisRule
+        ]
