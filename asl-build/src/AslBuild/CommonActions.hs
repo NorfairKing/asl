@@ -49,6 +49,7 @@ copySshIdTo rl = do
 
 rsyncTo :: RemoteLogin -> FilePath -> FilePath -> Action ()
 rsyncTo rl localThing remoteThing = do
+    need [customSshKeyFile, customSshConfigFile]
     need [localThing]
     cmd "rsync"
         "-e"
@@ -62,7 +63,8 @@ rsyncTo rl localThing remoteThing = do
         (remoteLoginStr rl ++ ":" ++ remoteThing)
 
 rsyncFrom :: RemoteLogin -> FilePath -> FilePath -> Action ()
-rsyncFrom rl remoteThing localThing =
+rsyncFrom rl remoteThing localThing = do
+    need [customSshKeyFile, customSshConfigFile]
     cmd "rsync"
         "-e"
         [ unwords
