@@ -6,7 +6,7 @@ c () {
 
 print_colored_text BLUE "Build system:\n"
 c \
-  asl-build/src
+  orchestra/src
 
 print_colored_text BLUE "System code:\n"
 c \

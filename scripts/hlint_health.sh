@@ -2,7 +2,7 @@
 source scripts/lib.sh
 h () {
   hlint \
-    asl-build/src \
+    orchestra/src \
     --ignore "Eta reduce"
 }
 check "Hlint" h

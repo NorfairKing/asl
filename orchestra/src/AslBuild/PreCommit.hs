@@ -44,12 +44,12 @@ buildBinInStack :: FilePath
 buildBinInStack = ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/asl"
 
 aslBuildDir :: FilePath
-aslBuildDir = "asl-build"
+aslBuildDir = "orchestra"
 
 buildBin :: Rules ()
 buildBin = do
     buildBinInStack %> \_ -> do
-        files <- getDirectoryFiles "" ["asl-build//*.hs"]
+        files <- getDirectoryFiles "" [aslBuildDir ++ "//*.hs"]
         need files
         cmd (Cwd aslBuildDir) stackCmd "build"
 

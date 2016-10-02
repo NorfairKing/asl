@@ -3,4 +3,4 @@
 # Abort on error
 set -e
 
-asl build all -- pre-commit
+orc build all -- pre-commit
