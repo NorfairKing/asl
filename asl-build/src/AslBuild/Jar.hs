@@ -19,21 +19,20 @@ jarRules :: Rules ()
 jarRules = do
     jarRule ~> need [outputJarFile]
 
-    let jarFile = asl <.> jar
-    let jarInBuildDir = codeSrcDir </> dist </> jarFile
+    let jarInBuildDir = dist </> "middleware-tomk" <.> jarExt
 
     jarInBuildDir %> \_ -> do
-        let buildFile = codeSrcDir </> build <.> xmlExt
-            propertiesFile = codeSrcDir </> build <.> propertiesExt
-        need [buildFile, propertiesFile]
+        let buildFile = build <.> xmlExt
+        need [buildFile]
         sourceFiles <- absFilesInDir javaSourceDir ["//*" <.> java]
         need sourceFiles
         let jarTarget = jar
             antCmd = ant
-        cmd (Cwd codeSrcDir) antCmd jarTarget
+        cmd antCmd jarTarget
 
     outputJarFile `byCopying` jarInBuildDir
 
     cleanJarRule ~> do
         removeFilesAfter outDir [outputJarFile]
+        removeFilesAfter "" ["//dist"]
         removeFilesAfter codeSrcDir ["//build", "//out", "//dist"]

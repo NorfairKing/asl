@@ -15,6 +15,9 @@ out = "out"
 dist :: String
 dist = "dist"
 
+test :: String
+test = "test"
+
 src :: String
 src = "src"
 

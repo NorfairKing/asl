@@ -1,4 +1,4 @@
-package eu.cssyd.asl;
+package ch.ethz.asl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -6,13 +6,29 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class Middleware {
 
   private static final int PORT = 11212;
 
-  public Middleware() {
+  public Middleware(String myIp, int myPort, List<String> mcAddresses, int numThreadsPTP, int writeToCount) {
+  }
+
+  public void run() {
+    startServer();
+    sleepForever();
+  }
+
+  private static void sleepForever() {
+    while (true) {
+      try {
+        Thread.sleep(Long.MAX_VALUE);
+      } catch (InterruptedException e) {
+        break;
+      }
+    }
   }
 
   public static void startServer() {

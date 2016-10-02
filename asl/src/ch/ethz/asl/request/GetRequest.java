@@ -1,4 +1,4 @@
-package eu.cssyd.asl.request;
+package ch.ethz.asl.request;
 
 public class GetRequest implements Request {
   private final String key;

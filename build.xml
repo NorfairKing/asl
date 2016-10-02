@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="asl-fall16-project" default="jar" basedir=".">
+    <description>
+        ANT Build File for ASL Fall 2016 Project
+    </description>
+    <!-- set global properties for this build -->
+
+    <property name="nethzid" value="tomk"/>
+
+    <property name="src" location="asl/src"/>
+    <property name="test" location="asl/test"/>
+    <property name="build" location="asl/build"/>
+    <property name="dist" location="dist"/>
+    <property name="lib" location="asl/lib"/>
+    <property name="jar.file" location="${dist}/middleware-${nethzid}.jar"/>
+
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="init" description="compile the source">
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac srcdir="${src}" destdir="${build}" includeantruntime="false"/>
+    </target>
+
+    <target name="jar" depends="compile" description="generate the distribution">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+        <!-- Put everything in ${build} into the jar file -->
+        <jar jarfile="${jar.file}" basedir="${build}" compress="true">
+            <fileset dir="${src}" includes="**/*.java"/>
+            <manifest>
+                <attribute name="Main-Class" value="ch.ethz.asl.RunMW"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="clean"
+            description="clean up">
+        <!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+    </target>
+
+    <target name="all" depends="compile, jar"/>
+
+    <path id="classpath.test">
+        <pathelement location="${lib}/junit.jar"/>
+        <pathelement location="${lib}/hamcrest-core.jar"/>
+        <pathelement location="${lib}/truth.jar"/>
+        <pathelement location="${lib}/guava.jar"/>
+        <pathelement location="${jar.file}"/>
+    </path>
+
+    <target name="test-compile" depends="jar">
+        <mkdir dir="${build}"/>
+        <javac srcdir="${test}" destdir="${build}" includeantruntime="false">
+            <classpath refid="classpath.test"/>
+        </javac>
+    </target>
+
+
+    <target name="test" depends="test-compile">
+        <junit printsummary="on" haltonfailure="yes" fork="true">
+            <classpath>
+                <path refid="classpath.test"/>
+                <pathelement location="${build}"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${test}" includes="**/*Test.java"/>
+            </batchtest>
+        </junit>
+    </target>
+</project>

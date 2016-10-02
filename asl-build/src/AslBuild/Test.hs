@@ -15,7 +15,8 @@ testRules :: Rules ()
 testRules = do
     testRule ~> do
         need $ map fst javadeps
-        cmd (Cwd codeSrcDir) ant "test"
+        let testTarget = test
+        cmd ant testTarget
 
     cleanTestRule ~> removeFilesAfter javalibdir ["//"]
 

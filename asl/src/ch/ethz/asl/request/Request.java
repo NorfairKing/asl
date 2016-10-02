@@ -1,4 +1,4 @@
-package eu.cssyd.asl.request;
+package ch.ethz.asl.request;
 
 import java.nio.*;
 import java.util.ArrayList;
