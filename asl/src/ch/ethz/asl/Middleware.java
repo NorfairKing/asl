@@ -9,6 +9,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -51,6 +52,9 @@ public class Middleware {
 
           SocketAddress address = new InetSocketAddress(serverUrl, serverPort);
           System.out.println("Connecting to: " + address);
+
+          int bufferSize = 1 << 16;
+
           SocketChannel asc = null;
           try {
             asc = SocketChannel.open();
@@ -58,22 +62,22 @@ public class Middleware {
             asc.connect(address);
             while (true) {
               System.out.println("Spinning");
-              ByteBuffer bbuf = ByteBuffer.allocate(4096); // TODO use my own immutable byte buffers.
+              ByteBuffer bbuf = ByteBuffer.allocate(bufferSize); // TODO use my own immutable byte buffers.
               int bytesRead = chan.read(bbuf).get();
               System.out.println("Input from client:");
               System.out.println(Integer.toString(bytesRead) + " bytes");
-              System.out.println(new String(bbuf.array()));
-              int bytesWritten = asc.write(bbuf);
-              System.out.print("Sent " + Integer.toString(bytesWritten) + " to server");
+              // System.out.println(new String(bbuf.array()));
+              int bytesWritten = asc.write(ByteBuffer.wrap(bbuf.array(), 0, bytesRead));
+              System.out.println("Sent " + Integer.toString(bytesWritten) + " to server");
 
-              ByteBuffer bbuf2 = ByteBuffer.allocate(4096);
+              ByteBuffer bbuf2 = ByteBuffer.allocate(bufferSize);
               int bytesRead2 = asc.read(bbuf2);
               System.out.println("Input from Server:");
               System.out.println(Integer.toString(bytesRead2) + " bytes");
               if (bytesRead2 >= 0) {
-                System.out.println(new String(bbuf2.array()));
-                int bytesWritten2 = chan.write(bbuf2).get();
-                System.out.print("Sent " + Integer.toString(bytesWritten) + " to client");
+                // System.out.println(new String(bbuf2.array()));
+                int bytesWritten2 = chan.write(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2)).get();
+                System.out.println("Sent " + Integer.toString(bytesWritten) + " to client");
               }
             }
           } catch (IOException | InterruptedException | ExecutionException e) {

@@ -9,7 +9,6 @@ import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Memaslap
-import           AslBuild.Memcached
 import           AslBuild.Types
 
 localLogTestRule :: String

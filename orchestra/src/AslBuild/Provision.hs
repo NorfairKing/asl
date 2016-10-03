@@ -6,7 +6,6 @@ import           Development.Shake
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
-import           AslBuild.Memcached
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm

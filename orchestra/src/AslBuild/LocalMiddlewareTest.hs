@@ -69,7 +69,7 @@ setups = do
         }
 
 localMiddlewareTestRules :: Rules ()
-localMiddlewareTestRules = do
+localMiddlewareTestRules =
     localMiddlewareTestRule ~> do
         need [memcachedBin, memaslapBin, outputJarFile]
         forM_ setups $ \LocalMiddlewareTestSetup{..} -> do
@@ -90,6 +90,7 @@ localMiddlewareTestRules = do
                 (memaslapArgs $ msFlags memaslapSettings)
 
             wait runtime
+            putLoud "Done waiting, killing processes!"
 
             liftIO $ do
                 terminateProcess clientPH

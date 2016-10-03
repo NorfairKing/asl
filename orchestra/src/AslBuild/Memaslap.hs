@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Memaslap
@@ -6,11 +5,9 @@ module AslBuild.Memaslap
     , module AslBuild.Memaslap.Types
     ) where
 
-import           Data.Aeson                 (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy.Char8 as LB8
 import           Data.Csv
 import           Data.List
-import           GHC.Generics
 
 import           AslBuild.Memaslap.Types
 import           AslBuild.Types

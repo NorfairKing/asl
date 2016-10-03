@@ -172,7 +172,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                 p = 11211
                 c = replicate 2 $ RemoteLogin Nothing l
                 m = RemoteServerUrl l p
-                s = ServerSetup (RemoteLogin Nothing l) $ MemcachedFlags
+                s = ServerSetup (RemoteLogin Nothing l) MemcachedFlags
                     { memcachedPort = p
                     , memcachedAsDaemon = True
                     }
@@ -182,7 +182,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
             let p = 11211
                 c_ = map (\vm -> RemoteLogin (Just $ vmAdmin vm) (vmFullUrl vm)) cs
                 m_ = RemoteServerUrl (vmPrivateIp s) p
-                s_ = ServerSetup (RemoteLogin (Just $ vmAdmin s) (vmFullUrl s)) $ MemcachedFlags
+                s_ = ServerSetup (RemoteLogin (Just $ vmAdmin s) (vmFullUrl s)) MemcachedFlags
                     { memcachedPort = p
                     , memcachedAsDaemon = True
                     }

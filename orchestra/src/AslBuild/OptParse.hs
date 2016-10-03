@@ -36,7 +36,7 @@ runArgumentsParser :: [String] -> ParserResult Arguments
 runArgumentsParser = execParserPure pfs argParser
   where
     pfs = ParserPrefs
-      { prefMultiSuffix = "NOTE"
+      { prefMultiSuffix = "ASL"
       , prefDisambiguate = True
       , prefShowHelpOnError = True
       , prefShowHelpOnEmpty = True
@@ -48,7 +48,7 @@ argParser :: ParserInfo Arguments
 argParser = info (helper <*> parseArgs) helpText
   where
     helpText = fullDesc <> progDesc description
-    description = "Note"
+    description = "ASL"
 
 parseArgs :: Parser Arguments
 parseArgs = (,) <$> parseCommand <*> pure Flags

@@ -10,4 +10,6 @@ memcachedArgs :: MemcachedFlags -> [String]
 memcachedArgs MemcachedFlags{..} =
     [ "-p", show memcachedPort
     ] ++
-    [ "-d" | memcachedAsDaemon ]
+    if memcachedAsDaemon
+    then ["-d"]
+    else []
