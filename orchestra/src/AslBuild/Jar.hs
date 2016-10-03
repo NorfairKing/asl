@@ -23,9 +23,8 @@ jarRules = do
 
     jarInBuildDir %> \_ -> do
         let buildFile = build <.> xmlExt
-        need [buildFile]
         sourceFiles <- absFilesInDir javaSourceDir ["//*" <.> java]
-        need sourceFiles
+        need $ buildFile : sourceFiles
         let jarTarget = jar
             antCmd = ant
         cmd antCmd jarTarget

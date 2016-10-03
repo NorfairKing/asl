@@ -2,6 +2,7 @@
 module AslBuild.LocalMiddlewareTest where
 
 import           Control.Monad
+import           Data.List                  (intercalate)
 import           System.Exit
 import           System.Process
 
@@ -18,7 +19,7 @@ import           AslBuild.Middleware
 import           AslBuild.Types
 
 localMiddlewareTestRule :: String
-localMiddlewareTestRule = "local-test"
+localMiddlewareTestRule = "local-middleware-test"
 
 
 data LocalMiddlewareTestSetup
@@ -46,10 +47,17 @@ setups = do
             }
 
     keySize <- [16, 32, 128]
-    valueSize <- [16, 32, 128]
+    valueSize <- [16, 256, 4096]
     threads <- [1, 2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [1, 2]
+
+    let signature = intercalate "-"
+            [ show keySize
+            , show valueSize
+            , show threads
+            , show concurrency
+            ]
 
     let msSets = MemaslapSettings
             { msConfig = MemaslapConfig
@@ -65,7 +73,7 @@ setups = do
                 , msOverwrite = 0.5
                 , msStatFreq = Seconds $ time + 2
                 , msTime = Seconds $ time + 2
-                , msConfigFile = tmpDir </> "local-middleware-test-memaslap-cfg.txt"
+                , msConfigFile = tmpDir </> "local-middleware-test-memaslap-cfg-" ++ signature
                 }
             }
 
@@ -86,35 +94,48 @@ localMiddlewareTestRules =
             serverPH <- cmd memcachedBin
                 (memcachedArgs memcachedFlags)
 
-            let tmpStdErr = "/tmp/middle_std_err"
-            let tmpStdOut = "/tmp/middle_std_out"
+            let mStdErr = "/tmp/middle_std_err"
+            let mStdOut = "/tmp/middle_std_out"
             middlePH <- cmd javaCmd
-                (FileStderr tmpStdErr)
-                (FileStdout tmpStdOut)
+                (FileStderr mStdErr)
+                (FileStdout mStdOut)
                 "-jar" outputJarFile
                 (middlewareArgs middlewareFlags)
 
+            wait 1
+
+            let cStdOut = "/tmp/client_std_out"
+            let cStdErr = "/tmp/client_std_err"
+
             clientPH <- cmd memaslapBin
+                (FileStdout cStdOut)
+                (FileStderr cStdErr)
                 (memaslapArgs $ msFlags memaslapSettings)
 
             wait runtime
             putLoud "Done waiting, killing processes!"
 
-            mec <- liftIO $ getProcessExitCode middlePH
             let terminateAll = liftIO $ do
                     terminateProcess clientPH
                     terminateProcess middlePH
                     terminateProcess serverPH
+
+            clc <- liftIO $ getProcessExitCode clientPH
+            case clc of
+                Just (ExitFailure ec) -> do
+                    unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
+                    terminateAll
+                    fail $ "client failed with exitcode: " ++ show ec
+                _ -> return ()
+
+            mec <- liftIO $ getProcessExitCode middlePH
             case mec of
                 Just (ExitFailure ec) -> do
-                    liftIO $ do
-                        sout <- readFile tmpStdOut
-                        putStrLn sout
-                        serr <- readFile tmpStdErr
-                        putStrLn serr
+                    unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
                     terminateAll
                     fail $ "Middleware failed with exitcode: " ++ show ec
                 _ -> return ()
 
             terminateAll
+            wait 1
 
