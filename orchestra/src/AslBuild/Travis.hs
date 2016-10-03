@@ -8,6 +8,7 @@ import           AslBuild.BuildMemcached
 import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
+import           AslBuild.LocalMiddlewareTest
 import           AslBuild.Provision
 import           AslBuild.Test
 
@@ -23,6 +24,7 @@ travisRules = travisRule ~> do
         , memcachedBin
         , testRule
         , localLogTestRule
+        , localMiddlewareTestRule
         ]
 
     need [provisionLocalhostRule]
