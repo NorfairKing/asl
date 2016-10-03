@@ -14,6 +14,7 @@ import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
+import           AslBuild.Middleware
 import           AslBuild.Types
 
 localMiddlewareTestRule :: String
@@ -117,21 +118,3 @@ localMiddlewareTestRules =
 
             terminateAll
 
-
-data MiddlewareFlags
-    = MiddlewareFlags
-    { mwIp                :: String
-    , mwPort              :: Int
-    , mwNrThreads         :: Int
-    , mwReplicationFactor :: Int
-    , mwServers           :: [RemoteServerUrl]
-    } deriving (Show, Eq)
-
-middlewareArgs :: MiddlewareFlags -> [String]
-middlewareArgs MiddlewareFlags{..} =
-    [ "-l", mwIp
-    , "-p", show mwPort
-    , "-t", show mwNrThreads
-    , "-r", show mwReplicationFactor
-    , "-m", unwords $ map remoteServerUrl mwServers
-    ]
