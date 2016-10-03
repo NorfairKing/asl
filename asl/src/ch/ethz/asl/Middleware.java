@@ -71,7 +71,7 @@ public class Middleware {
             asc.connect(address);
             while (true) {
               logger.log(Level.FINER, "Spinning");
-              ByteBuffer bbuf = ByteBuffer.allocate(bufferSize); // TODO use my own immutable byte buffers.
+              ByteBuffer bbuf = ByteBuffer.allocate(bufferSize);
               int bytesRead = chan.read(bbuf).get();
               logger.finer("Input from client:");
               logger.finer(Integer.toString(bytesRead) + " bytes");

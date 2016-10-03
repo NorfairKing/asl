@@ -9,10 +9,10 @@ interface Request {
 
   String render();
 
-  static final String NEWLINE = "\r\n";
-  static final String KEYWORD_GET = "get ";
+  String NEWLINE = "\r\n";
+  String KEYWORD_GET = "get ";
 
-  static final ArrayList<String> KEYWORD_GET_PREFIXES = nonemptyPrefixes(KEYWORD_GET);
+  ArrayList<String> KEYWORD_GET_PREFIXES = nonemptyPrefixes(KEYWORD_GET);
 
   // "get" -> ["g", "ge", "get"]
   static ArrayList<String> nonemptyPrefixes(String str) {

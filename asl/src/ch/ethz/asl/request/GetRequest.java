@@ -22,7 +22,6 @@ public class GetRequest implements Request {
     GetRequest that = (GetRequest) o;
 
     return key != null ? key.equals(that.key) : that.key == null;
-
   }
 
   @Override
