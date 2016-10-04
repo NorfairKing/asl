@@ -168,4 +168,69 @@ public class RequestTest {
     assertThat(Request.parseRequest(ByteBuffer.wrap("set bbb 0 2 16\r\n0123456789abcdef\r\n".getBytes())))
         .isEqualTo(new SetRequest("bbb".getBytes(), "0".getBytes(), "2".getBytes(), "16".getBytes(), "0123456789abcdef".getBytes()));
   }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestPrefixD() {
+    Request.parseRequest(ByteBuffer.wrap("d".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestPrefixDE() {
+    Request.parseRequest(ByteBuffer.wrap("de".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestPrefixDEL() {
+    Request.parseRequest(ByteBuffer.wrap("del".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestPrefixDELE() {
+    Request.parseRequest(ByteBuffer.wrap("dele".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestPrefixDELET() {
+    Request.parseRequest(ByteBuffer.wrap("delet".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestPrefixDELETE() {
+    Request.parseRequest(ByteBuffer.wrap("delete".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestPrefixDELETESpace() {
+    Request.parseRequest(ByteBuffer.wrap("delete ".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseDeleteRequestNoNewline() {
+    Request.parseRequest(ByteBuffer.wrap("delete foo".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseDeleteRequestFailedKeywordFirstLetter() {
+    Request.parseRequest(ByteBuffer.wrap("c".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseDeleteRequestFailedKeyword() {
+    Request.parseRequest(ByteBuffer.wrap("dt".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseDeleteRequestFailedFullKeyword() {
+    Request.parseRequest(ByteBuffer.wrap("dte".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseDeleteRequestFailedKeywordWithKey() {
+    Request.parseRequest(ByteBuffer.wrap("dte key".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseDeleteRequestFailedKeywordWithNewline() {
+    Request.parseRequest(ByteBuffer.wrap("dte key\r\n".getBytes()));
+  }
 }

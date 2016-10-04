@@ -84,6 +84,12 @@ localMiddlewareParseTestRules =
                 "get otherkey\r\n" `shouldResultIn` "END\r\n"
                 "set otherkey 0 0 3\r\nabc\r\n" `shouldResultIn` "STORED\r\n"
                 "get otherkey\r\n" `shouldResultIn` "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
+                "delete key\r\n" `shouldResultIn` "DELETED\r\n"
+                "get key\r\n" `shouldResultIn` "END\r\n"
+                "delete key\r\n" `shouldResultIn` "NOT_FOUND\r\n"
+                "delete otherkey\r\n" `shouldResultIn` "DELETED\r\n"
+                "get otherkey\r\n" `shouldResultIn` "END\r\n"
+                "delete otherkey\r\n" `shouldResultIn` "NOT_FOUND\r\n"
 
         actionFinally tests $ do
             terminateProcess serverPH

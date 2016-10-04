@@ -1,7 +1,5 @@
 package ch.ethz.asl.request;
 
-import org.omg.PortableServer.REQUEST_PROCESSING_POLICY_ID;
-
 import java.nio.ByteBuffer;
 
 // TODO implement delete as well!
@@ -95,6 +93,65 @@ public interface Request {
             throw new ParseFailedException();
         }
         break;
+      case 'd':
+
+        if (limit <= 1) {
+          throw new NotEnoughDataException();
+        }
+
+        switch (byteBuffer.get(1)) {
+          case 'e':
+
+            if (limit <= 2) {
+              throw new NotEnoughDataException();
+            }
+
+            switch (byteBuffer.get(2)) {
+              case 'l':
+
+                if (limit <= 3) {
+                  throw new NotEnoughDataException();
+                }
+
+                switch (byteBuffer.get(3)) {
+                  case 'e':
+                    if (limit <= 4) {
+                      throw new NotEnoughDataException();
+                    }
+
+                    switch (byteBuffer.get(4)) {
+                      case 't':
+                        if (limit <= 5) {
+                          throw new NotEnoughDataException();
+                        }
+
+                        switch (byteBuffer.get(5)) {
+                          case 'e':
+                            if (limit <= 6) {
+                              throw new NotEnoughDataException();
+                            }
+
+                            switch (byteBuffer.get(6)) {
+                              case ' ':
+                                return parseDeleteRequest(byteBuffer);
+                              default:
+                                throw new ParseFailedException();
+                            }
+                          default:
+                            throw new ParseFailedException();
+                        }
+                      default:
+                        throw new ParseFailedException();
+                    }
+                  default:
+                    throw new ParseFailedException();
+                }
+              default:
+                throw new ParseFailedException();
+            }
+          default:
+            throw new ParseFailedException();
+        }
       default:
         throw new ParseFailedException();
     }
@@ -123,6 +180,12 @@ public interface Request {
     ParseProgress valueProgress = parseUntilNewline(byteBuffer, lengthOffset);
     byte[] value = valueProgress.res;
     return new SetRequest(key, flags, exptime, length, value);
+  }
+
+  static DeleteRequest parseDeleteRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
+    ParseProgress keyProgress = parseUntilNewline(byteBuffer, Request.KEYWORD_DELETE.length + Request.SPACE.length);
+    byte[] key = keyProgress.res;
+    return new DeleteRequest(key);
   }
 
   class ParseProgress {

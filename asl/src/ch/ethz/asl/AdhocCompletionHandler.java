@@ -51,6 +51,7 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
             req = Request.parseRequest(bbuf);
           } catch (Request.NotEnoughDataException | Request.ParseFailedException e) {
             e.printStackTrace();
+            chan.write(ByteBuffer.wrap("ERROR\r\n".getBytes()));
             continue;
           }
           logger.finest("Parsed request: " + req.toString());
