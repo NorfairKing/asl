@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module AslBuild.LocalLogTest where
 
 import           System.Process
@@ -23,15 +24,23 @@ memaslapConfigFile = tmpDir </> "local-logfile-test-memaslap-cfg.txt"
 csvOut :: FilePath
 csvOut = resultsDir </> "local-logfile-test.csv"
 
-currentMemaslapFlags :: MemaslapFlags
-currentMemaslapFlags = MemaslapFlags
-    { msServers = [RemoteServerUrl "localhost" defaultMemcachedPort]
-    , msThreads = 64
-    , msConcurrency = 64
-    , msOverwrite = 1
-    , msStatFreq = Seconds 2
-    , msTime = Seconds 2
-    , msConfigFile = memaslapConfigFile
+memaslapSettings :: MemaslapSettings
+memaslapSettings = MemaslapSettings
+    { msFlags = MemaslapFlags
+        { msServers = [RemoteServerUrl "localhost" defaultMemcachedPort]
+        , msThreads = 64
+        , msConcurrency = 64
+        , msOverwrite = 1
+        , msStatFreq = Seconds 2
+        , msTime = Seconds 2
+        , msConfigFile = memaslapConfigFile
+        }
+    , msConfig = MemaslapConfig
+        { keysizeDistributions = [Distribution 128 128 1]
+        , valueDistributions = [Distribution 2048 2048 1]
+        , setProportion = 0.1
+        , getProportion = 0.9
+        }
     }
 
 localLogTestRules :: Rules ()
@@ -40,21 +49,16 @@ localLogTestRules = do
     logFile %> \_ -> do
         need [memcachedBin, memaslapBin]
 
-        -- Choose a memaslap config and write it to the config file.
-        let memaslapConfig = MemaslapConfig
-                { keysizeDistributions = [Distribution 128 128 1]
-                , valueDistributions = [Distribution 2048 2048 1]
-                , setProportion = 0.1
-                , getProportion = 0.9
-                }
-        writeMemaslapConfig memaslapConfigFile memaslapConfig
+        let MemaslapSettings{..} = memaslapSettings
+        -- Write the config to a file.
+        writeMemaslapConfig memaslapConfigFile msConfig
 
         -- Start memcached locally
         ph <- cmd memcachedBin
 
         -- Run memaslap locally
         let runMemaslap :: Action ()
-            runMemaslap = command [FileStdout logFile] memaslapBin (memaslapArgs currentMemaslapFlags)
+            runMemaslap = command [FileStdout logFile] memaslapBin (memaslapArgs msFlags)
 
         -- Make sure to stop memcached
         actionFinally
