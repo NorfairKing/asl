@@ -22,6 +22,7 @@ public interface Request {
   static Request parseRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
     int limit = byteBuffer.limit();
 
+    if (limit <= 3)
     if (limit <= 0) {
       throw new NotEnoughDataException();
     }
