@@ -7,41 +7,66 @@ import static com.google.common.truth.Truth.assertThat;
 import java.nio.ByteBuffer;
 
 public class RequestTest {
-  @Test
+  @Test(expected = Request.NotEnoughDataException.class)
   public void parseRequestEmpty() {
-    assertThat(Request.parseRequest(ByteBuffer.wrap("".getBytes())))
-        .isEqualTo(ParseResult.needsMoreData());
+    Request.parseRequest(ByteBuffer.wrap("".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseGetRequestPrefixG() {
+    Request.parseRequest(ByteBuffer.wrap("g".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseGetRequestPrefixGE() {
+    Request.parseRequest(ByteBuffer.wrap("ge".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseGetRequestPrefixGET() {
+    Request.parseRequest(ByteBuffer.wrap("get".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseGetRequestPrefixGETSpace() {
+    Request.parseRequest(ByteBuffer.wrap("get ".getBytes()));
+  }
+
+  @Test(expected = Request.NotEnoughDataException.class)
+  public void parseGetRequestNoNewline() {
+    Request.parseRequest(ByteBuffer.wrap("get foo".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseGetRequestFailedKeywordFirstLetter() {
+    Request.parseRequest(ByteBuffer.wrap("a".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseGetRequestFailedKeyword() {
+    Request.parseRequest(ByteBuffer.wrap("gt".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseGetRequestFailedFullKeyword() {
+    Request.parseRequest(ByteBuffer.wrap("gte".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseGetRequestFailedKeywordWithKey() {
+    Request.parseRequest(ByteBuffer.wrap("gte key".getBytes()));
+  }
+
+  @Test(expected = Request.ParseFailedException.class)
+  public void parseGetRequestFailedKeywordWithNewline() {
+    Request.parseRequest(ByteBuffer.wrap("gte key\r\n".getBytes()));
   }
 
   @Test
-  public void parseGetRequestSingleKeyDone() {
+  public void parseGetRequestDone() {
     assertThat(Request.parseRequest(ByteBuffer.wrap("get foo\r\n".getBytes())))
-        .isEqualTo(ParseResult.done(new GetRequest("foo")));
+        .isEqualTo(new GetRequest("foo".getBytes()));
     assertThat(Request.parseRequest(ByteBuffer.wrap("get averyveryveryverylongkey\r\n".getBytes())))
-        .isEqualTo(ParseResult.done(new GetRequest("averyveryveryverylongkey")));
-  }
-
-  @Test
-  public void parseGetRequestSingleKeyNeedsMoreData() {
-    assertThat(Request.parseRequest(ByteBuffer.wrap("g".getBytes())))
-        .isEqualTo(ParseResult.needsMoreData());
-    assertThat(Request.parseRequest(ByteBuffer.wrap("ge".getBytes())))
-        .isEqualTo(ParseResult.needsMoreData());
-    assertThat(Request.parseRequest(ByteBuffer.wrap("get".getBytes())))
-        .isEqualTo(ParseResult.needsMoreData());
-    assertThat(Request.parseRequest(ByteBuffer.wrap("get foo".getBytes())))
-        .isEqualTo(ParseResult.needsMoreData());
-  }
-
-  @Test
-  public void parseGetRequestSingleKeyFailed() {
-    assertThat(Request.parseRequest(ByteBuffer.wrap("gt".getBytes())))
-        .isEqualTo(ParseResult.failed());
-    assertThat(Request.parseRequest(ByteBuffer.wrap("gte".getBytes())))
-        .isEqualTo(ParseResult.failed());
-    assertThat(Request.parseRequest(ByteBuffer.wrap("gte key".getBytes())))
-        .isEqualTo(ParseResult.failed());
-    assertThat(Request.parseRequest(ByteBuffer.wrap("gte key\r\n".getBytes())))
-        .isEqualTo(ParseResult.failed());
+        .isEqualTo(new GetRequest("averyveryveryverylongkey".getBytes()));
   }
 }

@@ -1,16 +1,27 @@
 package ch.ethz.asl.request;
 
-public class GetRequest implements Request {
-  private final String key;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
-  public GetRequest(String key) {
+public class GetRequest implements Request {
+  private final byte[] key;
+
+  public GetRequest(byte[] key) {
     this.key = key;
+  }
+
+  @Override
+  public ByteBuffer render() {
+    ByteBuffer bbuf = ByteBuffer.allocate("get ".length() + this.key.length);
+    bbuf.put(Request.KEYWORD_GET);
+    bbuf.put(this.key);
+    return bbuf;
   }
 
   @Override
   public String toString() {
     return "GetRequest{" +
-        "key='" + key + '\'' +
+        "key=" + Arrays.toString(key) +
         '}';
   }
 
@@ -21,16 +32,13 @@ public class GetRequest implements Request {
 
     GetRequest that = (GetRequest) o;
 
-    return key != null ? key.equals(that.key) : that.key == null;
+    return Arrays.equals(key, that.key);
+
   }
 
   @Override
   public int hashCode() {
-    return key != null ? key.hashCode() : 0;
+    return Arrays.hashCode(key);
   }
 
-  @Override
-  public String render() {
-    return "get " + this.key;
-  }
 }

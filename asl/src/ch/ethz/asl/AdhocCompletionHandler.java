@@ -1,5 +1,7 @@
 package ch.ethz.asl;
 
+import ch.ethz.asl.request.Request;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -45,7 +47,15 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
         logger.finer(Integer.toString(bytesRead) + " bytes");
         if (bytesRead >= 0) {
           logger.finest(new String(bbuf.array()));
-          int bytesWritten = asc.write(ByteBuffer.wrap(bbuf.array(), 0, bytesRead));
+
+          Request req = null;
+          try {
+            req = Request.parseRequest(bbuf);
+          } catch (Request.NotEnoughDataException | Request.ParseFailedException e) {
+            e.printStackTrace();
+            continue;
+          }
+          int bytesWritten = asc.write(req.render());
           logger.finer("Sent " + Integer.toString(bytesWritten) + " to server");
         }
 

@@ -46,8 +46,8 @@ setups = do
             , mwServers = [RemoteServerUrl "localhost" 11211]
             }
 
-    keySize <- [16, 32, 128]
-    valueSize <- [16, 256, 4096]
+    keySize <- [16]--, 32, 128]
+    valueSize <- [16]--, 256, 4096]
     threads <- [1, 2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [1, 2]
@@ -63,8 +63,8 @@ setups = do
             { msConfig = MemaslapConfig
                 { keysizeDistributions = [Distribution keySize keySize 1]
                 , valueDistributions = [Distribution valueSize valueSize 1]
-                , setProportion = 0.1
-                , getProportion = 0.9
+                , setProportion = 0.0
+                , getProportion = 1.0
                 }
             , msFlags = MemaslapFlags
                 { msServers = [RemoteServerUrl (mwIp mwFlags) (mwPort mwFlags)]
