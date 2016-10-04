@@ -16,6 +16,11 @@ wait i = do
     putLoud $ unwords ["Waiting for", show i, "seconds."]
     liftIO $ threadDelay $ i * 1000 * 1000
 
+waitMs :: Int -> Action ()
+waitMs i = do
+    putLoud $ unwords ["Waiting for", show i, "milliseconds."]
+    liftIO $ threadDelay $ i * 1000
+
 scriptAt :: RemoteLogin -> Script -> Action ()
 scriptAt rl Script{..} = do
     let path = "/tmp" </> scriptName <.> "bash"

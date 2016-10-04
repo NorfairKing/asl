@@ -38,13 +38,13 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
       asc.configureBlocking(true);
       asc.connect(address);
       while (true) {
-        logger.finer("Spinning");
+        logger.finest("Spinning");
         ByteBuffer bbuf = ByteBuffer.allocate(bufferSize);
         int bytesRead = chan.read(bbuf).get();
         logger.finest("Input from client:");
         logger.finest(Integer.toString(bytesRead) + " bytes");
         if (bytesRead >= 0) {
-          logger.finer(new String(bbuf.array()));
+          logger.finest(new String(bbuf.array()));
 
           Request req = null;
           try {
@@ -64,12 +64,12 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
 
         ByteBuffer bbuf2 = ByteBuffer.allocate(bufferSize);
         int bytesRead2 = asc.read(bbuf2);
-        logger.finer("Input from Server:");
-        logger.finer(Integer.toString(bytesRead2) + " bytes");
+        logger.finest("Input from Server:");
+        logger.finest(Integer.toString(bytesRead2) + " bytes");
         if (bytesRead2 >= 0) {
           logger.finest(new String(bbuf2.array()));
           int bytesWritten2 = chan.write(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2)).get();
-          logger.finer("Sent " + Integer.toString(bytesWritten2) + " to client");
+          logger.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
         }
 
       }

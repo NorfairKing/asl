@@ -1,8 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.LocalMiddlewareTest where
 
+import           Control.Concurrent
 import           Control.Monad
 import           Data.List                  (intercalate)
+
 import           System.Exit
 import           System.Process
 
@@ -102,7 +104,7 @@ localMiddlewareTestRules =
                 "-jar" outputJarFile
                 (middlewareArgs middlewareFlags)
 
-            wait 1
+            waitMs 250
 
             let cStdOut = "/tmp/client_std_out"
             let cStdErr = "/tmp/client_std_err"
@@ -112,30 +114,31 @@ localMiddlewareTestRules =
                 (FileStderr cStdErr)
                 (memaslapArgs $ msFlags memaslapSettings)
 
-            wait runtime
-            putLoud "Done waiting, killing processes!"
-
-            let terminateAll = liftIO $ do
+            let terminateAll = do
                     terminateProcess clientPH
                     terminateProcess middlePH
                     terminateProcess serverPH
 
-            clc <- liftIO $ getProcessExitCode clientPH
-            case clc of
-                Just (ExitFailure ec) -> do
-                    unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
-                    terminateAll
-                    fail $ "client failed with exitcode: " ++ show ec
-                _ -> return ()
+            let goOn = do
+                    wait runtime
+                    putLoud "Done waiting, killing processes!"
 
-            mec <- liftIO $ getProcessExitCode middlePH
-            case mec of
-                Just (ExitFailure ec) -> do
-                    unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
-                    terminateAll
-                    fail $ "Middleware failed with exitcode: " ++ show ec
-                _ -> return ()
+                    clc <- liftIO $ getProcessExitCode clientPH
+                    case clc of
+                        Just (ExitFailure ec) -> do
+                            unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
+                            fail $ "client failed with exitcode: " ++ show ec
+                        _ -> return ()
 
-            terminateAll
-            wait 1
+                    mec <- liftIO $ getProcessExitCode middlePH
+                    case mec of
+                        Just (ExitFailure ec) -> do
+                            unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
+                            fail $ "Middleware failed with exitcode: " ++ show ec
+
+                        _ -> return ()
+
+            actionFinally goOn $ do
+                terminateAll
+                threadDelay $ 1 * 1000 * 1000 -- Wait for everything to grind to a halt.
 
