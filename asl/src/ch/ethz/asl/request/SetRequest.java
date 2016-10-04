@@ -1,17 +1,17 @@
 package ch.ethz.asl.request;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
+import ch.ethz.asl.request.request_parsing.RequestParser;
 
-public class SetRequest implements Request {
-  private final byte[] key;
+import java.nio.ByteBuffer;
+
+public class SetRequest extends Request {
   private final byte[] flags;
   private final byte[] exptime;
   private final byte[] length;
   private final byte[] value;
 
   public SetRequest(byte[] key, byte[] flags, byte[] exptime, byte[] length, byte[] value) {
-    this.key = key;
+    super(key);
     this.flags = flags;
     this.exptime = exptime;
     this.length = length;
@@ -21,66 +21,30 @@ public class SetRequest implements Request {
   @Override
   public ByteBuffer render() {
     ByteBuffer bbuf = ByteBuffer.allocate(
-        Request.KEYWORD_SET.length
-            + Request.SPACE.length
+        RequestParser.KEYWORD_SET.length
+            + RequestParser.SPACE.length
             + this.key.length
-            + Request.SPACE.length
+            + RequestParser.SPACE.length
             + this.flags.length
-            + Request.SPACE.length
+            + RequestParser.SPACE.length
             + this.exptime.length
-            + Request.SPACE.length
+            + RequestParser.SPACE.length
             + this.length.length
-            + Request.NEWLINE.length
+            + RequestParser.NEWLINE.length
             + this.value.length
-            + Request.NEWLINE.length);
-    bbuf.put(Request.KEYWORD_SET);
-    bbuf.put(Request.SPACE);
+            + RequestParser.NEWLINE.length);
+    bbuf.put(RequestParser.KEYWORD_SET);
+    bbuf.put(RequestParser.SPACE);
     bbuf.put(this.key);
-    bbuf.put(Request.SPACE);
+    bbuf.put(RequestParser.SPACE);
     bbuf.put(this.flags);
-    bbuf.put(Request.SPACE);
+    bbuf.put(RequestParser.SPACE);
     bbuf.put(this.exptime);
-    bbuf.put(Request.SPACE);
+    bbuf.put(RequestParser.SPACE);
     bbuf.put(this.length);
-    bbuf.put(Request.NEWLINE);
+    bbuf.put(RequestParser.NEWLINE);
     bbuf.put(this.value);
-    bbuf.put(Request.NEWLINE);
+    bbuf.put(RequestParser.NEWLINE);
     return bbuf;
-  }
-
-  @Override
-  public String toString() {
-    return "SetRequest{" +
-        "key=" + Arrays.toString(key) +
-        ", flags=" + Arrays.toString(flags) +
-        ", exptime=" + Arrays.toString(exptime) +
-        ", length=" + Arrays.toString(length) +
-        ", value=" + Arrays.toString(value) +
-        '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    SetRequest that = (SetRequest) o;
-
-    if (!Arrays.equals(key, that.key)) return false;
-    if (!Arrays.equals(flags, that.flags)) return false;
-    if (!Arrays.equals(exptime, that.exptime)) return false;
-    if (!Arrays.equals(length, that.length)) return false;
-    return Arrays.equals(value, that.value);
-
-  }
-
-  @Override
-  public int hashCode() {
-    int result = Arrays.hashCode(key);
-    result = 31 * result + Arrays.hashCode(flags);
-    result = 31 * result + Arrays.hashCode(exptime);
-    result = 31 * result + Arrays.hashCode(length);
-    result = 31 * result + Arrays.hashCode(value);
-    return result;
   }
 }

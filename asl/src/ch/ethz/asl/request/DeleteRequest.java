@@ -1,25 +1,25 @@
 package ch.ethz.asl.request;
 
+import ch.ethz.asl.request.request_parsing.RequestParser;
+
 import java.nio.ByteBuffer;
 
-public class DeleteRequest implements Request {
-  private final byte[] key;
-
+public class DeleteRequest extends Request {
   public DeleteRequest(byte[] key) {
-    this.key = key;
+    super(key);
   }
 
   @Override
   public ByteBuffer render() {
     ByteBuffer bbuf = ByteBuffer.allocate(
-        Request.KEYWORD_DELETE.length
-            + Request.SPACE.length
+        RequestParser.KEYWORD_DELETE.length
+            + RequestParser.SPACE.length
             + this.key.length
-            + Request.NEWLINE.length);
-    bbuf.put(Request.KEYWORD_DELETE);
-    bbuf.put(Request.SPACE);
+            + RequestParser.NEWLINE.length);
+    bbuf.put(RequestParser.KEYWORD_DELETE);
+    bbuf.put(RequestParser.SPACE);
     bbuf.put(this.key);
-    bbuf.put(Request.NEWLINE);
+    bbuf.put(RequestParser.NEWLINE);
     return bbuf;
   }
 }

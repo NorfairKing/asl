@@ -1,6 +1,9 @@
 package ch.ethz.asl;
 
 import ch.ethz.asl.request.Request;
+import ch.ethz.asl.request.request_parsing.NotEnoughDataException;
+import ch.ethz.asl.request.request_parsing.ParseFailedException;
+import ch.ethz.asl.request.request_parsing.RequestParser;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -48,8 +51,8 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
 
           Request req = null;
           try {
-            req = Request.parseRequest(bbuf);
-          } catch (Request.NotEnoughDataException | Request.ParseFailedException e) {
+            req = RequestParser.parseRequest(bbuf);
+          } catch (NotEnoughDataException | ParseFailedException e) {
             e.printStackTrace();
             chan.write(ByteBuffer.wrap("ERROR\r\n".getBytes()));
             continue;
