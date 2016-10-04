@@ -147,7 +147,7 @@ formatClientRule = "format-client"
 formatClient :: Rules ()
 formatClient = do
     formatClientRule ~> do
-        files <- getDirectoryFiles "" ["inbox-client//*.java"]
+        files <- getDirectoryFiles "" ["asl//*.java"]
         need files
         void $ forP files javaFormat
 
