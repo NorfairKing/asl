@@ -46,8 +46,8 @@ setups = do
             , mwServers = [RemoteServerUrl "localhost" 11211]
             }
 
-    keySize <- [16]--, 32, 128]
-    valueSize <- [16]--, 256, 4096]
+    keySize <- [16, 32, 128]
+    valueSize <- [16, 256, 4096]
     threads <- [1, 2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [1, 2]

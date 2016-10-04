@@ -1,5 +1,7 @@
 package ch.ethz.asl.request;
 
+import com.sun.org.apache.regexp.internal.RE;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -12,9 +14,10 @@ public class GetRequest implements Request {
 
   @Override
   public ByteBuffer render() {
-    ByteBuffer bbuf = ByteBuffer.allocate("get ".length() + this.key.length);
+    ByteBuffer bbuf = ByteBuffer.allocate(Request.KEYWORD_GET.length + this.key.length + Request.NEWLINE.length);
     bbuf.put(Request.KEYWORD_GET);
     bbuf.put(this.key);
+    bbuf.put(Request.NEWLINE);
     return bbuf;
   }
 

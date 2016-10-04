@@ -1,22 +1,12 @@
 package ch.ethz.asl;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.BindException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 public class Middleware {
@@ -41,7 +31,7 @@ public class Middleware {
 
 
   public void run() {
-    logger.setLevel(Level.ALL);
+    logger.setLevel(Level.FINEST);
     logger.addHandler(new AdhocLogger());
     startServer();
     sleepForever();

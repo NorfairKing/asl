@@ -3,7 +3,6 @@ package ch.ethz.asl;
 import ch.ethz.asl.request.Request;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -12,7 +11,6 @@ import java.nio.channels.CompletionHandler;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, Object> {
@@ -43,10 +41,10 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
         logger.finer("Spinning");
         ByteBuffer bbuf = ByteBuffer.allocate(bufferSize);
         int bytesRead = chan.read(bbuf).get();
-        logger.finer("Input from client:");
-        logger.finer(Integer.toString(bytesRead) + " bytes");
+        logger.finest("Input from client:");
+        logger.finest(Integer.toString(bytesRead) + " bytes");
         if (bytesRead >= 0) {
-          logger.finest(new String(bbuf.array()));
+          logger.finer(new String(bbuf.array()));
 
           Request req = null;
           try {
@@ -55,8 +53,12 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
             e.printStackTrace();
             continue;
           }
-          int bytesWritten = asc.write(req.render());
-          logger.finer("Sent " + Integer.toString(bytesWritten) + " to server");
+          logger.finest("Parsed request: " + req.toString());
+          ByteBuffer rbuf = req.render();
+          rbuf.position(0);
+          int bytesWritten = asc.write(rbuf);
+          logger.finest("Sent " + Integer.toString(bytesWritten) + " to server:");
+          logger.finest(new String(rbuf.array()));
         }
 
         ByteBuffer bbuf2 = ByteBuffer.allocate(bufferSize);

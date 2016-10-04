@@ -10,6 +10,7 @@ import           AslBuild.CommitHash
 import           AslBuild.Create
 import           AslBuild.Experiments
 import           AslBuild.Jar
+import           AslBuild.LocalMiddlewareParseTest
 import           AslBuild.LocalMiddlewareTest
 import           AslBuild.PreCommit
 import           AslBuild.Provision
@@ -32,6 +33,7 @@ theShake  = do
     buildMemcachedRules
     reportRules
     testRules
+    localMiddlewareParseTestRules
     localMiddlewareTestRules
     experimentRules
     analysisRules
