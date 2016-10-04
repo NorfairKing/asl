@@ -1,5 +1,7 @@
 package ch.ethz.asl.request;
 
+import org.omg.PortableServer.REQUEST_PROCESSING_POLICY_ID;
+
 import java.nio.ByteBuffer;
 
 // TODO implement delete as well!
@@ -9,8 +11,9 @@ public interface Request {
 
   byte[] NEWLINE = "\r\n".getBytes();
   byte[] SPACE = " ".getBytes();
-  byte[] KEYWORD_GET = "get ".getBytes();
-  byte[] KEYWORD_SET = "set ".getBytes();
+  byte[] KEYWORD_GET = "get".getBytes();
+  byte[] KEYWORD_SET = "set".getBytes();
+  byte[] KEYWORD_DELETE = "delete".getBytes();
 
   class ParseFailedException extends IllegalArgumentException {
   }
@@ -22,7 +25,6 @@ public interface Request {
   static Request parseRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
     int limit = byteBuffer.limit();
 
-    if (limit <= 3)
     if (limit <= 0) {
       throw new NotEnoughDataException();
     }
@@ -100,14 +102,13 @@ public interface Request {
   }
 
   static GetRequest parseGetRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
-    int limit = byteBuffer.limit();
-    ParseProgress keyProgress = parseUntilNewline(byteBuffer, Request.KEYWORD_SET.length);
+    ParseProgress keyProgress = parseUntilNewline(byteBuffer, Request.KEYWORD_SET.length + Request.SPACE.length);
     byte[] key = keyProgress.res;
     return new GetRequest(key);
   }
 
   static SetRequest parseSetRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
-    ParseProgress keyProgress = parseUntilSpace(byteBuffer, Request.KEYWORD_SET.length);
+    ParseProgress keyProgress = parseUntilSpace(byteBuffer, Request.KEYWORD_SET.length + Request.SPACE.length);
     byte[] key = keyProgress.res;
     int keyOffset = keyProgress.nextoffset;
     ParseProgress flagsProgress = parseUntilSpace(byteBuffer, keyOffset);

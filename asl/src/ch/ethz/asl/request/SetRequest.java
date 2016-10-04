@@ -22,6 +22,7 @@ public class SetRequest implements Request {
   public ByteBuffer render() {
     ByteBuffer bbuf = ByteBuffer.allocate(
         Request.KEYWORD_SET.length
+            + Request.SPACE.length
             + this.key.length
             + Request.SPACE.length
             + this.flags.length
@@ -33,6 +34,7 @@ public class SetRequest implements Request {
             + this.value.length
             + Request.NEWLINE.length);
     bbuf.put(Request.KEYWORD_SET);
+    bbuf.put(Request.SPACE);
     bbuf.put(this.key);
     bbuf.put(Request.SPACE);
     bbuf.put(this.flags);

@@ -14,8 +14,13 @@ public class GetRequest implements Request {
 
   @Override
   public ByteBuffer render() {
-    ByteBuffer bbuf = ByteBuffer.allocate(Request.KEYWORD_GET.length + this.key.length + Request.NEWLINE.length);
+    ByteBuffer bbuf = ByteBuffer.allocate(
+        Request.KEYWORD_GET.length
+            + Request.SPACE.length
+            + this.key.length
+            + Request.NEWLINE.length);
     bbuf.put(Request.KEYWORD_GET);
+    bbuf.put(Request.SPACE);
     bbuf.put(this.key);
     bbuf.put(Request.NEWLINE);
     return bbuf;
