@@ -2,6 +2,7 @@ package ch.ethz.asl.request;
 
 import java.nio.ByteBuffer;
 
+// TODO implement delete as well!
 public interface Request {
 
   ByteBuffer render();

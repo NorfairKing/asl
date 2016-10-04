@@ -23,8 +23,11 @@ public class SetRequest implements Request {
     ByteBuffer bbuf = ByteBuffer.allocate(
         Request.KEYWORD_SET.length
             + this.key.length
+            + Request.SPACE.length
             + this.flags.length
+            + Request.SPACE.length
             + this.exptime.length
+            + Request.SPACE.length
             + this.length.length
             + Request.NEWLINE.length
             + this.value.length

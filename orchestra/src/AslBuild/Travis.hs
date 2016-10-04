@@ -9,7 +9,7 @@ import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareParseTest
--- import           AslBuild.LocalMiddlewareTest
+import           AslBuild.LocalMiddlewareTest
 import           AslBuild.Provision
 import           AslBuild.Test
 
@@ -26,7 +26,7 @@ travisRules = travisRule ~> do
         , testRule
         , localLogTestRule
         , localMiddlewareParseTestRule
-        -- , localMiddlewareTestRule Doesn't work yet...
+        , localMiddlewareTestRule
         ]
 
     need [provisionLocalhostRule]

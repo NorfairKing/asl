@@ -70,8 +70,8 @@ localMiddlewareParseTestRules =
                 liftIO $ sendAll csock input
                 res <- liftIO $ recv csock 1024
                 unless (res == output) $ fail $ unlines
-                    [ "On input:" ++ show input
-                    , "Expected output:" ++ show output
+                    [ "On input: " ++ show input
+                    , "Expected output: " ++ show output
                     , "But got: " ++ show res
                     ]
 
@@ -79,6 +79,11 @@ localMiddlewareParseTestRules =
                 "get key\r\n" `shouldResultIn` "END\r\n"
                 "get otherkey\r\n" `shouldResultIn` "END\r\n"
                 "get moreKeys\r\n" `shouldResultIn` "END\r\n"
+                "set key 0 0 8\r\n12345678\r\n" `shouldResultIn` "STORED\r\n"
+                "get key\r\n" `shouldResultIn` "VALUE key 0 8\r\n12345678\r\nEND\r\n"
+                "get otherkey\r\n" `shouldResultIn` "END\r\n"
+                "set otherkey 0 0 3\r\nabc\r\n" `shouldResultIn` "STORED\r\n"
+                "get otherkey\r\n" `shouldResultIn` "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
 
         actionFinally tests $ do
             terminateProcess serverPH
