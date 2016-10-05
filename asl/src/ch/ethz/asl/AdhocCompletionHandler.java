@@ -4,9 +4,7 @@ import ch.ethz.asl.request.Request;
 import ch.ethz.asl.request.request_parsing.NotEnoughDataException;
 import ch.ethz.asl.request.request_parsing.ParseFailedException;
 import ch.ethz.asl.request.request_parsing.RequestParser;
-import ch.ethz.asl.response.Response;
-import ch.ethz.asl.response.ServerErrorResponse;
-import ch.ethz.asl.response.SuccessfulResponse;
+import ch.ethz.asl.response.*;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -47,25 +45,28 @@ public class AdhocCompletionHandler
           log.finest(new String(bbuf.array()));
 
           Request req;
+          Response res;
           try {
             req = RequestParser.parseRequest(bbuf);
-          } catch (NotEnoughDataException | ParseFailedException e) {
-            e.printStackTrace();
-            chan.write(ByteBuffer.wrap("ERROR\r\n".getBytes()));
-            continue;
+            log.finest("Parsed request: " + req.toString());
+            res = handle(req);
+          } catch (NotEnoughDataException e) {
+            res = new ClientErrorResponse("Not enough data.");
+          } catch (ParseFailedException e) {
+            res = new ErrorResponse();
           }
-          log.finest("Parsed request: " + req.toString());
-          Response res = handle(req);
+          log.finest("Produced response: " + res.toString());
 
-          int bytesWritten2 = chan.write(res.render()).get();
+          ByteBuffer responseBytes = res.render();
+          responseBytes.position(0);
+          int bytesWritten2 = chan.write(responseBytes).get();
           log.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
         }
       }
     } catch (ExecutionException e) {
-      e.printStackTrace();
+      return; // Just close the connection.
     } catch (InterruptedException e) {
-      e.printStackTrace();
-      System.exit(1);
+      System.exit(1); // Just stop.
     } finally {
       try {
         if (chan != null) {

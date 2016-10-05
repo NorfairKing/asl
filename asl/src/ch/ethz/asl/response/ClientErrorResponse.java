@@ -5,14 +5,14 @@ import ch.ethz.asl.request.request_parsing.RequestParser;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public class ServerErrorResponse implements Response {
+public class ClientErrorResponse implements Response {
   private final Optional<String> message;
 
-  public ServerErrorResponse() {
+  public ClientErrorResponse() {
     this.message = Optional.empty();
   }
 
-  public ServerErrorResponse(String message) {
+  public ClientErrorResponse(String message) {
     this.message = Optional.of(message);
   }
 
@@ -26,18 +26,18 @@ public class ServerErrorResponse implements Response {
     }
     ByteBuffer res =
         ByteBuffer.allocate(
-            SERVER_ERROR_STR.length
+            CLIENT_ERROR_STR.length
                 + RequestParser.SPACE.length
                 + messagePayload.length
                 + RequestParser.NEWLINE.length);
-    res.put(SERVER_ERROR_STR);
+    res.put(CLIENT_ERROR_STR);
     res.put(RequestParser.SPACE);
     res.put(messagePayload);
     res.put(RequestParser.NEWLINE);
     return res;
   }
 
-  private static final byte[] SERVER_ERROR_STR = "SERVER_ERROR".getBytes();
+  private static final byte[] CLIENT_ERROR_STR = "CLIENT_ERROR".getBytes();
 
   @Override
   public String toString() {

@@ -77,20 +77,55 @@ localMiddlewareParseTestRules =
                     ]
 
         let tests = do
+                -- Successful requests
+
+                -- Get keys that don't have data assigned.
                 "get key\r\n" `shouldResultIn` "END\r\n"
                 "get otherkey\r\n" `shouldResultIn` "END\r\n"
                 "get moreKeys\r\n" `shouldResultIn` "END\r\n"
+
+                -- Set data for 'key'
                 "set key 0 0 8\r\n12345678\r\n" `shouldResultIn` "STORED\r\n"
+
+                -- Get it back
                 "get key\r\n" `shouldResultIn` "VALUE key 0 8\r\n12345678\r\nEND\r\n"
+
+                -- Check that getting a nonexistent piece still works
                 "get otherkey\r\n" `shouldResultIn` "END\r\n"
+
+                -- Do the same thing as for 'key', but for 'otherkey'.
                 "set otherkey 0 0 3\r\nabc\r\n" `shouldResultIn` "STORED\r\n"
                 "get otherkey\r\n" `shouldResultIn` "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
+
+                -- Delete the value for 'key'.
                 "delete key\r\n" `shouldResultIn` "DELETED\r\n"
+
+                -- Check that its data is indeed gone now.
                 "get key\r\n" `shouldResultIn` "END\r\n"
+
+                -- Check what happens if the data was already gone.
                 "delete key\r\n" `shouldResultIn` "NOT_FOUND\r\n"
+
+                -- Do the same thing for 'otherkey'.
                 "delete otherkey\r\n" `shouldResultIn` "DELETED\r\n"
                 "get otherkey\r\n" `shouldResultIn` "END\r\n"
                 "delete otherkey\r\n" `shouldResultIn` "NOT_FOUND\r\n"
+
+                -- Check for error on nonexistent command
+                "ste key\r\n" `shouldResultIn` "ERROR\r\n"
+
+                -- Check for client_error on something that doesnt conform to the protocol,
+                -- like a missing newline
+                "get key\r" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
+
+                liftIO $ terminateProcess serverPH
+
+                "get key\r\n" `shouldResultIn`
+                    "SERVER_ERROR Failed to connect to server.\r\n"
+                "set key 0 0 8\r\n12345678\r\n" `shouldResultIn`
+                    "SERVER_ERROR Failed to connect to server.\r\n"
+                "delete key\r\n" `shouldResultIn`
+                    "SERVER_ERROR Failed to connect to server.\r\n"
 
         actionFinally tests $ do
             terminateProcess serverPH

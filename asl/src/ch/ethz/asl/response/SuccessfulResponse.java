@@ -13,4 +13,9 @@ public class SuccessfulResponse implements Response {
   public ByteBuffer render() {
     return payload;
   }
+
+  @Override
+  public String toString() {
+    return new String(this.render().array());
+  }
 }
