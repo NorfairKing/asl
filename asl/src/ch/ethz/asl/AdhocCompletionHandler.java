@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, Object> {
+public class AdhocCompletionHandler
+    implements CompletionHandler<AsynchronousSocketChannel, Object> {
   private static final Logger log = Logger.getGlobal();
   private final AsynchronousServerSocketChannel assc;
   private final List<ServerAddress> servers;
@@ -59,7 +60,6 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
           int bytesWritten2 = chan.write(res.render()).get();
           log.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
         }
-
       }
     } catch (ExecutionException e) {
       e.printStackTrace();
@@ -77,7 +77,7 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
     }
   }
 
-  public Response handle(Request req) {
+  private Response handle(Request req) {
 
     SocketAddress address = servers.get(0).getSocketAddress();
     log.finest("Connecting to: " + address);
@@ -102,7 +102,6 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
       log.finest("Sent " + Integer.toString(bytesWritten) + " to server:");
       log.finest(new String(rbuf.array()));
 
-
       int bufferSize = 1 << 16;
       ByteBuffer bbuf2 = ByteBuffer.allocate(bufferSize);
       int bytesRead2;
@@ -119,7 +118,6 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
         return new ServerErrorResponse("0 bytes read from server.");
       }
 
-
     } finally {
       try {
         if (asc != null) {
@@ -129,11 +127,8 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
         return new ServerErrorResponse("Failed to close socket channel.");
       }
     }
-
   }
 
   @Override
-  public void failed(Throwable exc, Object attachment) {
-
-  }
+  public void failed(Throwable exc, Object attachment) {}
 }

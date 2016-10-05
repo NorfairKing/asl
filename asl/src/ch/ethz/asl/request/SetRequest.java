@@ -21,19 +21,20 @@ public class SetRequest extends Request {
 
   @Override
   public ByteBuffer render() {
-    ByteBuffer bbuf = ByteBuffer.allocate(
-        RequestParser.KEYWORD_SET.length
-            + RequestParser.SPACE.length
-            + this.key.length
-            + RequestParser.SPACE.length
-            + this.flags.length
-            + RequestParser.SPACE.length
-            + this.exptime.length
-            + RequestParser.SPACE.length
-            + this.length.length
-            + RequestParser.NEWLINE.length
-            + this.value.length
-            + RequestParser.NEWLINE.length);
+    ByteBuffer bbuf =
+        ByteBuffer.allocate(
+            RequestParser.KEYWORD_SET.length
+                + RequestParser.SPACE.length
+                + this.key.length
+                + RequestParser.SPACE.length
+                + this.flags.length
+                + RequestParser.SPACE.length
+                + this.exptime.length
+                + RequestParser.SPACE.length
+                + this.length.length
+                + RequestParser.NEWLINE.length
+                + this.value.length
+                + RequestParser.NEWLINE.length);
     bbuf.put(RequestParser.KEYWORD_SET);
     bbuf.put(RequestParser.SPACE);
     bbuf.put(this.key);

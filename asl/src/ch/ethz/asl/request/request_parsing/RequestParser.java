@@ -15,7 +15,8 @@ public class RequestParser {
   public static final byte[] KEYWORD_SET = "set".getBytes();
   public static final byte[] KEYWORD_DELETE = "delete".getBytes();
 
-  public static Request parseRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
+  public static Request parseRequest(ByteBuffer byteBuffer)
+      throws NotEnoughDataException, ParseFailedException {
     int limit = byteBuffer.limit();
 
     if (limit <= 0) {
@@ -24,21 +25,18 @@ public class RequestParser {
 
     switch (byteBuffer.get(0)) {
       case 'g':
-
         if (limit <= 1) {
           throw new NotEnoughDataException();
         }
 
         switch (byteBuffer.get(1)) {
           case 'e':
-
             if (limit <= 2) {
               throw new NotEnoughDataException();
             }
 
             switch (byteBuffer.get(2)) {
               case 't':
-
                 if (limit <= 3) {
                   throw new NotEnoughDataException();
                 }
@@ -56,21 +54,18 @@ public class RequestParser {
             throw new ParseFailedException();
         }
       case 's':
-
         if (limit <= 1) {
           throw new NotEnoughDataException();
         }
 
         switch (byteBuffer.get(1)) {
           case 'e':
-
             if (limit <= 2) {
               throw new NotEnoughDataException();
             }
 
             switch (byteBuffer.get(2)) {
               case 't':
-
                 if (limit <= 3) {
                   throw new NotEnoughDataException();
                 }
@@ -89,21 +84,18 @@ public class RequestParser {
         }
         break;
       case 'd':
-
         if (limit <= 1) {
           throw new NotEnoughDataException();
         }
 
         switch (byteBuffer.get(1)) {
           case 'e':
-
             if (limit <= 2) {
               throw new NotEnoughDataException();
             }
 
             switch (byteBuffer.get(2)) {
               case 'l':
-
                 if (limit <= 3) {
                   throw new NotEnoughDataException();
                 }
@@ -153,13 +145,15 @@ public class RequestParser {
     throw new ParseFailedException();
   }
 
-  static GetRequest parseGetRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
+  static GetRequest parseGetRequest(ByteBuffer byteBuffer)
+      throws NotEnoughDataException, ParseFailedException {
     ParseProgress keyProgress = parseUntilNewline(byteBuffer, KEYWORD_SET.length + SPACE.length);
     byte[] key = keyProgress.res;
     return new GetRequest(key);
   }
 
-  static SetRequest parseSetRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
+  static SetRequest parseSetRequest(ByteBuffer byteBuffer)
+      throws NotEnoughDataException, ParseFailedException {
     ParseProgress keyProgress = parseUntilSpace(byteBuffer, KEYWORD_SET.length + SPACE.length);
     byte[] key = keyProgress.res;
     int keyOffset = keyProgress.nextoffset;
@@ -177,7 +171,8 @@ public class RequestParser {
     return new SetRequest(key, flags, exptime, length, value);
   }
 
-  static DeleteRequest parseDeleteRequest(ByteBuffer byteBuffer) throws NotEnoughDataException, ParseFailedException {
+  static DeleteRequest parseDeleteRequest(ByteBuffer byteBuffer)
+      throws NotEnoughDataException, ParseFailedException {
     ParseProgress keyProgress = parseUntilNewline(byteBuffer, KEYWORD_DELETE.length + SPACE.length);
     byte[] key = keyProgress.res;
     return new DeleteRequest(key);
@@ -230,6 +225,4 @@ public class RequestParser {
     }
     return res;
   }
-
 }
-

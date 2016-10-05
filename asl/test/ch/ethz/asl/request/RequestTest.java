@@ -151,25 +151,49 @@ public class RequestTest {
   @Test
   public void parseSetRequestDoneSimple() {
     assertThat(parseRequest(ByteBuffer.wrap("set foo 0 0 8\r\n12345678\r\n".getBytes())))
-        .isEqualTo(new SetRequest("foo".getBytes(), "0".getBytes(), "0".getBytes(), "8".getBytes(), "12345678".getBytes()));
+        .isEqualTo(
+            new SetRequest(
+                "foo".getBytes(),
+                "0".getBytes(),
+                "0".getBytes(),
+                "8".getBytes(),
+                "12345678".getBytes()));
   }
 
   @Test
   public void parseSetRequestDoneLongerFlas() {
     assertThat(parseRequest(ByteBuffer.wrap("set aa 16 0 8\r\n12345678\r\n".getBytes())))
-        .isEqualTo(new SetRequest("aa".getBytes(), "16".getBytes(), "0".getBytes(), "8".getBytes(), "12345678".getBytes()));
+        .isEqualTo(
+            new SetRequest(
+                "aa".getBytes(),
+                "16".getBytes(),
+                "0".getBytes(),
+                "8".getBytes(),
+                "12345678".getBytes()));
   }
 
   @Test
   public void parseSetRequestDoneLongerExptime() {
     assertThat(parseRequest(ByteBuffer.wrap("set foobar 0 20 4\r\nabcd\r\n".getBytes())))
-        .isEqualTo(new SetRequest("foobar".getBytes(), "0".getBytes(), "20".getBytes(), "4".getBytes(), "abcd".getBytes()));
+        .isEqualTo(
+            new SetRequest(
+                "foobar".getBytes(),
+                "0".getBytes(),
+                "20".getBytes(),
+                "4".getBytes(),
+                "abcd".getBytes()));
   }
 
   @Test
   public void parseSetRequestDoneLongerLength() {
     assertThat(parseRequest(ByteBuffer.wrap("set bbb 0 2 16\r\n0123456789abcdef\r\n".getBytes())))
-        .isEqualTo(new SetRequest("bbb".getBytes(), "0".getBytes(), "2".getBytes(), "16".getBytes(), "0123456789abcdef".getBytes()));
+        .isEqualTo(
+            new SetRequest(
+                "bbb".getBytes(),
+                "0".getBytes(),
+                "2".getBytes(),
+                "16".getBytes(),
+                "0123456789abcdef".getBytes()));
   }
 
   @Test(expected = NotEnoughDataException.class)

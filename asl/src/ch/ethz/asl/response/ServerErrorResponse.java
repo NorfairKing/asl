@@ -25,12 +25,12 @@ public class ServerErrorResponse implements Response {
     } else {
       messagePayload = "unknown error".getBytes();
     }
-    ByteBuffer res = ByteBuffer.allocate(
-        SERVER_ERROR_STR.length
-            + RequestParser.SPACE.length
-            + messagePayload.length
-            + RequestParser.NEWLINE.length
-    );
+    ByteBuffer res =
+        ByteBuffer.allocate(
+            SERVER_ERROR_STR.length
+                + RequestParser.SPACE.length
+                + messagePayload.length
+                + RequestParser.NEWLINE.length);
     res.put(SERVER_ERROR_STR);
     res.put(RequestParser.SPACE);
     res.put(messagePayload);

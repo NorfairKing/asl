@@ -1,4 +1,3 @@
 package ch.ethz.asl.request.request_parsing;
 
-public class NotEnoughDataException extends IllegalArgumentException {
-}
+public class NotEnoughDataException extends IllegalArgumentException {}

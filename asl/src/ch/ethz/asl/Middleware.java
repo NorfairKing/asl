@@ -16,7 +16,8 @@ public class Middleware {
   private final int port;
   private final List<ServerAddress> servers;
 
-  public Middleware(String myIp, int myPort, List<String> mcAddresses, int numThreadsPTP, int writeToCount) {
+  public Middleware(
+      String myIp, int myPort, List<String> mcAddresses, int numThreadsPTP, int writeToCount) {
     this.port = myPort;
     this.servers = makeServers(mcAddresses);
   }
@@ -28,7 +29,6 @@ public class Middleware {
     }
     return addrs;
   }
-
 
   public void run() {
     startServer();
@@ -47,7 +47,8 @@ public class Middleware {
 
   public void startServer() {
     try {
-      AsynchronousServerSocketChannel assc = AsynchronousServerSocketChannel.open().bind(new InetSocketAddress(port));
+      AsynchronousServerSocketChannel assc =
+          AsynchronousServerSocketChannel.open().bind(new InetSocketAddress(port));
       assc.accept(null, new AdhocCompletionHandler(assc, servers));
     } catch (BindException e) {
       e.printStackTrace();

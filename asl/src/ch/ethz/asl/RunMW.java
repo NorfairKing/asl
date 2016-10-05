@@ -83,7 +83,8 @@ public class RunMW {
     if (params.get("t") != null) {
       numThreadsPTP = Integer.parseInt(params.get("t").get(0));
     } else {
-      printUsageWithError("Provide the number of threads for the threadpool for each server (e.g. 4)!");
+      printUsageWithError(
+          "Provide the number of threads for the threadpool for each server (e.g. 4)!");
     }
 
     if (params.get("r") != null) {

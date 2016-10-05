@@ -11,11 +11,12 @@ public class GetRequest extends Request {
 
   @Override
   public ByteBuffer render() {
-    ByteBuffer bbuf = ByteBuffer.allocate(
-        RequestParser.KEYWORD_GET.length
-            + RequestParser.SPACE.length
-            + this.key.length
-            + RequestParser.NEWLINE.length);
+    ByteBuffer bbuf =
+        ByteBuffer.allocate(
+            RequestParser.KEYWORD_GET.length
+                + RequestParser.SPACE.length
+                + this.key.length
+                + RequestParser.NEWLINE.length);
     bbuf.put(RequestParser.KEYWORD_GET);
     bbuf.put(RequestParser.SPACE);
     bbuf.put(this.key);
