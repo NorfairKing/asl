@@ -18,6 +18,7 @@ data BaselineExperimentRuleCfg
     { target                       :: String
     , csvOutFile                   :: FilePath
     , localLogfile                 :: FilePath
+    , maxNrClients                 :: Int
     , baselineExperimentsCacheFile :: FilePath
     , baselineLocation             :: BaselineLocation
     , baselineSetup                :: BaseLineSetup
@@ -37,7 +38,8 @@ data BaseLineSetup
 
 data BaselineExperimentSetup
     = BaselineExperimentSetup
-    { clientSetups :: [ClientSetup]
+    { repetition   :: Int
+    , clientSetups :: [ClientSetup]
     , serverSetup  :: ServerSetup
     } deriving (Show, Eq, Generic)
 
@@ -82,6 +84,7 @@ resultsCsv :: [ExperimentResults] -> LB.ByteString
 resultsCsv = encodeByName $ header
     [ "nrClients"
     , "clientIndex"
+    , "rep"
     , "threads"
     , "concurrency"
     , "overwrite"
@@ -101,6 +104,7 @@ instance ToNamedRecord ExperimentResults where
         in namedRecord
             [ "nrClients" .= length clientSetups
             , "clientIndex" .= erClientIndex
+            , "rep" .= repetition
             , "threads" .= msThreads
             , "concurrency" .= msConcurrency
             , "overwrite" .= msOverwrite

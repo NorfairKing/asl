@@ -36,6 +36,7 @@ localBaselineExperiment = BaselineExperimentRuleCfg
     { target = localBaselineExperimentRule
     , csvOutFile = resultsDir </> "local-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "local-baseline_memaslaplog.txt"
+    , maxNrClients = 2
     , baselineExperimentsCacheFile = tmpDir </> "local-baseline-experiments.json"
     , baselineLocation = BaselineLocal
     , baselineSetup = BaseLineSetup
@@ -53,6 +54,7 @@ bigLocalBaselineExperiment = BaselineExperimentRuleCfg
     { target = bigLocalBaselineExperimentRule
     , csvOutFile = resultsDir </> "big-local-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "big-local-baseline_memaslaplog.txt"
+    , maxNrClients = 2
     , baselineExperimentsCacheFile = tmpDir </> "big-local-baseline-experiments.json"
     , baselineLocation = BaselineLocal
     , baselineSetup = BaseLineSetup
@@ -70,6 +72,7 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
     { target = remoteBaselineExperimentRule
     , csvOutFile = resultsDir </> "remote-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "remote-baseline_memaslaplog.txt"
+    , maxNrClients = 2
     , baselineExperimentsCacheFile = tmpDir </> "remote-baseline-experiments.json"
     , baselineLocation = BaselineRemote
     , baselineSetup = BaseLineSetup
@@ -170,7 +173,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
         BaselineLocal -> do
             let l = "localhost"
                 p = 11211
-                c = replicate 2 $ RemoteLogin Nothing l
+                c = replicate maxNrClients $ RemoteLogin Nothing l
                 m = RemoteServerUrl l p
                 s = ServerSetup (RemoteLogin Nothing l) MemcachedFlags
                     { memcachedPort = p
@@ -178,7 +181,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                     }
             return (c, m, s)
         BaselineRemote -> do
-            (cs, s) <- (\(c,_,[s]) -> (c, s)) <$> getVms 2 0 1
+            (cs, s) <- (\(c,_,[s]) -> (c, s)) <$> getVms maxNrClients 0 1
             let p = 11211
                 c_ = map (\vm -> RemoteLogin (Just $ vmAdmin vm) (vmFullUrl vm)) cs
                 m_ = RemoteServerUrl (vmPrivateIp s) p
@@ -236,6 +239,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                 }
 
         return BaselineExperimentSetup
-            { clientSetups = curClientSetups
+            { repetition = rep
+            , clientSetups = curClientSetups
             , serverSetup = serverSetup
             }

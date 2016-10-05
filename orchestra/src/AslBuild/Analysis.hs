@@ -7,9 +7,11 @@ import           AslBuild.Baseline
 import           AslBuild.Baseline.Types
 import           AslBuild.Constants
 
+experiment :: BaselineExperimentRuleCfg
+experiment = localBaselineExperiment -- bigLocalBaselineExperiment
 
 localResults :: FilePath
-localResults = csvOutFile localBaselineExperiment
+localResults = csvOutFile experiment
 
 analysisDir :: FilePath
 analysisDir = "analysis"
@@ -17,14 +19,17 @@ analysisDir = "analysis"
 baselineLocalhostPrefix :: FilePath
 baselineLocalhostPrefix = "baseline-localhost"
 
-localhostPlotTps :: FilePath
-localhostPlotTps = analysisDir </> (baselineLocalhostPrefix ++ "-tps") <.> pngExt
+localhostPlotTpsFilePrefix :: FilePath
+localhostPlotTpsFilePrefix = analysisDir </> (baselineLocalhostPrefix ++ "-tps")
 
-localhostPlotAvg :: FilePath
-localhostPlotAvg = analysisDir </> (baselineLocalhostPrefix ++ "-avg") <.> pngExt
+localhostPlotAvgFilePrefix :: FilePath
+localhostPlotAvgFilePrefix = analysisDir </> (baselineLocalhostPrefix ++ "-avg")
 
 localhostPlots :: [FilePath]
-localhostPlots = [localhostPlotTps, localhostPlotAvg]
+localhostPlots = do
+    prefix <- [localhostPlotTpsFilePrefix, localhostPlotAvgFilePrefix]
+    nrclients <- [1 .. maxNrClients experiment]
+    return $ prefix ++ "-" ++ show nrclients <.> pngExt
 
 analysisScript :: FilePath
 analysisScript = analysisDir </> "analyze.r"
@@ -41,7 +46,7 @@ analysisRules = do
 
     localhostPlots &%> \_ -> do
         need [analysisScript]--, localResults]
-        cmd rCmd analysisScript localResults localhostPlotTps localhostPlotAvg
+        cmd rCmd analysisScript localResults localhostPlotTpsFilePrefix localhostPlotAvgFilePrefix
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]
 
