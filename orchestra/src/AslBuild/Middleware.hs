@@ -14,4 +14,5 @@ middlewareArgs MiddlewareFlags{..} =
     , "-t", show mwNrThreads
     , "-r", show mwReplicationFactor
     , "-m", unwords $ map remoteServerUrl mwServers
+    , "-v", show $ fromEnum mwVerbosity
     ]

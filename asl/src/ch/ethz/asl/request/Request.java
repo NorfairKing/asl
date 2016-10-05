@@ -14,4 +14,24 @@ public abstract class Request {
   }
 
   public abstract ByteBuffer render();
+
+  @Override
+  public String toString() {
+    return new String(render().array());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Request)) return false;
+
+    Request request = (Request) o;
+
+    return this.render().equals(request.render());
+  }
+
+  @Override
+  public int hashCode() {
+    return this.render().hashCode();
+  }
 }

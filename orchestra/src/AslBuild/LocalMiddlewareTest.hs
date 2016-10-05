@@ -46,6 +46,7 @@ setups = do
             , mwNrThreads = 1
             , mwReplicationFactor = 1
             , mwServers = [RemoteServerUrl "localhost" 11211]
+            , mwVerbosity = LogFine
             }
 
     keySize <- [16, 32, 128]
@@ -96,22 +97,13 @@ localMiddlewareTestRules =
             serverPH <- cmd memcachedBin
                 (memcachedArgs memcachedFlags)
 
-            let mStdErr = "/tmp/middle_std_err"
-            let mStdOut = "/tmp/middle_std_out"
             middlePH <- cmd javaCmd
-                (FileStderr mStdErr)
-                (FileStdout mStdOut)
                 "-jar" outputJarFile
                 (middlewareArgs middlewareFlags)
 
             waitMs 250
 
-            let cStdOut = "/tmp/client_std_out"
-            let cStdErr = "/tmp/client_std_err"
-
             clientPH <- cmd memaslapBin
-                (FileStdout cStdOut)
-                (FileStderr cStdErr)
                 (memaslapArgs $ msFlags memaslapSettings)
 
             let terminateAll = do
@@ -125,17 +117,14 @@ localMiddlewareTestRules =
 
                     clc <- liftIO $ getProcessExitCode clientPH
                     case clc of
-                        Just (ExitFailure ec) -> do
-                            unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
+                        Just (ExitFailure ec) ->
                             fail $ "client failed with exitcode: " ++ show ec
                         _ -> return ()
 
                     mec <- liftIO $ getProcessExitCode middlePH
                     case mec of
-                        Just (ExitFailure ec) -> do
-                            unit $ cmd "cat" mStdOut mStdErr cStdOut cStdErr
+                        Just (ExitFailure ec) ->
                             fail $ "Middleware failed with exitcode: " ++ show ec
-
                         _ -> return ()
 
             actionFinally goOn $ do

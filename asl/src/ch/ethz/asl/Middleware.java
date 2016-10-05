@@ -31,8 +31,6 @@ public class Middleware {
 
 
   public void run() {
-    logger.setLevel(Level.FINEST);
-    logger.addHandler(new AdhocLogger());
     startServer();
     sleepForever();
   }

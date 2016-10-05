@@ -3,6 +3,7 @@ package ch.ethz.asl.request;
 import ch.ethz.asl.request.request_parsing.RequestParser;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class SetRequest extends Request {
   private final byte[] flags;

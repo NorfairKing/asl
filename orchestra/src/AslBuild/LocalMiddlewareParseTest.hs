@@ -40,6 +40,7 @@ localMiddlewareParseTestRules =
                 , mwNrThreads = 1
                 , mwReplicationFactor = 1
                 , mwServers = [RemoteServerUrl "localhost" sPort]
+                , mwVerbosity = LogAll
                 }
 
         serverPH <- command [] memcachedBin

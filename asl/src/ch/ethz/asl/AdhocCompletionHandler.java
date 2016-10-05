@@ -4,6 +4,9 @@ import ch.ethz.asl.request.Request;
 import ch.ethz.asl.request.request_parsing.NotEnoughDataException;
 import ch.ethz.asl.request.request_parsing.ParseFailedException;
 import ch.ethz.asl.request.request_parsing.RequestParser;
+import ch.ethz.asl.response.Response;
+import ch.ethz.asl.response.ServerErrorResponse;
+import ch.ethz.asl.response.SuccessfulResponse;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -17,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, Object> {
-  private static final Logger logger = Logger.getGlobal();
+  private static final Logger log = Logger.getGlobal();
   private final AsynchronousServerSocketChannel assc;
   private final List<ServerAddress> servers;
 
@@ -30,26 +33,19 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
   public void completed(AsynchronousSocketChannel chan, Object attachment) {
     assc.accept(attachment, this);
 
-    SocketAddress address = servers.get(0).getSocketAddress();
-    System.out.println("Connecting to: " + address);
-
     int bufferSize = 1 << 16;
 
-    SocketChannel asc = null;
     try {
-      asc = SocketChannel.open();
-      asc.configureBlocking(true);
-      asc.connect(address);
       while (true) {
-        logger.finest("Spinning");
+        log.finest("Spinning");
         ByteBuffer bbuf = ByteBuffer.allocate(bufferSize);
         int bytesRead = chan.read(bbuf).get();
-        logger.finest("Input from client:");
-        logger.finest(Integer.toString(bytesRead) + " bytes");
+        log.finest("Input from client:");
+        log.finest(Integer.toString(bytesRead) + " bytes");
         if (bytesRead >= 0) {
-          logger.finest(new String(bbuf.array()));
+          log.finest(new String(bbuf.array()));
 
-          Request req = null;
+          Request req;
           try {
             req = RequestParser.parseRequest(bbuf);
           } catch (NotEnoughDataException | ParseFailedException e) {
@@ -57,35 +53,21 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
             chan.write(ByteBuffer.wrap("ERROR\r\n".getBytes()));
             continue;
           }
-          logger.finest("Parsed request: " + req.toString());
-          ByteBuffer rbuf = req.render();
-          rbuf.position(0);
-          int bytesWritten = asc.write(rbuf);
-          logger.finest("Sent " + Integer.toString(bytesWritten) + " to server:");
-          logger.finest(new String(rbuf.array()));
-        }
+          log.finest("Parsed request: " + req.toString());
+          Response res = handle(req);
 
-        ByteBuffer bbuf2 = ByteBuffer.allocate(bufferSize);
-        int bytesRead2 = asc.read(bbuf2);
-        logger.finest("Input from Server:");
-        logger.finest(Integer.toString(bytesRead2) + " bytes");
-        if (bytesRead2 >= 0) {
-          logger.finest(new String(bbuf2.array()));
-          int bytesWritten2 = chan.write(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2)).get();
-          logger.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
+          int bytesWritten2 = chan.write(res.render()).get();
+          log.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
         }
 
       }
     } catch (ExecutionException e) {
       e.printStackTrace();
-    } catch (IOException | InterruptedException e) {
+    } catch (InterruptedException e) {
       e.printStackTrace();
       System.exit(1);
     } finally {
       try {
-        if (asc != null) {
-          asc.close();
-        }
         if (chan != null) {
           chan.close();
         }
@@ -93,6 +75,61 @@ public class AdhocCompletionHandler implements CompletionHandler<AsynchronousSoc
         e.printStackTrace();
       }
     }
+  }
+
+  public Response handle(Request req) {
+
+    SocketAddress address = servers.get(0).getSocketAddress();
+    log.finest("Connecting to: " + address);
+    SocketChannel asc = null;
+    try {
+      try {
+        asc = SocketChannel.open();
+        asc.configureBlocking(true);
+        asc.connect(address);
+      } catch (IOException e) {
+        return new ServerErrorResponse("Failed to connect to server.");
+      }
+
+      ByteBuffer rbuf = req.render();
+      rbuf.position(0);
+      int bytesWritten;
+      try {
+        bytesWritten = asc.write(rbuf);
+      } catch (IOException e) {
+        return new ServerErrorResponse("Failed to write to server.");
+      }
+      log.finest("Sent " + Integer.toString(bytesWritten) + " to server:");
+      log.finest(new String(rbuf.array()));
+
+
+      int bufferSize = 1 << 16;
+      ByteBuffer bbuf2 = ByteBuffer.allocate(bufferSize);
+      int bytesRead2;
+      try {
+        bytesRead2 = asc.read(bbuf2);
+      } catch (IOException e) {
+        return new ServerErrorResponse("Failed to receive from server.");
+      }
+      log.finest("Input from Server:");
+      log.finest(Integer.toString(bytesRead2) + " bytes");
+      if (bytesRead2 > 0) {
+        return new SuccessfulResponse(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2));
+      } else {
+        return new ServerErrorResponse("0 bytes read from server.");
+      }
+
+
+    } finally {
+      try {
+        if (asc != null) {
+          asc.close();
+        }
+      } catch (IOException e) {
+        return new ServerErrorResponse("Failed to close socket channel.");
+      }
+    }
+
   }
 
   @Override

@@ -195,8 +195,8 @@ public class RequestParser {
       byte snd = byteBuffer.get(i + 1);
       if (fst == NEWLINE[0] && snd == NEWLINE[1]) {
         // 4 bytes for "get ", 2 for "\r\n"
-        // ['g', 'e', 't', ' ',     ... here be a key ... , '\r', '\n', ...]
-        //  0   1    2    3    4
+        // [ ... , '\r', '\n', ...]
+        //          i   i + 1
         res = copyOver(byteBuffer, offset, i - offset);
         nextoff = i + 2;
         break;
