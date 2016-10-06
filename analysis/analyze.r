@@ -34,9 +34,10 @@ for (curNrClients in 1:maxNrClients) {
   tpsCombined = matrix(0, nrow=nrTpsVals, ncol=2) # Concurrency, sum of tps
   colnames(tpsCombined) <- c("concurrency", "tps")
 
+  rowNr = 0
   for (conc in concurrencies) {
     for (rep in 1:maxNrRepetitions) {
-      rowNr = maxNrRepetitions * (conc - 1) + rep
+      rowNr = rowNr + 1
       tpsCombined[rowNr, 1] = conc
       toSum = data$tps[data$concurrency == conc & data$rep == rep]
       tpsSum = sum(toSum)
