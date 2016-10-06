@@ -3,6 +3,7 @@ module AslBuild.Reports where
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import           AslBuild.Analysis
 import           AslBuild.Constants
 import           AslBuild.Utils
 
@@ -35,8 +36,7 @@ reportRules = do
     reportsRule ~> need [milestone1ReportOut]
 
     milestone1ReportInBuildDir %> \_ -> do
-        need [commonTex]
-        need [milestone1ReporttexInBuildDir]
+        need $ [commonTex, milestone1ReporttexInBuildDir] ++ localhostPlots
         cmd (Cwd reportsDir) "latexmk" "-pdf" milestone1Reporttex
 
     milestone1ReportOut `byCopying` milestone1ReportInBuildDir

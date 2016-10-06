@@ -1,3 +1,5 @@
+library(igraph)
+
 args <- commandArgs(trailingOnly=TRUE)
 
 if (length(args) < 1) {
@@ -16,6 +18,10 @@ res = read.csv(resFile, header=TRUE)
 
 startPng <- function(file) {
   png(filename=file, height=600, width=800, bg="white")
+  base2 = rgb(0xB5/256, 0x89/256, 0x00/256, 0.1)
+  par(
+      bg=base2#adjustcolor("lightgreen", alpha.f=0.3)
+    )
 }
 
 sign <- function (file, curNrClients) {
@@ -48,17 +54,41 @@ for (curNrClients in 1:maxNrClients) {
   tpsCombined = as.data.frame(tpsCombined)
 
   startPng(sign(outFileTps1, curNrClients))
-  plot(tpsCombined$concurrency, tpsCombined$tps
-       , main=paste("Aggregated throughput", curNrClients, "clients")
-       , xlab="Virtual clients (no unit)"
-       , ylab="Throughput (Operations/second)")
+  plot(
+      tpsCombined$concurrency
+    , tpsCombined$tps
+    , main=paste("Aggregated throughput", curNrClients, "clients")
+    , xlab="Virtual clients (no unit)"
+    , ylab="Throughput (Operations/second)"
+    , log="x"
+    , bg="green"
+    )
 
   startPng(sign(outFileAvg1, curNrClients))
-  plot(data$concurrency, data$avg
-       , main=paste("Aggregated throughput", curNrClients, "clients")
-       , xlab="Virtual clients (no unit)"
-       , ylab="Average response time")
+  plot(
+      data$concurrency, data$avg
+    , main=paste("Aggregated throughput", curNrClients, "clients")
+    , xlab="Virtual clients (no unit)"
+    , ylab="Average response time"
+    , log="x"
+    )
 
+  # hack: we draw arrows but with very special "arrowheads"
+  # No arrowheads with wide line: bars
+  arrows(
+      data$concurrency
+    , data$avg-data$std
+    , data$concurrency
+    , data$avg+data$std
+    , length=0 # Length of arrow head
+    , lwd=20 # Line width
+    , col=adjustcolor("darkblue", alpha.f=0.05)
+    )
+  points(
+      data$concurrency, data$avg
+    , col="red"
+    , pch=19 # Point shape: filled circle.
+    )
 }
 
 
