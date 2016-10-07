@@ -8,7 +8,7 @@ import           AslBuild.Baseline.Types
 import           AslBuild.Constants
 
 experiment :: BaselineExperimentRuleCfg
-experiment = bigLocalBaselineExperiment
+experiment = remoteBaselineExperiment
 
 localResults :: FilePath
 localResults = csvOutFile experiment

@@ -102,14 +102,6 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                 Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
                 Right exps -> return exps
 
-        -- Get the clients configs set up
-        let allClientSetups = nub $ concatMap clientSetups experiments
-        forP_ allClientSetups $ \ClientSetup{..} -> do
-            -- Generate the memsalap config locally
-            writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
-
-            -- Copy the memaslap config to the client
-            rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
 
         -- Intentionally no parallelism here.
         -- We need to do experiments one at a time.
@@ -119,32 +111,41 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             let maxClientTime = maximum $ map (toSeconds . msTime . msFlags . cMemaslapSettings) clientSetups
             putLoud $ "Approximately " ++ toClockString ((1 + 5 + maxClientTime) * (nrOfExperiments - ix)) ++ " remaining."
 
+            -- Get the clients configs set up
+            forP_ clientSetups $ \ClientSetup{..} -> do
+                -- Generate the memsalap config locally
+                writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
+
+                -- Copy the memaslap config to the client
+                rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
+
             let ServerSetup{..} = serverSetup
 
             -- Start memcached on the server
             scriptAt sRemoteLogin $ script
-                [ unwords $ remoteMemcachedBin : memcachedArgs sMemcachedFlags
+                [ unwords $ memcachedBin : memcachedArgs sMemcachedFlags
                 ]
 
             -- Wait for the server to get started
             wait 1
 
             -- In parallel because they have to start at the same time.
-            forP_ clientSetups $ \ClientSetup{..} -> do
-                let memaslapScript = script
-                        [ unwords
-                        $ remoteMemaslapBin : memaslapArgs (msFlags cMemaslapSettings)
-                            ++ [">", cRemoteLog, "2>&1", "&"]
-                        ]
-                scriptAt cRemoteLogin memaslapScript
+            parScriptAt $ flip map clientSetups $ \ClientSetup{..} ->
+                let line = unwords $
+                        memaslapBin : memaslapArgs (msFlags cMemaslapSettings)
+                        ++ [">", cRemoteLog, "2>&1", "&"]
+                    s = script [line]
+                in (cRemoteLogin, s)
 
             -- Wait long enough to be sure that memaslap is fully done.
             wait (maxClientTime + 5)
 
             -- Copy the logs back here
-            forP_ clientSetups $ \cSetup@ClientSetup{..} -> do
+            phPar clientSetups $ \ClientSetup{..} ->
                 rsyncFrom cRemoteLogin cRemoteLog cLocalLog
 
+            -- Make an analysis file for all the logs.
+            forM_ clientSetups $ \cSetup@ClientSetup{..} -> do
                 experimentLog <- liftIO $ readFile cLocalLog
                 case parseLog experimentLog of
                     Nothing -> fail $ "could not parse logfile: " ++ cLocalLog
@@ -158,7 +159,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                         liftIO $ LB.writeFile cResultsFile $ A.encodePretty results
 
             -- Make sure no memcached servers are running anymore
-            overSsh sRemoteLogin $ unwords ["killall", memcachedBinName]
+            unit $ overSsh sRemoteLogin $ unwords ["killall", memcachedBinName]
 
         let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles

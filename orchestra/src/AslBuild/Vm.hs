@@ -1,15 +1,16 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Vm where
 
+import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy       as LB
+import           System.Process
 
 import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.Utils
 import           AslBuild.Vm.Config
 import           AslBuild.Vm.Types
 
@@ -42,18 +43,20 @@ vmRules = do
     startVmsRule ~> do
         rawVmData <- getRawVmData
         resourceGroupName <- getResourceGroupName
-        forP_ rawVmData $ \VmData{..} ->
+        phs <- forM rawVmData $ \VmData{..} ->
             cmd azureCmd "vm" "start"
                 "--resource-group" resourceGroupName
                 "--name" vmName
+        liftIO $ mapM_ waitForProcess phs
 
     stopVmsRule ~> do
         rawVmData <- getRawVmData
         resourceGroupName <- getResourceGroupName
-        forP_ rawVmData $ \VmData{..} ->
+        phs <- forM rawVmData $ \VmData{..} ->
             cmd azureCmd "vm" "stop"
                 "--resource-group" resourceGroupName
                 "--name" vmName
+        liftIO $ mapM_ waitForProcess phs
 
 
 getRawVmData :: Action [VmData]

@@ -1,13 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Provision where
 
+import           Control.Monad
+import           System.Process
+
 import           Development.Shake
 
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
-import           AslBuild.Constants
 import           AslBuild.Types
-import           AslBuild.Utils
 import           AslBuild.Vm
 import           AslBuild.Vm.Types
 
@@ -33,16 +34,22 @@ provisionLocalhostRules = do
         ]
 
     provisionLocalhostMemcachedRule ~>
-        rsyncTo localhostLogin memcachedBin remoteMemcachedBin
+        need [memcachedBin]
 
     provisionLocalhostMemaslapRule ~>
-        rsyncTo localhostLogin memaslapBin remoteMemaslapBin
+        need [memaslapBin]
 
 localhostLogin :: RemoteLogin
 localhostLogin = RemoteLogin Nothing "localhost"
 
 provisionVmsRule :: String
 provisionVmsRule = "provision-vms"
+
+provisionVmsGlobalPackagesRule :: String
+provisionVmsGlobalPackagesRule = "provision-vms-global-packages"
+
+provisionOrcRule :: String
+provisionOrcRule = "provision-vms-orc"
 
 provisionVmsMemcachedRule :: String
 provisionVmsMemcachedRule = "provision-vms-memcached"
@@ -53,20 +60,38 @@ provisionVmsMemaslapRule = "provision-vms-memaslap"
 provisionVmsRules :: Rules ()
 provisionVmsRules = do
     provisionVmsRule ~> need
-        [ provisionVmsMemcachedRule
+        [ provisionVmsGlobalPackagesRule
+        , provisionOrcRule
+        , provisionVmsMemcachedRule
         , provisionVmsMemaslapRule
         ]
 
+    provisionVmsGlobalPackagesRule ~> do
+        eachVm $ \rl -> overSsh rl "yes | sudo apt-get update"
+        eachVm $ \rl -> overSsh rl "yes | sudo apt-get install build-essential htop"
+
+    provisionOrcRule ~>
+        eachVm' (\rl -> rsyncTo rl "/home/syd/.local/bin/orc" "orc")
+
     provisionVmsMemcachedRule ~>
-        eachVm (\rl -> rsyncTo rl memcachedBin remoteMemcachedBin)
+        eachVm (`orcRemotely` "out/memcached")
 
     provisionVmsMemaslapRule ~>
-        eachVm (\rl -> rsyncTo rl memaslapBin remoteMemaslapBin)
+        eachVm (`orcRemotely` "out/memaslap")
 
-eachVm :: (RemoteLogin -> Action ()) -> Action ()
+orcRemotely :: CmdResult r => RemoteLogin -> String -> Action r
+orcRemotely rl target = overSsh rl $ "./orc build " ++ target
+
+eachVm :: (RemoteLogin -> Action ProcessHandle) -> Action ()
 eachVm func = do
     vms <- getVmsToProvision
-    forP_ vms func
+    phs <- forM vms func
+    liftIO $ mapM_ waitForProcess phs
+
+eachVm' :: (RemoteLogin -> Action ()) -> Action ()
+eachVm' func = do
+    vms <- getVmsToProvision
+    forM_ vms func
 
 getVmsToProvision :: Action [RemoteLogin]
 getVmsToProvision = do

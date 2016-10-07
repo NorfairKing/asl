@@ -26,14 +26,14 @@ localMiddlewareParseTestRules =
         need [memcachedBin, memaslapBin, outputJarFile]
 
         let sPort :: Int
-            sPort = 11211
+            sPort = 12344
         let memcachedFlags = MemcachedFlags
                 { memcachedPort = sPort
                 , memcachedAsDaemon = False
                 }
 
         let clientPort :: Int
-            clientPort = 11234
+            clientPort = 12345
         let mwFlags = MiddlewareFlags
                 { mwIp = "host"
                 , mwPort = clientPort
@@ -62,7 +62,7 @@ localMiddlewareParseTestRules =
             -- Make it immediately available
             setSocketOption csock ReuseAddr 1
             -- Connect to client side
-            bind csock (SockAddrInet 11235 iNADDR_ANY)
+            bind csock (SockAddrInet 12346 iNADDR_ANY)
             connect csock $ SockAddrInet (fromIntegral clientPort) localhostAddr
             return csock
 
