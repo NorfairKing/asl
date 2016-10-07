@@ -24,9 +24,28 @@ import           AslBuild.Vm.Types
 
 baselineExperimentRules :: Rules ()
 baselineExperimentRules = do
+    rulesForGivenBaselineExperiment smallLocalBaselineExperiment
     rulesForGivenBaselineExperiment localBaselineExperiment
     rulesForGivenBaselineExperiment bigLocalBaselineExperiment
     rulesForGivenBaselineExperiment remoteBaselineExperiment
+
+smallLocalBaselineExperimentRule :: String
+smallLocalBaselineExperimentRule = "small-local-baseline-experiment"
+
+smallLocalBaselineExperiment :: BaselineExperimentRuleCfg
+smallLocalBaselineExperiment = BaselineExperimentRuleCfg
+    { target = smallLocalBaselineExperimentRule
+    , csvOutFile = resultsDir </> "small-local-baseline-experiment-results.csv"
+    , localLogfile = tmpDir </> "small-local-baseline_memaslaplog.txt"
+    , maxNrClients = 2
+    , baselineExperimentsCacheFile = tmpDir </> "small-local-baseline-experiments.json"
+    , baselineLocation = BaselineLocal
+    , baselineSetup = BaseLineSetup
+        { repetitions = 2
+        , runtime = 2
+        , maxNrVirtualClients = 2
+        }
+    }
 
 localBaselineExperimentRule :: String
 localBaselineExperimentRule = "local-baseline-experiment"
@@ -36,14 +55,10 @@ localBaselineExperiment = BaselineExperimentRuleCfg
     { target = localBaselineExperimentRule
     , csvOutFile = resultsDir </> "local-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "local-baseline_memaslaplog.txt"
-    , maxNrClients = 2
+    , maxNrClients = maxNrClients remoteBaselineExperiment
     , baselineExperimentsCacheFile = tmpDir </> "local-baseline-experiments.json"
     , baselineLocation = BaselineLocal
-    , baselineSetup = BaseLineSetup
-        { repetitions = 2
-        , runtime = 2
-        , maxNrVirtualClients = 2
-        }
+    , baselineSetup = baselineSetup remoteBaselineExperiment
     }
 
 bigLocalBaselineExperimentRule :: String

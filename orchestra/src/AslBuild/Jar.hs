@@ -9,6 +9,12 @@ import           AslBuild.Utils
 outputJarFile :: FilePath
 outputJarFile = outDir </> asl <.> jar
 
+buildFile :: FilePath
+buildFile = aslDir </> build <.> xmlExt
+
+jarInBuildDir :: FilePath
+jarInBuildDir = aslDir </> dist </> "middleware-tomk" <.> jarExt
+
 cleanJarRule :: String
 cleanJarRule = "clean-jar"
 
@@ -19,15 +25,11 @@ jarRules :: Rules ()
 jarRules = do
     jarRule ~> need [outputJarFile]
 
-    let jarInBuildDir = dist </> "middleware-tomk" <.> jarExt
-
     jarInBuildDir %> \_ -> do
-        let buildFile = build <.> xmlExt
         sourceFiles <- absFilesInDir javaSourceDir ["//*" <.> java]
         need $ buildFile : sourceFiles
         let jarTarget = jar
-            antCmd = ant
-        cmd antCmd jarTarget
+        cmd (Cwd aslDir) antCmd jarTarget
 
     outputJarFile `byCopying` jarInBuildDir
 

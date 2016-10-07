@@ -31,6 +31,6 @@ travisRules = travisRule ~> do
 
     need [provisionLocalhostRule]
     need
-        [ localBaselineExperimentRule
+        [ smallLocalBaselineExperimentRule
         , analysisRule
         ]

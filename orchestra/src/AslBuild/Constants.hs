@@ -73,29 +73,38 @@ makefile :: String
 makefile = "Makefile"
 
 -- Directories
+aslDir :: FilePath
+aslDir = asl
+
 outDir :: FilePath
-outDir = out
+outDir = aslDir </> out
 
 tmpDir :: FilePath
-tmpDir = tmp
+tmpDir = aslDir </> tmp
 
 assignmentDir :: FilePath
-assignmentDir = "assignment"
+assignmentDir = aslDir </> "assignment"
 
 resultsDir :: FilePath
-resultsDir = "results"
+resultsDir = aslDir </> "results"
+
+analysisDir :: FilePath
+analysisDir = aslDir </> "analysis"
 
 reportsDir :: FilePath
-reportsDir = reports
+reportsDir = aslDir </> reports
 
 codeSrcDir :: FilePath
-codeSrcDir = asl
+codeSrcDir = aslDir </> asl
 
 scriptsDir :: FilePath
-scriptsDir = "scripts"
+scriptsDir = aslDir </> "scripts"
 
 javaSourceDir :: FilePath
 javaSourceDir = codeSrcDir </> src
+
+javaTestDir :: FilePath
+javaTestDir = codeSrcDir </> test
 
 -- Extensions
 type Extension = FilePath
@@ -133,6 +142,12 @@ cleanTarget = "clean"
 
 
 -- Commands
+antCmd :: String
+antCmd = "ant"
+
+jarCmd :: String
+jarCmd = "jar"
+
 curlCmd :: String
 curlCmd = "curl"
 
@@ -166,3 +181,9 @@ azureCmd = "azure"
 -- Memcached
 defaultMemcachedPort :: Int
 defaultMemcachedPort = 11211
+
+orcBin :: FilePath
+orcBin = outDir </> "orc"
+
+orcLocalBin :: FilePath
+orcLocalBin = "/home/syd/.local/bin/orc"

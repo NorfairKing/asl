@@ -6,13 +6,14 @@ if (length(args) < 1) {
   stop("Input CSV filepath expected as first argument")
 }
 
-if (length(args) < 3) {
-  stop("Output plot filepaths expected as second and third argument")
+if (length(args) < 2) {
+  stop("Output plot filepaths expected as second argument")
 }
 
 resFile <- args[1] # First argument
-outFileTps1 <- args[2]
-outFileAvg1 <- args[3]
+filePrefix <- args[2]
+outFileTps <- paste(filePrefix, "tps", sep="-")
+outFileAvg <- paste(filePrefix, "avg", sep="-")
 
 res = read.csv(resFile, header=TRUE)
 
@@ -53,24 +54,23 @@ for (curNrClients in 1:maxNrClients) {
   # Turn it into a data frame.
   tpsCombined = as.data.frame(tpsCombined)
 
-  startPng(sign(outFileTps1, curNrClients))
+  startPng(sign(outFileTps, curNrClients))
   plot(
       tpsCombined$concurrency
     , tpsCombined$tps
     , main=paste("Aggregated throughput", curNrClients, "clients")
-    , xlab="Virtual clients (no unit)"
+    , xlab="log(Virtual clients) (no unit)"
     , ylab="Throughput (Operations/second)"
     , log="x"
     , bg="green"
     )
 
-  startPng(sign(outFileAvg1, curNrClients))
+  startPng(sign(outFileAvg, curNrClients))
   plot(
       data$concurrency, data$avg
-    , main=paste("Aggregated throughput", curNrClients, "clients")
+    , main=paste("Aggregated response time", curNrClients, "clients")
     , xlab="Virtual clients (no unit)"
     , ylab="Average response time"
-    , log="x"
     )
 
   # hack: we draw arrows but with very special "arrowheads"

@@ -11,6 +11,7 @@ import           AslBuild.Clean
 import           AslBuild.LocalLogTest
 import           AslBuild.OptParse
 import           AslBuild.Test
+import           AslBuild.Travis
 
 aslBuild :: IO ()
 aslBuild = do
@@ -27,6 +28,7 @@ aslBuild = do
                 DispatchBuild target -> buildTarget target
                 DispatchClean -> buildTarget cleanRule
                 DispatchTest -> buildTarget testRule
+                DispatchTravis -> buildTarget travisRule
                 DispatchRun experiment -> buildTarget $ case experiment of
                     LocalLogTestExperiment -> localLogTestRule
                     LocalBaselineExperiment -> localBaselineExperimentRule

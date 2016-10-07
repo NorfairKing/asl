@@ -5,10 +5,13 @@ import           Control.Monad
 import           System.Process
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
+import           AslBuild.Constants
 import           AslBuild.Types
+import           AslBuild.Utils
 import           AslBuild.Vm
 import           AslBuild.Vm.Types
 
@@ -20,6 +23,12 @@ provisionRules = do
 provisionLocalhostRule :: String
 provisionLocalhostRule = "provision-localhost"
 
+provisionLocalhostGlobalPackagesRule :: String
+provisionLocalhostGlobalPackagesRule = "provision-localhost-global-packages"
+
+provisionLocalhostOrcRule :: String
+provisionLocalhostOrcRule = "provision-localhost-orc"
+
 provisionLocalhostMemcachedRule :: String
 provisionLocalhostMemcachedRule = "provision-localhost-memcached"
 
@@ -28,28 +37,32 @@ provisionLocalhostMemaslapRule = "provision-localhost-memaslap"
 
 provisionLocalhostRules :: Rules ()
 provisionLocalhostRules = do
-    provisionLocalhostRule ~> need
-        [ provisionLocalhostMemcachedRule
-        , provisionLocalhostMemaslapRule
-        ]
+    provisionLocalhostRule ~> do
+        need [provisionLocalhostGlobalPackagesRule]
+        need [provisionLocalhostOrcRule]
+        need
+            [ provisionLocalhostMemcachedRule
+            , provisionLocalhostMemaslapRule
+            ]
 
-    provisionLocalhostMemcachedRule ~>
-        need [memcachedBin]
+    provisionLocalhostGlobalPackagesRule ~> return ()
 
-    provisionLocalhostMemaslapRule ~>
-        need [memaslapBin]
+    orcBin `byCopying` (aslDir </> ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/orc")
+
+    provisionLocalhostOrcRule ~> need [orcBin]
+
+    provisionLocalhostMemcachedRule ~> need [memcachedBin]
+
+    provisionLocalhostMemaslapRule ~> need [memaslapBin]
 
 localhostLogin :: RemoteLogin
 localhostLogin = RemoteLogin Nothing "localhost"
 
-provisionVmsRule :: String
-provisionVmsRule = "provision-vms"
-
 provisionVmsGlobalPackagesRule :: String
 provisionVmsGlobalPackagesRule = "provision-vms-global-packages"
 
-provisionOrcRule :: String
-provisionOrcRule = "provision-vms-orc"
+provisionVmsOrcRule :: String
+provisionVmsOrcRule = "provision-vms-orc"
 
 provisionVmsMemcachedRule :: String
 provisionVmsMemcachedRule = "provision-vms-memcached"
@@ -59,28 +72,22 @@ provisionVmsMemaslapRule = "provision-vms-memaslap"
 
 provisionVmsRules :: Rules ()
 provisionVmsRules = do
-    provisionVmsRule ~> need
-        [ provisionVmsGlobalPackagesRule
-        , provisionOrcRule
-        , provisionVmsMemcachedRule
-        , provisionVmsMemaslapRule
-        ]
-
     provisionVmsGlobalPackagesRule ~> do
         eachVm $ \rl -> overSsh rl "yes | sudo apt-get update"
         eachVm $ \rl -> overSsh rl "yes | sudo apt-get install build-essential htop"
 
-    provisionOrcRule ~>
-        eachVm' (\rl -> rsyncTo rl "/home/syd/.local/bin/orc" "orc")
+    provisionVmsOrcRule ~> do
+        need [orcBin]
+        eachVm' (\rl -> rsyncTo rl orcBin orcBin)
 
     provisionVmsMemcachedRule ~>
-        eachVm (`orcRemotely` "out/memcached")
+        eachVm (`orcRemotely` memcachedBin)
 
     provisionVmsMemaslapRule ~>
-        eachVm (`orcRemotely` "out/memaslap")
+        eachVm (`orcRemotely` memaslapBin)
 
 orcRemotely :: CmdResult r => RemoteLogin -> String -> Action r
-orcRemotely rl target = overSsh rl $ "./orc build " ++ target
+orcRemotely rl target = overSsh rl $ unwords [orcBin, "build", target]
 
 eachVm :: (RemoteLogin -> Action ProcessHandle) -> Action ()
 eachVm func = do

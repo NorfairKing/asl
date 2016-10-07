@@ -7,13 +7,9 @@ import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.OptParse
 import           AslBuild.Test
-import           AslBuild.Utils
 
 scriptsLib :: FilePath
 scriptsLib = scriptsDir </> "lib.sh"
-
-linesScript :: FilePath
-linesScript = scriptsDir </> "lines.sh"
 
 preCommitRule :: String
 preCommitRule = "pre-commit"
@@ -23,38 +19,32 @@ preCommitRules = do
     preCommitRule ~> do
         need
             [ outputJarFile
-            , buildBinOut
+            , buildBinInStack
             , codeHealthRule
             , testRule
             , documentationRule
             , formatClientRule
             ]
-        unit $ cmd gitCmd "add" "." -- Re-add files that were formatted.
-        unit $ cmd linesScript
+        unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.
+        unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 
     buildBin
     codeHealth
     documentation
     formatClient
 
-buildBinOut :: FilePath
-buildBinOut = outDir </> asl
-
 buildBinInStack :: FilePath
-buildBinInStack = ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/asl"
+buildBinInStack = aslDir </> ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/orc"
 
 aslBuildDir :: FilePath
-aslBuildDir = "orchestra"
+aslBuildDir = aslDir </> "orchestra"
 
 buildBin :: Rules ()
-buildBin = do
+buildBin =
     buildBinInStack %> \_ -> do
-        files <- getDirectoryFiles "" [aslBuildDir ++ "//*.hs"]
+        files <- getDirectoryFiles "" [aslBuildDir <//> "*.hs"]
         need files
         cmd (Cwd aslBuildDir) stackCmd "build"
-
-    buildBinOut `byCopying` buildBinInStack
-
 
 codeHealthRule :: String
 codeHealthRule = "code-health"
@@ -81,7 +71,7 @@ trailingWhitespaceScript = scriptsDir </> "trailing_whitespace_test.sh"
 trailingWhitespace :: Rules ()
 trailingWhitespace = trailingWhitespaceRule ~> do
     need [scriptsLib, trailingWhitespaceScript]
-    cmd trailingWhitespaceScript
+    cmd (Cwd aslDir) "scripts/trailing_whitespace_test.sh"
 
 indentationRule :: String
 indentationRule = "indentation"
@@ -92,7 +82,7 @@ indentationScript = scriptsDir </> "indentation.sh"
 indentation :: Rules ()
 indentation = indentationRule ~> do
     need [scriptsLib, indentationScript]
-    cmd indentationScript
+    cmd (Cwd aslDir) "scripts/indentation.sh"
 
 hlintRule :: String
 hlintRule = "hlint"
@@ -103,7 +93,7 @@ hlintScript = scriptsDir </> "hlint_health.sh"
 hlint :: Rules ()
 hlint = hlintRule ~> do
     need [scriptsLib, hlintScript]
-    cmd hlintScript
+    cmd (Cwd aslDir) "scripts/hlint_health.sh"
 
 sanityRule :: String
 sanityRule = "sanity"
@@ -133,7 +123,7 @@ documentationRule :: String
 documentationRule = "documentation"
 
 documentation :: Rules ()
-documentation = documentationRule ~> cmd stackCmd "haddock"
+documentation = documentationRule ~> cmd (Cwd aslDir) stackCmd "haddock"
 
 javaFormatterUrl :: FilePath
 javaFormatterUrl = "https://github.com/google/google-java-format/releases/download/google-java-format-1.0/google-java-format-1.0-all-deps.jar"
@@ -147,7 +137,9 @@ formatClientRule = "format-client"
 formatClient :: Rules ()
 formatClient = do
     formatClientRule ~> do
-        files <- getDirectoryFiles "" ["asl//*.java"]
+        srcFiles <- getDirectoryFiles "" [javaSourceDir <//> "*" <.> javaExt]
+        testFiles <- getDirectoryFiles "" [javaTestDir <//> "*" <.> javaExt]
+        let files = srcFiles ++ testFiles
         need files
         void $ forP files javaFormat
 

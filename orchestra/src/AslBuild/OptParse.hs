@@ -21,6 +21,7 @@ data Command
     | CommandRun Experiment
     | CommandTest
     | CommandClean
+    | CommandTravis
     deriving (Show, Eq)
 
 data Experiment
@@ -59,6 +60,7 @@ parseCommand = hsubparser $ mconcat
     , command "clean"       parseClean
     , command "test"        parseTest
     , command "run"         parseRun
+    , command "travis"      parseTravis
     ]
 
 parseBuild :: ParserInfo Command
@@ -75,6 +77,13 @@ parseClean = info parser modifier
     parser = pure CommandClean
     modifier = fullDesc
             <> progDesc "Clean up"
+
+parseTravis :: ParserInfo Command
+parseTravis = info parser modifier
+  where
+    parser = pure CommandTravis
+    modifier = fullDesc
+            <> progDesc "Run continuous integration"
 
 parseTest :: ParserInfo Command
 parseTest = info parser modifier
@@ -131,6 +140,7 @@ data Dispatch
     | DispatchClean
     | DispatchTest
     | DispatchRun Experiment
+    | DispatchTravis
     deriving (Show, Eq)
 
 data Settings = Settings
@@ -167,5 +177,6 @@ combineToInstructions c _ _ = do
             CommandClean      -> DispatchClean
             CommandTest       -> DispatchTest
             CommandRun ex     -> DispatchRun ex
+            CommandTravis     -> DispatchTravis
     return (d, sets)
 

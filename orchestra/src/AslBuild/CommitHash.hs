@@ -9,7 +9,7 @@ commithash :: String
 commithash = "commit"
 
 commithashFile :: FilePath
-commithashFile = commithash <.> txtExt
+commithashFile = aslDir </> commithash <.> txtExt
 
 commithashRule :: String
 commithashRule = "commithash"
@@ -24,8 +24,8 @@ commitHashRules = do
     commithashFile %> \_ -> do
         alwaysRerun
         -- Make the hash as short as possible with --short
-        Stdout hash <- quietly $ cmd "git rev-parse --short=0 --verify HEAD"
-        Stdout dirtyStr <- quietly $ cmd "git status --porcelain"
+        Stdout hash <- quietly $ cmd (Cwd aslDir) "git rev-parse --short=0 --verify HEAD"
+        Stdout dirtyStr <- quietly $ cmd (Cwd aslDir) "git status --porcelain"
         -- # init to remove newline
         let contents = init hash ++ if null (dirtyStr :: String) then [] else "-dirty"
         writeFileChanged commithashFile contents
