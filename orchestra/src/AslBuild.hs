@@ -3,6 +3,7 @@ module AslBuild
     ) where
 
 import           Data.List.Split
+import           System.Directory      (withCurrentDirectory)
 import           System.Environment    (getArgs, withArgs)
 
 import           AslBuild.Baseline
@@ -28,7 +29,7 @@ aslBuild = do
                 DispatchBuild target -> buildTarget target
                 DispatchClean -> buildTarget cleanRule
                 DispatchTest -> buildTarget testRule
-                DispatchTravis -> buildTarget travisRule
+                DispatchTravis -> withCurrentDirectory ".." $ buildTarget travisRule
                 DispatchRun experiment -> buildTarget $ case experiment of
                     LocalLogTestExperiment -> localLogTestRule
                     LocalBaselineExperiment -> localBaselineExperimentRule
