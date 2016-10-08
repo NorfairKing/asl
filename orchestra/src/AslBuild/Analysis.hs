@@ -63,9 +63,12 @@ allBaselineAnalyses =
     , remoteBaselineAnalysis
     ]
 
+allPlots :: [FilePath]
+allPlots = concatMap plotsFor allBaselineAnalyses
+
 analysisRules :: Rules ()
 analysisRules = do
-    analysisRule ~> need (concatMap plotsFor allBaselineAnalyses)
+    analysisRule ~> need allPlots
 
     mapM_ analysisRuleFor allBaselineAnalyses
 

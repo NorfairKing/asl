@@ -36,7 +36,7 @@ reportRules = do
     reportsRule ~> need [milestone1ReportOut]
 
     milestone1ReportInBuildDir %> \_ -> do
-        need $ [commonTex, milestone1ReporttexInBuildDir] ++ plotsFor remoteBaselineAnalysis
+        need $ [commonTex, milestone1ReporttexInBuildDir] ++ plotsFor remoteBaselineAnalysis ++ allPlots
         cmd (Cwd reportsDir) "latexmk" "-pdf" milestone1Reporttex
 
     milestone1ReportOut `byCopying` milestone1ReportInBuildDir
