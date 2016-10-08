@@ -7,8 +7,6 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Constants
 import           AslBuild.Ssh
-import           AslBuild.Utils
-import           AslBuild.Vm.Config
 
 create3VmsRule :: String
 create3VmsRule = "create-3vms"
@@ -45,8 +43,6 @@ createRules = do
                 "--file" templateArchive
                 "--directory" dir
 
-            netzhId <- getStrictConfig "netzh-id"
-
             let personalize :: FilePath -> FilePath -> Action ()
                 personalize fileIn fileOut = do
                     -- Init: remove trailing newline
@@ -59,7 +55,7 @@ createRules = do
                     unit $ cmd (FileStdout fileOut) sedCmd
                         [intercalate ";"
                             [ "s/your_public_SSH_key/" ++ escape pubkey ++ "/g"
-                            , "s/your_nethz/" ++ escape netzhId ++ "/g"
+                            , "s/your_nethz/" ++ escape myNetzh ++ "/g"
                             , "s/defaultValue\\\":\\ null/defaultValue\\\":\\ \\\"pass\\\"/g"
                             ]]
                         fileIn
@@ -70,8 +66,7 @@ createRules = do
     create3VmsRule ~> createResourceGroupFromTemplate template3vms
     create11VmsRule ~> createResourceGroupFromTemplate template11vms
 
-    deleteVmsRule ~> do
-        resourceGroupName <- getResourceGroupName
+    deleteVmsRule ~>
         cmd azureCmd "group" "delete"
             "--name" resourceGroupName
             "--nowait"
@@ -79,8 +74,6 @@ createRules = do
 createResourceGroupFromTemplate :: FilePath -> Action ()
 createResourceGroupFromTemplate template = do
     need [template]
-    resourceGroupName <- getResourceGroupName
-    resourceGroupLocation <- getResourceGroupLocation
     cmd azureCmd "group" "create"
         "--name" resourceGroupName
         "--location" resourceGroupLocation

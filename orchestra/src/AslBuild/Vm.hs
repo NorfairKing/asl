@@ -11,7 +11,6 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.Vm.Config
 import           AslBuild.Vm.Types
 
 azureVmJsonFile :: FilePath
@@ -42,7 +41,6 @@ vmRules = do
 
     startVmsRule ~> do
         rawVmData <- getRawVmData
-        resourceGroupName <- getResourceGroupName
         phs <- forM rawVmData $ \VmData{..} ->
             cmd azureCmd "vm" "start"
                 "--resource-group" resourceGroupName
@@ -51,7 +49,6 @@ vmRules = do
 
     stopVmsRule ~> do
         rawVmData <- getRawVmData
-        resourceGroupName <- getResourceGroupName
         phs <- forM rawVmData $ \VmData{..} ->
             cmd azureCmd "vm" "stop"
                 "--resource-group" resourceGroupName

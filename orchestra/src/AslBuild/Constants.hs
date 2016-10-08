@@ -2,6 +2,10 @@ module AslBuild.Constants where
 
 import           Development.Shake.FilePath
 
+-- Username
+myNetzh :: String
+myNetzh = "tomk"
+
 -- Constants
 asl :: String
 asl = "asl"
@@ -187,3 +191,11 @@ orcBin = outDir </> "orc"
 
 orcLocalBin :: FilePath
 orcLocalBin = "/home/syd/.local/bin/orc"
+
+-- Azure
+
+resourceGroupName :: String
+resourceGroupName = "myResourceGroup"
+
+resourceGroupLocation :: String
+resourceGroupLocation = "westeurope"
