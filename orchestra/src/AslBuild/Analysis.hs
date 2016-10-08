@@ -73,7 +73,7 @@ analysisRules = do
 
     mapM_ baselineAnalysisRuleFor allBaselineAnalyses
 
-    mapM_ (uncurry rlib) rdeps
+    mapM_ rlib rdeps
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]
 
@@ -90,12 +90,12 @@ baselineAnalysisRuleFor bac@BaselineAnalysisCfg{..} = plotsFor bac &%> \_ -> do
 rScript :: CmdArguments args => args
 rScript = cmd rCmd (AddEnv "R_LIBS" rlibdir)
 
-rlib :: String -> String -> Rules ()
-rlib name url = do
+rlib :: (String, String, [String]) -> Rules ()
+rlib (name, url, deps) = do
     let archiveFile = rlibdir </> name <.> tarGzExt
     archiveFile %> \_ -> cmd curlCmd "--output" archiveFile url
     rLibTarget name %> \_ -> do
-        need [archiveFile]
+        need $ archiveFile : map rLibTarget deps
         cmd "R" "CMD" "INSTALL" "-l" rlibdir archiveFile
 
 rLibTarget :: String -> FilePath
@@ -104,7 +104,12 @@ rLibTarget name = rlibdir </> name </> "R" </> name
 needRLib :: String -> Action ()
 needRLib name = need [rLibTarget name]
 
-rdeps :: [(String, String)]
+rdeps :: [(String, String, [String])]
 rdeps =
-    [ ("igraph", "https://cran.r-project.org/src/contrib/igraph_1.0.1.tar.gz")
+    [ ("igraph", "https://cran.r-project.org/src/contrib/igraph_1.0.1.tar.gz", ["Matrix", "magrittr", "NMF", "irlba"])
+    , ("Matrix", "https://cran.r-project.org/src/contrib/Matrix_1.2-7.1.tar.gz", [])
+    , ("magrittr", "https://cran.r-project.org/src/contrib/magrittr_1.5.tar.gz", [])
+    , ("NMF", "https://cran.r-project.org/src/contrib/NMF_0.20.6.tar.gz", ["pkgmaker"])
+    , ("irlba", "https://cran.r-project.org/src/contrib/irlba_2.1.2.tar.gz", ["Matrix"])
+    , ("pkgmaker", "https://cran.r-project.org/src/contrib/pkgmaker_0.22.tar.gz", ["magrittr"])
     ]
