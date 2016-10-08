@@ -48,7 +48,6 @@ pdf = "pdf"
 
 tex :: String
 tex = "tex"
-
 xml :: String
 xml = "xml"
 
@@ -109,6 +108,9 @@ javaSourceDir = codeSrcDir </> src
 
 javaTestDir :: FilePath
 javaTestDir = codeSrcDir </> test
+
+rlibdir :: FilePath
+rlibdir = tmpDir </> "rlibs"
 
 -- Extensions
 type Extension = FilePath

@@ -4,6 +4,7 @@ module AslBuild.Analysis where
 import           Data.List
 
 import           Development.Shake
+import           Development.Shake.Command
 import           Development.Shake.FilePath
 
 import           AslBuild.Baseline
@@ -70,14 +71,40 @@ analysisRules :: Rules ()
 analysisRules = do
     analysisRule ~> need allPlots
 
-    mapM_ analysisRuleFor allBaselineAnalyses
+    mapM_ baselineAnalysisRuleFor allBaselineAnalyses
+
+    mapM_ (uncurry rlib) rdeps
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]
 
-analysisRuleFor :: BaselineAnalysisCfg -> Rules ()
-analysisRuleFor bac@BaselineAnalysisCfg{..} = plotsFor bac &%> \_ -> do
+baselineAnalysisRuleFor :: BaselineAnalysisCfg -> Rules ()
+baselineAnalysisRuleFor bac@BaselineAnalysisCfg{..} = plotsFor bac &%> \_ -> do
     let results = csvOutFile experiment
     resultsExist <- doesFileExist results
-    need $ analysisScript : [results | not resultsExist] -- Do not depend on results if they exist already.
-    unit $ cmd rCmd analysisScript results $ analysisDir </> filePrefix
 
+    need $ analysisScript : [results | not resultsExist] -- Do not depend on results if they exist already.
+
+    needRLib "igraph"
+    unit $ rScript analysisScript results $ analysisDir </> filePrefix
+
+rScript :: CmdArguments args => args
+rScript = cmd rCmd (AddEnv "R_LIBS" rlibdir)
+
+rlib :: String -> String -> Rules ()
+rlib name url = do
+    let archiveFile = rlibdir </> name <.> tarGzExt
+    archiveFile %> \_ -> cmd curlCmd "--output" archiveFile url
+    rLibTarget name %> \_ -> do
+        need [archiveFile]
+        cmd "R" "CMD" "INSTALL" "-l" rlibdir archiveFile
+
+rLibTarget :: String -> FilePath
+rLibTarget name = rlibdir </> name </> "R" </> name
+
+needRLib :: String -> Action ()
+needRLib name = need [rLibTarget name]
+
+rdeps :: [(String, String)]
+rdeps =
+    [ ("igraph", "https://cran.r-project.org/src/contrib/igraph_1.0.1.tar.gz")
+    ]

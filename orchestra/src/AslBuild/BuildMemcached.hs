@@ -62,7 +62,7 @@ memaslapBinInCacheDir = libmemcachedArchiveFullDir </> "clients" </> memaslapBin
 memaslapBinRules :: Rules ()
 memaslapBinRules = do
     libmemcachedArchiveFullFile %> \_ ->
-        cmd "wget" libmemcachedUrl
+        cmd wgetCmd libmemcachedUrl
             "--output-document" libmemcachedArchiveFullFile
 
     libmemcachedArchiveConfigureFile %> \_ -> do
@@ -125,7 +125,7 @@ memcachedBinInCacheDir = memcachedArchiveFullDir </> memcachedBinName
 memcachedBinRules :: Rules ()
 memcachedBinRules = do
     memcachedArchiveFullFile %> \_ ->
-        cmd "wget" memcachedUrl
+        cmd wgetCmd memcachedUrl
             "--output-document" memcachedArchiveFullFile
 
     memcachedArchiveConfigureFile %> \_ -> do
