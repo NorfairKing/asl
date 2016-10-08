@@ -10,6 +10,7 @@ import           Development.Shake.FilePath
 import           AslBuild.Baseline
 import           AslBuild.Baseline.Types
 import           AslBuild.Constants
+import           AslBuild.Utils
 
 analysisScript :: FilePath
 analysisScript = analysisDir </> "analyze.r"
@@ -69,11 +70,12 @@ allPlots = concatMap plotsFor allBaselineAnalyses
 
 analysisRules :: Rules ()
 analysisRules = do
+    rRules
+    mapM_ rlib rLibs
+
     analysisRule ~> need allPlots
 
     mapM_ baselineAnalysisRuleFor allBaselineAnalyses
-
-    mapM_ rlib rdeps
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]
 
@@ -84,32 +86,102 @@ baselineAnalysisRuleFor bac@BaselineAnalysisCfg{..} = plotsFor bac &%> \_ -> do
 
     need $ analysisScript : [results | not resultsExist] -- Do not depend on results if they exist already.
 
-    needRLib "igraph"
+    need [rBin]
+    needRLibs ["pkgmaker"]
+    needRLibs ["igraph"]
     unit $ rScript analysisScript results $ analysisDir </> filePrefix
 
 rScript :: CmdArguments args => args
-rScript = cmd rCmd (AddEnv "R_LIBS" rlibdir)
+rScript = cmd rBin (AddEnv "R_LIBS" rlibdir)
 
-rlib :: (String, String, [String]) -> Rules ()
-rlib (name, url, deps) = do
-    let archiveFile = rlibdir </> name <.> tarGzExt
-    archiveFile %> \_ -> cmd curlCmd "--output" archiveFile url
+rlib :: String -> Rules ()
+rlib name =
     rLibTarget name %> \_ -> do
-        need $ archiveFile : map rLibTarget deps
-        cmd "R" "CMD" "INSTALL" "-l" rlibdir archiveFile
+        need [rBin]
+        let tmpInstallScript = "/tmp/install-" ++ name <.> "r"
+        writeFile' tmpInstallScript $ unlines
+            [ "repos <- \"http://cran.rstudio.com\""
+            , "libloc <- \"" ++ rlibdir ++ "\""
+            , "update.packages(repos=repos, ask=FALSE, lib=libloc)"
+            , "install.packages(c(\"" ++ name ++ "\"), repos=repos, lib=libloc)"
+            ]
+        cmd rBin tmpInstallScript
 
 rLibTarget :: String -> FilePath
 rLibTarget name = rlibdir </> name </> "R" </> name
 
-needRLib :: String -> Action ()
-needRLib name = need [rLibTarget name]
+needRLibs :: [String] -> Action ()
+needRLibs names = need $ map rLibTarget names
 
-rdeps :: [(String, String, [String])]
-rdeps =
-    [ ("igraph", "https://cran.r-project.org/src/contrib/igraph_1.0.1.tar.gz", ["Matrix", "magrittr", "NMF", "irlba"])
-    , ("Matrix", "https://cran.r-project.org/src/contrib/Matrix_1.2-7.1.tar.gz", [])
-    , ("magrittr", "https://cran.r-project.org/src/contrib/magrittr_1.5.tar.gz", [])
-    , ("NMF", "https://cran.r-project.org/src/contrib/NMF_0.20.6.tar.gz", ["pkgmaker"])
-    , ("irlba", "https://cran.r-project.org/src/contrib/irlba_2.1.2.tar.gz", ["Matrix"])
-    , ("pkgmaker", "https://cran.r-project.org/src/contrib/pkgmaker_0.22.tar.gz", ["magrittr"])
+rLibs :: [String]
+rLibs =
+    [ "igraph"
+    , "pkgmaker"
     ]
+
+
+rArchive :: FilePath
+rArchive = tmpDir </> "R.tar.gz"
+
+rVersion :: String
+rVersion = "R-3.3.1"
+
+rLink :: FilePath
+rLink = "https://cran.r-project.org/src/base/R-3" </> rVersion <.> tarGzExt
+
+rDir :: FilePath
+rDir = tmpDir </> "R"
+
+rBin :: FilePath
+rBin = outDir </> "Rscript"
+
+rInstallBin :: FilePath
+rInstallBin = outDir </> "R"
+
+rMakeDir :: FilePath
+rMakeDir = rDir </> rVersion
+
+rConfigureScriptName :: FilePath
+rConfigureScriptName = "configure"
+
+rConfigureScript :: FilePath
+rConfigureScript = rMakeDir </> rConfigureScriptName
+
+rMakefile :: FilePath
+rMakefile = rMakeDir </> "Makefile"
+
+rBinInMakeDir :: FilePath
+rBinInMakeDir = rMakeDir </> "bin" </> "Rscript"
+
+rInstallBinInMakeDir :: FilePath
+rInstallBinInMakeDir = rMakeDir </> "bin" </> "R"
+
+rlibdir :: FilePath
+rlibdir = rMakeDir </> "library"
+
+rRules :: Rules ()
+rRules = do
+    want [rBin]
+    rArchive %> \_ ->
+        cmd curlCmd
+            "--output" rArchive
+            rLink
+
+    rConfigureScript %> \_ -> do
+        need [rArchive]
+        cmd tarCmd
+            "--extract"
+            "--verbose"
+            "--file" rArchive
+            "--directory" rDir
+
+    rMakefile %> \_ -> do
+        need [rConfigureScript]
+        cmd (Cwd rMakeDir) ("." </> rConfigureScriptName)
+
+    [rBinInMakeDir, rInstallBinInMakeDir] &%> \_ -> do
+        need [rMakefile]
+        cmd (Cwd rMakeDir) "make" "--jobs"
+
+    rBin `byCopying` rBinInMakeDir
+    rInstallBin `byCopying` rInstallBinInMakeDir

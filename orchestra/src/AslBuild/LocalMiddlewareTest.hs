@@ -76,7 +76,9 @@ setups = do
                 , msOverwrite = 0.5
                 , msStatFreq = Seconds $ time + 2
                 , msTime = Seconds $ time + 2
-                , msConfigFile = tmpDir </> "local-middleware-test-memaslap-cfg-" ++ signature
+                , msConfigFile = tmpDir
+                    </> "local-middleware-test"
+                    </> "local-middleware-test-memaslap-cfg-" ++ signature
                 }
             }
 
