@@ -30,7 +30,7 @@ travisRules = travisRule ~> do
         ]
 
     need [provisionLocalhostRule]
-    -- need
-    --     [ smallLocalBaselineExperimentRule
-    --     , analysisRule
-    --     ]
+    need
+        [ smallLocalBaselineExperimentRule
+        , analysisRule
+        ]
