@@ -25,12 +25,12 @@ travisRules = travisRule ~> do
         , memcachedBin
         , testRule
         , localLogTestRule
-        , localMiddlewareParseTestRule
-        , localMiddlewareTestRule
+        -- , localMiddlewareParseTestRule
+        -- , localMiddlewareTestRule
         ]
 
     need [provisionLocalhostRule]
-    need
-        [ smallLocalBaselineExperimentRule
-        , analysisRule
-        ]
+    -- need
+    --     [ smallLocalBaselineExperimentRule
+    --     , analysisRule
+    --     ]
