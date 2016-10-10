@@ -60,8 +60,8 @@ setups = do
                 , msStatFreq = Seconds $ time + 2
                 , msTime = Seconds $ time + 2
                 , msConfigFile = tmpDir
-                    </> "local-middleware-test"
-                    </> "local-middleware-test-memaslap-cfg-" ++ signature
+                    </> "local-middleware-simple-test"
+                    </> "local-middleware-simple-test-memaslap-cfg-" ++ signature
                 }
             }
 

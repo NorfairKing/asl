@@ -4,7 +4,6 @@ module AslBuild.LocalMiddlewareTest
     , module AslBuild.LocalMiddlewareTest.Types
     ) where
 
-import           Control.Concurrent
 import           Control.Monad
 
 import           System.Exit
@@ -25,7 +24,14 @@ import           AslBuild.Utils
 runLocalMiddlewareTests :: [LocalMiddlewareTestSetup] -> Action ()
 runLocalMiddlewareTests setups = forM_ (indexed setups) $ \(ix, setup) -> do
     putLoud $ "Running middleware test: [" ++ show ix ++ "/" ++ show (length setups) ++ "]"
+    let cooldown = 2
+    let remaining = sum
+            $ map ((+ cooldown) . runtime . snd)
+            $ filter ((>= ix) . fst)
+            $ indexed setups
+    putLoud $ "Approximately " ++ toClockString remaining ++ " remaining."
     runLocalMiddlewareTest setup
+    wait cooldown -- Wait for stuff to cool down.
 
 runLocalMiddlewareTest :: LocalMiddlewareTestSetup -> Action ()
 runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
@@ -43,11 +49,6 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
 
     clientPHs <- forM clientSetups $ \mss ->
         cmd memaslapBin $ memaslapArgs $ msFlags mss
-
-    let terminateAll = do
-            mapM_ terminateProcess clientPHs
-            terminateProcess middlePH
-            mapM_ terminateProcess serverPHs
 
     let goOn = do
             wait runtime
@@ -67,5 +68,6 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
                 _ -> return ()
 
     actionFinally goOn $ do
-        terminateAll
-        threadDelay $ 1 * 1000 * 1000 -- Wait for everything to grind to a halt.
+        mapM_ terminateProcess clientPHs
+        terminateProcess middlePH
+        mapM_ terminateProcess serverPHs

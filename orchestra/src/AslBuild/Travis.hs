@@ -12,6 +12,7 @@ import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
 import           AslBuild.LocalMiddlewareSimpleTest
+import           AslBuild.LocalMiddlewareThoroughTest
 import           AslBuild.Provision
 import           AslBuild.Test
 
@@ -32,6 +33,7 @@ travisRules = travisRule ~> do
     need [localMiddlewareSimpleTestRule]
     need [localMiddlewareMultipleServersTestRule]
     need [localMiddlewareMultipleClientsTestRule]
+    need [localMiddlewareThoroughTestRule]
 
     need [provisionLocalhostRule]
     -- need
