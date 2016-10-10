@@ -10,8 +10,8 @@ import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
 import           AslBuild.LocalMiddlewareSimpleTest
-import           AslBuild.OptParse
 import           AslBuild.Test
+import           AslBuild.Utils
 
 scriptsLib :: FilePath
 scriptsLib = scriptsDir </> "lib.sh"
@@ -152,7 +152,7 @@ formatClient = do
         testFiles <- getDirectoryFiles "" [javaTestDir <//> "*" <.> javaExt]
         let files = srcFiles ++ testFiles
         need files
-        void $ forP files javaFormat
+        forP_ files javaFormat
 
     javaFormatter %> \_ ->
         cmd wgetCmd javaFormatterUrl "--output-document" javaFormatter
