@@ -47,7 +47,15 @@ provisionLocalhostRules = do
 
     provisionLocalhostGlobalPackagesRule ~> return ()
 
-    orcBin `byCopying` (aslDir </> ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/orc")
+    -- TODO separate into Orc.hs file.
+    let orcBinInBuildDir = aslDir </> ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/orc"
+
+    orcBinInBuildDir %> \_ -> do
+        files <- getDirectoryFiles "" [aslDir <//> "*.hs"]
+        need files
+        cmd (Cwd aslDir) stackCmd "install"
+
+    orcBin `byCopying` orcBinInBuildDir
 
     provisionLocalhostOrcRule ~> need [orcBin]
 
