@@ -3,7 +3,7 @@ module AslBuild.Travis where
 import           Development.Shake
 
 -- import           AslBuild.Analysis
--- import           AslBuild.Baseline
+import           AslBuild.Baseline
 import           AslBuild.BuildMemcached
 import           AslBuild.Constants
 import           AslBuild.Jar
@@ -40,5 +40,5 @@ travisRules = travisRule ~> do
 --     need [localMiddlewareThoroughTestRule]
 
     need [provisionLocalhostRule]
-    -- need [smallLocalBaselineExperimentRule]
+    need [smallLocalBaselineExperimentRule]
     -- need [analysisRule]
