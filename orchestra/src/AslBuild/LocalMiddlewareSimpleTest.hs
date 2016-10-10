@@ -32,11 +32,11 @@ setups = do
             , mwVerbosity = LogFine
             }
 
-    keySize <- [16, 32, 128]
-    valueSize <- [16, 256, 4096]
-    threads <- [1, 2]
+    keySize <- [16, 128]
+    valueSize <- [16, 4096]
+    threads <- [2]
     -- Concurrency must be a multiple of thread count.
-    concurrency <- (* threads) <$> [1, 2]
+    concurrency <- (* threads) <$> [2]
 
     let signature = intercalate "-"
             [ show keySize

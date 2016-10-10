@@ -2,16 +2,16 @@ module AslBuild.Travis where
 
 import           Development.Shake
 
-import           AslBuild.Analysis
-import           AslBuild.Baseline
+--import           AslBuild.Analysis
+--import           AslBuild.Baseline
 import           AslBuild.BuildMemcached
 import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
--- import           AslBuild.LocalMiddlewareParseTest
--- import           AslBuild.LocalMiddlewareMultipleServersTest
--- import           AslBuild.LocalMiddlewareMultipleClientsTest
--- import           AslBuild.LocalMiddlewareSimpleTest
+import           AslBuild.LocalMiddlewareMultipleClientsTest
+import           AslBuild.LocalMiddlewareMultipleServersTest
+import           AslBuild.LocalMiddlewareParseTest
+import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.Provision
 import           AslBuild.Test
 
@@ -27,14 +27,14 @@ travisRules = travisRule ~> do
         , memcachedBin
         , testRule
         , localLogTestRule
-        -- , localMiddlewareParseTestRule
-        -- , localMiddlewareSimpleTestRule
-        -- , localMiddlewareMultipleServersTestRule
-        -- , localMiddlewareMultipleClientsTestRule
         ]
+    need [localMiddlewareParseTestRule]
+    need [localMiddlewareSimpleTestRule]
+    need [localMiddlewareMultipleServersTestRule]
+    need [localMiddlewareMultipleClientsTestRule]
 
     need [provisionLocalhostRule]
-    need
-        [ smallLocalBaselineExperimentRule
-        , analysisRule
-        ]
+    -- need
+    --     [ smallLocalBaselineExperimentRule
+    --     , analysisRule
+    --     ]

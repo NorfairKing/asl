@@ -22,23 +22,21 @@ preCommitRule = "pre-commit"
 preCommitRules :: Rules ()
 preCommitRules = do
     preCommitRule ~> do
-        need
-            [ outputJarFile
-            , buildBinInStack
-            , codeHealthRule
-            , testRule
-            , documentationRule
-            , formatClientRule
-            ]
+        need [outputJarFile]
+        need [buildBinInStack]
+        need [codeHealthRule]
+        need [testRule]
+        need [documentationRule]
+
+        need [localLogTestRule]
+        need [localMiddlewareParseTestRule]
+        need [localMiddlewareSimpleTestRule]
+        need [localMiddlewareMultipleServersTestRule]
+        need [localMiddlewareMultipleClientsTestRule]
+
+        need [formatClientRule]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.
 
-        need
-            [ localLogTestRule
-            , localMiddlewareParseTestRule
-            , localMiddlewareSimpleTestRule
-            , localMiddlewareMultipleServersTestRule
-            , localMiddlewareMultipleClientsTestRule
-            ]
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 
     buildBin
