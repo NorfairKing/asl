@@ -8,8 +8,8 @@ import           AslBuild.BuildMemcached
 import           AslBuild.CommitHash
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
-import           AslBuild.LocalMiddlewareParseTest
-import           AslBuild.LocalMiddlewareTest
+-- import           AslBuild.LocalMiddlewareParseTest
+-- import           AslBuild.LocalMiddlewareTest
 import           AslBuild.Provision
 import           AslBuild.Test
 
