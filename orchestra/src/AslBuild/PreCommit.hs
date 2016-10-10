@@ -6,9 +6,10 @@ import           Development.Shake.FilePath
 import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
+import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
-import           AslBuild.LocalMiddlewareTest
+import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.OptParse
 import           AslBuild.Test
 
@@ -34,8 +35,9 @@ preCommitRules = do
         need
             [ localLogTestRule
             , localMiddlewareParseTestRule
-            , localMiddlewareTestRule
+            , localMiddlewareSimpleTestRule
             , localMiddlewareMultipleServersTestRule
+            , localMiddlewareMultipleClientsTestRule
             ]
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 

@@ -23,7 +23,7 @@ aslBuild = do
         (first:rests) -> do
             let rest = concat rests
             (command, _) <- getInstructions first
-            let shakeArgs = "--color" : rest -- Always use color for shake
+            let shakeArgs = "--color" : "--jobs" : rest -- Always use color and multiple threads for shake
                 buildTarget target = withArgs (target : shakeArgs) doTheShake
             case command of
                 DispatchBuild target -> buildTarget target

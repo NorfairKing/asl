@@ -10,7 +10,8 @@ import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 -- import           AslBuild.LocalMiddlewareParseTest
 -- import           AslBuild.LocalMiddlewareMultipleServersTest
--- import           AslBuild.LocalMiddlewareTest
+-- import           AslBuild.LocalMiddlewareMultipleClientsTest
+-- import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.Provision
 import           AslBuild.Test
 
@@ -27,8 +28,9 @@ travisRules = travisRule ~> do
         , testRule
         , localLogTestRule
         -- , localMiddlewareParseTestRule
-        -- , localMiddlewareTestRule
+        -- , localMiddlewareSimpleTestRule
         -- , localMiddlewareMultipleServersTestRule
+        -- , localMiddlewareMultipleClientsTestRule
         ]
 
     need [provisionLocalhostRule]

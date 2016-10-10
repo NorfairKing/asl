@@ -10,9 +10,10 @@ import           AslBuild.CommitHash
 import           AslBuild.Create
 import           AslBuild.Experiments
 import           AslBuild.Jar
+import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
-import           AslBuild.LocalMiddlewareTest
+import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.PreCommit
 import           AslBuild.Provision
 import           AslBuild.Reports
@@ -34,9 +35,10 @@ theShake  = do
     buildMemcachedRules
     reportRules
     testRules
+    localMiddlewareMultipleClientsTestRules
     localMiddlewareMultipleServersTestRules
     localMiddlewareParseTestRules
-    localMiddlewareTestRules
+    localMiddlewareSimpleTestRules
     experimentRules
     analysisRules
     sshRules
