@@ -77,13 +77,16 @@ makefile = "Makefile"
 
 -- Directories
 aslDir :: FilePath
-aslDir = asl
+aslDir = ""
+
+aslCacheDir :: FilePath
+aslCacheDir = "/" </> tmp
 
 outDir :: FilePath
-outDir = aslDir </> out
+outDir = aslCacheDir </> out
 
 tmpDir :: FilePath
-tmpDir = aslDir </> tmp
+tmpDir = aslCacheDir </> "orc"
 
 assignmentDir :: FilePath
 assignmentDir = aslDir </> "assignment"
