@@ -2,10 +2,10 @@ module AslBuild.Travis where
 
 import           Development.Shake
 
-import           AslBuild.Analysis
-import           AslBuild.Baseline
+-- import           AslBuild.Analysis
+-- import           AslBuild.Baseline
 import           AslBuild.BuildMemcached
-import           AslBuild.CommitHash
+import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 -- import           AslBuild.LocalMiddlewareMultipleClientsTest
@@ -22,13 +22,17 @@ travisRule = "travis"
 travisRules :: Rules ()
 travisRules = travisRule ~> do
     need
-        [ commithashFile
-        , outputJarFile
+        [ outputJarFile
+        , orcBin
         , memaslapBin
         , memcachedBin
-        , testRule
+        ]
+
+    need
+        [ testRule
         , localLogTestRule
         ]
+
 --     need [localMiddlewareParseTestRule]
 --     need [localMiddlewareSimpleTestRule]
 --     need [localMiddlewareMultipleServersTestRule]
@@ -36,5 +40,5 @@ travisRules = travisRule ~> do
 --     need [localMiddlewareThoroughTestRule]
 
     need [provisionLocalhostRule]
-    need [smallLocalBaselineExperimentRule]
-    need [analysisRule]
+    -- need [smallLocalBaselineExperimentRule]
+    -- need [analysisRule]
