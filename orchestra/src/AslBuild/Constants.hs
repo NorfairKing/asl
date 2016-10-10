@@ -1,6 +1,8 @@
 module AslBuild.Constants where
 
 import           Development.Shake.FilePath
+import           System.Directory
+import           System.IO.Unsafe
 
 -- Username
 myNetzh :: String
@@ -79,8 +81,11 @@ makefile = "Makefile"
 aslDir :: FilePath
 aslDir = ""
 
+{-# NOINLINE aslCacheDir #-}
 aslCacheDir :: FilePath
-aslCacheDir = "/" </> tmp
+aslCacheDir = unsafePerformIO $ do
+    home <- getHomeDirectory
+    return $ home </> ".orc"
 
 outDir :: FilePath
 outDir = aslCacheDir </> out

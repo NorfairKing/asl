@@ -1,6 +1,7 @@
 package ch.ethz.asl;
 
 import ch.ethz.asl.request.Request;
+import ch.ethz.asl.request.RequestPacket;
 import ch.ethz.asl.request.request_parsing.NotEnoughDataException;
 import ch.ethz.asl.request.request_parsing.ParseFailedException;
 import ch.ethz.asl.request.request_parsing.RequestParser;
@@ -72,29 +73,26 @@ public class AdhocCompletionHandler
     if (bytesRead >= 0) {
       log.finest(new String(bbuf.array()));
 
-      Request req;
-      Response res;
+      Request req = null;
+      Response preliminaryResponse = null;
       try {
         req = RequestParser.parseRequest(bbuf);
         log.finest("Parsed request: " + req.toString());
-        res = handle(req);
       } catch (NotEnoughDataException e) {
-        res = new ClientErrorResponse("Not enough data.");
+        log.finest("Note enough data to parse request.");
+        preliminaryResponse = new ClientErrorResponse("Not enough data.");
       } catch (ParseFailedException e) {
-        res = new ErrorResponse();
+        log.finest("Failed to parse a request.");
+        preliminaryResponse = new ErrorResponse();
       }
-      log.finest("Produced response: " + res.toString());
-
-      ByteBuffer responseBytes = res.render();
-      responseBytes.position(0);
-      int bytesWritten2 = chan.write(responseBytes).get();
-      log.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
+      if (req == null) { // Then preliminary response will not be null.
+        RequestPacket.respond(chan, preliminaryResponse);
+      } else {
+        RequestPacket packet = new RequestPacket(chan, req);
+        ServerHandler sh = pickServer(servers, req);
+        sh.handle(packet);
+      }
     }
-  }
-
-  private Response handle(final Request req) {
-    ServerHandler sh = pickServer(servers, req);
-    return sh.handle(req);
   }
 
   private static ServerHandler pickServer(final List<ServerHandler> servers, final Request req) {

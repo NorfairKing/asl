@@ -1,6 +1,7 @@
 package ch.ethz.asl;
 
 import ch.ethz.asl.request.Request;
+import ch.ethz.asl.request.RequestPacket;
 import ch.ethz.asl.response.Response;
 import ch.ethz.asl.response.ServerErrorResponse;
 import ch.ethz.asl.response.SuccessfulResponse;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 public class ServerHandler {
@@ -19,7 +21,12 @@ public class ServerHandler {
     this.serverAddress = serverAddress;
   }
 
-  public Response handle(final Request req) {
+  public void handle(final RequestPacket req) throws ExecutionException, InterruptedException {
+    Response resp = handlePure(req.getRequest());
+    req.respond(resp);
+  }
+
+  public Response handlePure(final Request req) {
     SocketAddress address = serverAddress.getSocketAddress();
     log.finest("Connecting to: " + address);
     SocketChannel asc = null;
