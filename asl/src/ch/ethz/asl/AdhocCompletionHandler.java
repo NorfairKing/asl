@@ -99,8 +99,10 @@ public class AdhocCompletionHandler
 
   private static ServerHandler pickServer(final List<ServerHandler> servers, final Request req) {
     int hash = req.hashCode();
+    log.finest("hash of request: " + Integer.toString(req.hashCode()));
     int nrServers = servers.size();
     int serverIndex = mod(hash, nrServers);
+    log.finest("Chose server index: " + Integer.toString(serverIndex));
     return servers.get(serverIndex);
   }
 

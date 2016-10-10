@@ -92,6 +92,7 @@ public class RunMW {
     } else {
       printUsageWithError("Provide the replication factor (1=not replicated)!");
     }
+
     if (params.get("v") != null) {
       int num = Integer.parseInt(params.get("v").get(0));
       switch (num) {

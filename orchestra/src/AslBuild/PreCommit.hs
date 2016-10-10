@@ -5,6 +5,10 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Constants
 import           AslBuild.Jar
+import           AslBuild.LocalLogTest
+import           AslBuild.LocalMiddlewareMultipleServersTest
+import           AslBuild.LocalMiddlewareParseTest
+import           AslBuild.LocalMiddlewareTest
 import           AslBuild.OptParse
 import           AslBuild.Test
 
@@ -26,6 +30,13 @@ preCommitRules = do
             , formatClientRule
             ]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.
+
+        need
+            [ localLogTestRule
+            , localMiddlewareParseTestRule
+            , localMiddlewareTestRule
+            , localMiddlewareMultipleServersTestRule
+            ]
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 
     buildBin

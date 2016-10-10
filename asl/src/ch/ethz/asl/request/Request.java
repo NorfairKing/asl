@@ -1,6 +1,7 @@
 package ch.ethz.asl.request;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public abstract class Request {
   protected final byte[] key;
@@ -28,6 +29,6 @@ public abstract class Request {
 
   @Override
   public int hashCode() {
-    return this.render().hashCode();
+    return Arrays.hashCode(this.render().array());
   }
 }
