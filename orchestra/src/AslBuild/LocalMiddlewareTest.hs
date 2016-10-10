@@ -24,14 +24,12 @@ import           AslBuild.Utils
 runLocalMiddlewareTests :: [LocalMiddlewareTestSetup] -> Action ()
 runLocalMiddlewareTests setups = forM_ (indexed setups) $ \(ix, setup) -> do
     putLoud $ "Running middleware test: [" ++ show ix ++ "/" ++ show (length setups) ++ "]"
-    let cooldown = 2
     let remaining = sum
-            $ map ((+ cooldown) . runtime . snd)
+            $ map (runtime . snd)
             $ filter ((>= ix) . fst)
             $ indexed setups
     putLoud $ "Approximately " ++ toClockString remaining ++ " remaining."
     runLocalMiddlewareTest setup
-    wait cooldown -- Wait for stuff to cool down.
 
 runLocalMiddlewareTest :: LocalMiddlewareTestSetup -> Action ()
 runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
@@ -71,3 +69,7 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
         mapM_ terminateProcess clientPHs
         terminateProcess middlePH
         mapM_ terminateProcess serverPHs
+
+        mapM_ waitForProcess clientPHs
+        void $ waitForProcess middlePH
+        mapM_ waitForProcess serverPHs

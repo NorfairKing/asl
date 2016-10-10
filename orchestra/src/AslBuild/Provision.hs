@@ -5,11 +5,11 @@ import           Control.Monad
 import           System.Process
 
 import           Development.Shake
-import           Development.Shake.FilePath
 
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
+import           AslBuild.PreCommit
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm
@@ -47,15 +47,7 @@ provisionLocalhostRules = do
 
     provisionLocalhostGlobalPackagesRule ~> return ()
 
-    -- TODO separate into Orc.hs file.
-    let orcBinInBuildDir = aslDir </> ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/orc"
-
-    orcBinInBuildDir %> \_ -> do
-        files <- getDirectoryFiles "" [aslDir <//> "*.hs"]
-        need files
-        cmd (Cwd aslDir) stackCmd "install"
-
-    orcBin `byCopying` orcBinInBuildDir
+    orcBin `byCopying` buildBinInStack
 
     provisionLocalhostOrcRule ~> need [orcBin]
 
