@@ -9,8 +9,8 @@ public class ServerHandler {
   private final ServerReadHandler serverReadHandler;
 
   public ServerHandler(final ServerAddress serverAddress) {
-    this.serverReadHandler = new ServerReadHandler(serverAddress);
     this.serverWriteHandler = new ServerWriteHandler(serverAddress);
+    this.serverReadHandler = new ServerReadHandler(serverAddress);
   }
 
   public void handle(final RequestPacket req) throws ExecutionException, InterruptedException {

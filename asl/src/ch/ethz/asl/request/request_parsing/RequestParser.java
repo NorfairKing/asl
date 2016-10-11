@@ -6,6 +6,7 @@ import ch.ethz.asl.request.Request;
 import ch.ethz.asl.request.SetRequest;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class RequestParser {
 
@@ -17,27 +18,27 @@ public class RequestParser {
 
   public static Request parseRequest(ByteBuffer byteBuffer)
       throws NotEnoughDataException, ParseFailedException {
-    int limit = byteBuffer.limit();
+    int position = byteBuffer.position();
 
-    if (limit <= 0) {
+    if (position <= 0) {
       throw new NotEnoughDataException();
     }
 
     switch (byteBuffer.get(0)) {
       case 'g':
-        if (limit <= 1) {
+        if (position <= 1) {
           throw new NotEnoughDataException();
         }
 
         switch (byteBuffer.get(1)) {
           case 'e':
-            if (limit <= 2) {
+            if (position <= 2) {
               throw new NotEnoughDataException();
             }
 
             switch (byteBuffer.get(2)) {
               case 't':
-                if (limit <= 3) {
+                if (position <= 3) {
                   throw new NotEnoughDataException();
                 }
 
@@ -54,19 +55,19 @@ public class RequestParser {
             throw new ParseFailedException();
         }
       case 's':
-        if (limit <= 1) {
+        if (position <= 1) {
           throw new NotEnoughDataException();
         }
 
         switch (byteBuffer.get(1)) {
           case 'e':
-            if (limit <= 2) {
+            if (position <= 2) {
               throw new NotEnoughDataException();
             }
 
             switch (byteBuffer.get(2)) {
               case 't':
-                if (limit <= 3) {
+                if (position <= 3) {
                   throw new NotEnoughDataException();
                 }
 
@@ -84,37 +85,37 @@ public class RequestParser {
         }
         break;
       case 'd':
-        if (limit <= 1) {
+        if (position <= 1) {
           throw new NotEnoughDataException();
         }
 
         switch (byteBuffer.get(1)) {
           case 'e':
-            if (limit <= 2) {
+            if (position <= 2) {
               throw new NotEnoughDataException();
             }
 
             switch (byteBuffer.get(2)) {
               case 'l':
-                if (limit <= 3) {
+                if (position <= 3) {
                   throw new NotEnoughDataException();
                 }
 
                 switch (byteBuffer.get(3)) {
                   case 'e':
-                    if (limit <= 4) {
+                    if (position <= 4) {
                       throw new NotEnoughDataException();
                     }
 
                     switch (byteBuffer.get(4)) {
                       case 't':
-                        if (limit <= 5) {
+                        if (position <= 5) {
                           throw new NotEnoughDataException();
                         }
 
                         switch (byteBuffer.get(5)) {
                           case 'e':
-                            if (limit <= 6) {
+                            if (position <= 6) {
                               throw new NotEnoughDataException();
                             }
 
@@ -179,11 +180,11 @@ public class RequestParser {
   }
 
   static ParseProgress parseUntilNewline(ByteBuffer byteBuffer, int offset) {
-    int limit = byteBuffer.limit();
+    int position = byteBuffer.position();
     byte[] res;
     int nextoff;
     for (int i = offset; true; i++) {
-      if (limit <= i + 1) {
+      if (position <= i + 1) {
         throw new NotEnoughDataException();
       }
       byte fst = byteBuffer.get(i);
@@ -201,11 +202,11 @@ public class RequestParser {
   }
 
   static ParseProgress parseUntilSpace(ByteBuffer byteBuffer, int offset) {
-    int limit = byteBuffer.limit();
+    int position = byteBuffer.position();
     byte[] res;
     int nextoff;
     for (int i = offset; true; i++) {
-      if (limit <= i) {
+      if (position <= i) {
         throw new NotEnoughDataException();
       }
 

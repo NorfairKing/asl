@@ -3,9 +3,11 @@ package ch.ethz.asl;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetSocketAddress;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class Middleware {
@@ -46,8 +48,10 @@ public class Middleware {
 
   public void startServer() {
     try {
+      AsynchronousChannelGroup group =
+          AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
       AsynchronousServerSocketChannel assc =
-          AsynchronousServerSocketChannel.open().bind(new InetSocketAddress(port));
+          AsynchronousServerSocketChannel.open(group).bind(new InetSocketAddress(port));
       assc.accept(null, new AdhocCompletionHandler(assc, servers));
     } catch (BindException e) {
       e.printStackTrace();

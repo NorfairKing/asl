@@ -10,6 +10,7 @@ import           AslBuild.CommitHash
 import           AslBuild.Create
 import           AslBuild.Experiments
 import           AslBuild.Jar
+import           AslBuild.LocalMiddlewareMultiClientTest
 import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
@@ -39,6 +40,7 @@ theShake  = do
     localMiddlewareMultipleClientsTestRules
     localMiddlewareMultipleServersTestRules
     localMiddlewareParseTestRules
+    localMiddlewareMultiClientTestRules
     localMiddlewareSimpleTestRules
     localMiddlewareThoroughTestRules
     experimentRules

@@ -6,128 +6,201 @@ import           Data.ByteString           (ByteString)
 import           Network.Socket            hiding (recv, send)
 import           Network.Socket.ByteString
 import           System.Process
+import           System.Timeout
+
+import           Control.Concurrent.Thread
 
 import           Development.Shake
 
 import           AslBuild.BuildMemcached
-import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Jar
-import           AslBuild.Memcached
 import           AslBuild.Middleware
 import           AslBuild.Types
 
+-- TODO rename
 localMiddlewareParseTestRule :: String
 localMiddlewareParseTestRule = "local-middleware-parse-test"
+
+data RequestKind = READ | WRITE
 
 localMiddlewareParseTestRules :: Rules ()
 localMiddlewareParseTestRules =
     localMiddlewareParseTestRule ~> do
         need [memcachedBin, memaslapBin, outputJarFile]
 
-        let sPort :: Int
-            sPort = 12344
-        let memcachedFlags = MemcachedFlags
-                { memcachedPort = sPort
-                , memcachedAsDaemon = False
-                }
+        let cPort :: Int
+            cPort = 11234
 
-        let clientPort :: Int
-            clientPort = 12345
+        let mPort :: Int
+            mPort = 11235
+
+        let sPort :: Int
+            sPort = 11236
+
         let mwFlags = MiddlewareFlags
-                { mwIp = "host"
-                , mwPort = clientPort
+                { mwIp = "localhost"
+                , mwPort = mPort
                 , mwNrThreads = 1
                 , mwReplicationFactor = 1
                 , mwServers = [RemoteServerUrl "localhost" sPort]
                 , mwVerbosity = LogAll
                 }
 
-        serverPH <- command [] memcachedBin
-                (memcachedArgs memcachedFlags)
+        ssock <- liftIO $ do
+            -- Create server socket
+            sock <- socket AF_INET Stream defaultProtocol
+            -- Make it immediately available
+            setSocketOption sock ReuseAddr 1
+            -- Connect to server side.
+            bind sock $ SockAddrInet (fromIntegral sPort) iNADDR_ANY
+            -- Start listening for connections
+            listen sock 1
+            return sock
 
+        putLoud "1"
+        (_, connCmp) <- liftIO $ forkIO $ do
+            (wconn, _) <- accept ssock
+            (rconn, _) <- accept ssock
+            return (wconn, rconn)
+
+        putLoud "2"
         middlePH <- command
             []
             javaCmd $
             [ "-jar", outputJarFile
             ] ++ middlewareArgs mwFlags
 
+        putLoud "3"
+        (wconn, rconn) <- liftIO $ connCmp >>= result
 
-        wait 1
-
+        putLoud "4"
         csock <- liftIO $ do
             let localhostAddr = tupleToHostAddress (127, 0, 0, 1)
             -- Create client socket
-            csock <- socket AF_INET Stream defaultProtocol
+            sock <- socket AF_INET Stream defaultProtocol
             -- Make it immediately available
-            setSocketOption csock ReuseAddr 1
+            setSocketOption sock ReuseAddr 1
             -- Connect to client side
-            bind csock (SockAddrInet 12346 iNADDR_ANY)
-            connect csock $ SockAddrInet (fromIntegral clientPort) localhostAddr
-            return csock
+            bind sock $ SockAddrInet (fromIntegral cPort) iNADDR_ANY
+            connect sock $ SockAddrInet (fromIntegral mPort) localhostAddr
+            return sock
 
-        let shouldResultIn :: ByteString -> ByteString -> Action ()
-            shouldResultIn input output = do
+        putLoud "5"
+
+        let timeoutTime = 1 * 1000 * 1000 -- One second
+        let shouldResultIn :: RequestKind -> ByteString -> ByteString -> Action ()
+            shouldResultIn reqKind input output = do
+                let sconn = case reqKind of
+                        READ -> rconn
+                        WRITE -> wconn
                 liftIO $ sendAll csock input
-                res <- liftIO $ recv csock 1024
-                unless (res == output) $ fail $ unlines
-                    [ "On input: " ++ show input
-                    , "Expected output: " ++ show output
-                    , "But got: " ++ show res
-                    ]
+                mres <- liftIO $ timeout timeoutTime $ recv sconn 1024
+                case mres of
+                    Nothing -> fail $ unwords
+                        [ "Failed to receive at server from middleware within"
+                        , show timeoutTime
+                        , "ns."
+                        ]
+                    Just res -> unless (input == res) $ fail $ unlines
+                        [ "On input: " ++ show input
+                        , "the middleware sent " ++ show res ++ " to the server instead."
+                        ]
+
+                liftIO $ sendAll sconn output
+                mres2 <- liftIO $ timeout timeoutTime $ recv csock 1024
+                case mres2 of
+                    Nothing -> fail $ unwords
+                        [ "Failed to receive at client from middleware within"
+                        , show timeoutTime
+                        , "ns."
+                        ]
+                    Just res2 -> unless (output == res2) $ fail $ unlines
+                        [ "On output: " ++ show output
+                        , "the middleware sent " ++ show res2 ++ " to the client instead."
+                        ]
+
+        let shouldErrorWith :: ByteString -> ByteString -> Action ()
+            shouldErrorWith input output = do
+                liftIO $ sendAll csock input
+                mres <- liftIO $ timeout timeoutTime $ recv csock 1024
+                case mres of
+                    Nothing -> fail $ unwords
+                        [ "Failed to receive at server from middleware within"
+                        , show timeoutTime
+                        , "ns."
+                        ]
+                    Just res -> unless (output == res) $ fail $ unlines
+                        [ "On input: " ++ show input
+                        , "the middleware responded " ++ show res
+                        , "instead of the expected error: " ++ show output
+                        ]
+
 
         let tests = do
                 -- Successful requests
 
                 -- Get keys that don't have data assigned.
-                "get key\r\n" `shouldResultIn` "END\r\n"
-                "get otherkey\r\n" `shouldResultIn` "END\r\n"
-                "get moreKeys\r\n" `shouldResultIn` "END\r\n"
+                shouldResultIn READ "get key\r\n"  "END\r\n"
+                shouldResultIn READ "get otherkey\r\n"  "END\r\n"
+                shouldResultIn READ "get moreKeys\r\n"  "END\r\n"
 
                 -- Set data for 'key'
-                "set key 0 0 8\r\n12345678\r\n" `shouldResultIn` "STORED\r\n"
+                shouldResultIn WRITE "set key 0 0 8\r\n12345678\r\n"  "STORED\r\n"
 
                 -- Get it back
-                "get key\r\n" `shouldResultIn` "VALUE key 0 8\r\n12345678\r\nEND\r\n"
+                shouldResultIn READ "get key\r\n"  "VALUE key 0 8\r\n12345678\r\nEND\r\n"
 
                 -- Check that getting a nonexistent piece still works
-                "get otherkey\r\n" `shouldResultIn` "END\r\n"
+                shouldResultIn READ "get otherkey\r\n"  "END\r\n"
 
                 -- Do the same thing as for 'key', but for 'otherkey'.
-                "set otherkey 0 0 3\r\nabc\r\n" `shouldResultIn` "STORED\r\n"
-                "get otherkey\r\n" `shouldResultIn` "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
+                shouldResultIn WRITE "set otherkey 0 0 3\r\nabc\r\n"  "STORED\r\n"
+                shouldResultIn READ "get otherkey\r\n"  "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
 
                 -- Delete the value for 'key'.
-                "delete key\r\n" `shouldResultIn` "DELETED\r\n"
+                shouldResultIn WRITE "delete key\r\n"  "DELETED\r\n"
 
                 -- Check that its data is indeed gone now.
-                "get key\r\n" `shouldResultIn` "END\r\n"
+                shouldResultIn READ "get key\r\n"  "END\r\n"
 
                 -- Check what happens if the data was already gone.
-                "delete key\r\n" `shouldResultIn` "NOT_FOUND\r\n"
+                shouldResultIn WRITE "delete key\r\n"  "NOT_FOUND\r\n"
 
                 -- Do the same thing for 'otherkey'.
-                "delete otherkey\r\n" `shouldResultIn` "DELETED\r\n"
-                "get otherkey\r\n" `shouldResultIn` "END\r\n"
-                "delete otherkey\r\n" `shouldResultIn` "NOT_FOUND\r\n"
+                shouldResultIn WRITE "delete otherkey\r\n"  "DELETED\r\n"
+                shouldResultIn READ "get otherkey\r\n"  "END\r\n"
+                shouldResultIn WRITE "delete otherkey\r\n"  "NOT_FOUND\r\n"
 
                 -- Check for error on nonexistent command
-                "ste key\r\n" `shouldResultIn` "ERROR\r\n"
+                shouldErrorWith "ste keyyy\r\n"  "ERROR\r\n"
 
                 -- Check for client_error on something that doesnt conform to the protocol,
-                -- like a missing newline
-                "get key\r" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
+                -- like missing data
+                shouldErrorWith "g"         "CLIENT_ERROR Not enough data.\r\n"
+                shouldErrorWith "ge"        "CLIENT_ERROR Not enough data.\r\n"
+                shouldErrorWith "get"       "CLIENT_ERROR Not enough data.\r\n"
+                shouldErrorWith "get "      "CLIENT_ERROR Not enough data.\r\n"
+                shouldErrorWith "get k"     "CLIENT_ERROR Not enough data.\r\n"
+                shouldErrorWith "get ke"    "CLIENT_ERROR Not enough data.\r\n"
+                shouldErrorWith "get key"   "CLIENT_ERROR Not enough data.\r\n"
+                shouldErrorWith "get key\r" "CLIENT_ERROR Not enough data.\r\n"
 
-                liftIO $ terminateProcess serverPH
+                liftIO $ close rconn
 
-                "get key\r\n" `shouldResultIn`
-                    "SERVER_ERROR Failed to connect to server.\r\n"
-                "set key 0 0 8\r\n12345678\r\n" `shouldResultIn`
-                    "SERVER_ERROR Failed to connect to server.\r\n"
-                "delete key\r\n" `shouldResultIn`
-                    "SERVER_ERROR Failed to connect to server.\r\n"
+                shouldErrorWith "get key\r\n"
+                    "SERVER_ERROR 0 bytes read from server: localhost/127.0.0.1:11236\r\n"
+
+                liftIO $ close wconn
+
+                shouldErrorWith "set key 0 0 8\r\n12345678\r\n"
+                    "SERVER_ERROR 0 bytes read from server: localhost/127.0.0.1:11236\r\n"
+                shouldErrorWith "delete key\r\n"
+                    "SERVER_ERROR Failed to write to server: localhost/127.0.0.1:11236\r\n"
 
         actionFinally tests $ do
-            terminateProcess serverPH
             terminateProcess middlePH
+            close ssock
+            close csock
+            waitForProcess middlePH
 

@@ -9,12 +9,12 @@ import ch.ethz.asl.response.ClientErrorResponse;
 import ch.ethz.asl.response.ErrorResponse;
 import ch.ethz.asl.response.Response;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -41,58 +41,84 @@ public class AdhocCompletionHandler
 
   @Override
   public void completed(final AsynchronousSocketChannel chan, final Object attachment) {
-    assc.accept(attachment, this);
+    InitialInput ii = new InitialInput(chan);
+    ii.doTheRead(new InitialInputCompletionHandler());
+  }
 
-    try {
-      while (true) {
-        spin(chan);
-      }
-    } catch (ExecutionException e) {
-      return; // Just close the connection.
-    } catch (InterruptedException e) {
-      System.exit(1); // Just stop.
-    } finally {
-      try {
-        if (chan != null) {
-          chan.close();
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+  class InitialInput {
+    public ByteBuffer bbuf;
+    public final AsynchronousSocketChannel chan;
+
+    private static final int BUFFER_SIZE = 1 << 6;
+
+    public InitialInput(final AsynchronousSocketChannel chan) {
+      this.bbuf = ByteBuffer.allocate(BUFFER_SIZE);
+      this.chan = chan;
+    }
+
+    public void doTheRead(final InitialInputCompletionHandler handler) {
+      this.bbuf =
+          ByteBuffer.allocate(BUFFER_SIZE); // Clear does not set values to 0, just reallocate here.
+      chan.read(bbuf, this, handler);
     }
   }
 
-  private void spin(final AsynchronousSocketChannel chan)
-      throws ExecutionException, InterruptedException {
-    log.finest("Spinning");
-    int bufferSize = 1 << 16;
-    ByteBuffer bbuf = ByteBuffer.allocate(bufferSize);
-    int bytesRead = chan.read(bbuf).get();
-    log.finest("Input from client:");
-    log.finest(Integer.toString(bytesRead) + " bytes");
-    if (bytesRead >= 0) {
-      log.finest(new String(bbuf.array()));
+  class InitialInputCompletionHandler implements CompletionHandler<Integer, InitialInput> {
 
-      Request req = null;
-      Response preliminaryResponse = null;
-      try {
-        req = RequestParser.parseRequest(bbuf);
-        log.finest("Parsed request: " + req.toString());
-      } catch (NotEnoughDataException e) {
-        log.finest("Note enough data to parse request.");
-        preliminaryResponse = new ClientErrorResponse("Not enough data.");
-      } catch (ParseFailedException e) {
-        log.finest("Failed to parse a request.");
-        preliminaryResponse = new ErrorResponse();
-      }
-      if (req == null) { // Then preliminary response will not be null.
-        RequestPacket.respond(chan, preliminaryResponse);
-      } else {
-        RequestPacket packet = new RequestPacket(chan, req);
-        ServerHandler sh = pickServer(servers, req);
-        sh.handle(packet);
+    @Override
+    public void completed(final Integer bytesRead, final InitialInput initialInput) {
+      doTheThing(bytesRead, initialInput);
+      goOn(initialInput);
+    }
+
+    private void doTheThing(int bytesRead, final InitialInput initialInput) {
+      AsynchronousSocketChannel chan = initialInput.chan;
+      ByteBuffer bbuf = initialInput.bbuf;
+      log.finest("Input from client:");
+      log.finest(Integer.toString(bytesRead) + " bytes");
+      if (bytesRead >= 0) {
+        log.finest("\"" + new String(bbuf.array()) + "\"");
+
+        Request req = null;
+        Response preliminaryResponse = null;
+        try {
+          req = RequestParser.parseRequest(bbuf);
+          log.finest("Parsed request: " + req.toString());
+        } catch (NotEnoughDataException e) {
+          log.finest("Not enough data to parse request.");
+          preliminaryResponse = new ClientErrorResponse("Not enough data.");
+        } catch (ParseFailedException e) {
+          log.finest("Failed to parse a request.");
+          preliminaryResponse = new ErrorResponse();
+        }
+        if (req == null) { // Then preliminary response will not be null.
+          try {
+            RequestPacket.respond(chan, preliminaryResponse);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          } catch (ExecutionException e) {
+            e.printStackTrace();
+          }
+        } else {
+          RequestPacket packet = new RequestPacket(chan, req);
+          ServerHandler sh = pickServer(servers, req);
+          try {
+            sh.handle(packet);
+          } catch (ExecutionException e) {
+            e.printStackTrace();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
       }
     }
+
+    private void goOn(InitialInput initialInput) {
+      initialInput.doTheRead(this);
+    }
+
+    @Override
+    public void failed(Throwable exc, InitialInput attachment) {}
   }
 
   private static ServerHandler pickServer(final List<ServerHandler> servers, final Request req) {

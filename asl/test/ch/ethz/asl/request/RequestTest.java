@@ -12,145 +12,240 @@ import static com.google.common.truth.Truth.assertThat;
 public class RequestTest {
   @Test(expected = NotEnoughDataException.class)
   public void parseRequestEmpty() {
-    parseRequest(ByteBuffer.wrap("".getBytes()));
+    String s = "";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseRequestEmptyBiggerBuffer() {
+    String s = "";
+    ByteBuffer bbuf = ByteBuffer.allocate(s.length() + 5);
+    bbuf.put(s.getBytes());
+    parseRequest(bbuf);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseGetRequestPrefixG() {
-    parseRequest(ByteBuffer.wrap("g".getBytes()));
+    String s = "g";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseGetRequestPrefixGBiggerBuffer() {
+    String s = "g";
+    ByteBuffer bbuf = ByteBuffer.allocate(s.length() + 5);
+    bbuf.put(s.getBytes());
+    parseRequest(bbuf);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseGetRequestPrefixGE() {
-    parseRequest(ByteBuffer.wrap("ge".getBytes()));
+    String s = "ge";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseGetRequestPrefixGEBiggerBuffer() {
+    String s = "ge";
+    ByteBuffer bbuf = ByteBuffer.allocate(s.length() + 5);
+    bbuf.put(s.getBytes());
+    parseRequest(bbuf);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseGetRequestPrefixGET() {
-    parseRequest(ByteBuffer.wrap("get".getBytes()));
+    String s = "get";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseGetRequestPrefixGETBiggerBuffer() {
+    String s = "get";
+    ByteBuffer bbuf = ByteBuffer.allocate(s.length() + 5);
+    bbuf.put(s.getBytes());
+    parseRequest(bbuf);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseGetRequestPrefixGETSpace() {
-    parseRequest(ByteBuffer.wrap("get ".getBytes()));
+    String s = "get ";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseGetRequestPrefixGETSpaceBiggerBuffer() {
+    String s = "get ";
+    ByteBuffer bbuf = ByteBuffer.allocate(s.length() + 5);
+    bbuf.put(s.getBytes());
+    parseRequest(bbuf);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseGetRequestNoNewline() {
-    parseRequest(ByteBuffer.wrap("get foo".getBytes()));
+    String s = "get foo";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseGetRequestNoNewlineBiggerBuffer() {
+    String s = "get foo";
+    ByteBuffer bbuf = ByteBuffer.allocate(s.length() + 5);
+    bbuf.put(s.getBytes());
+    parseRequest(bbuf);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseGetRequestUnfinishedNewline() {
+    String s = "get foo\r";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseGetRequestUnfinishedNewlineBiggerBuffer() {
+    String s = "get foo\r";
+    ByteBuffer bbuf = ByteBuffer.allocate(s.length() + 5);
+    bbuf.put(s.getBytes());
+    parseRequest(bbuf);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseGetRequestFailedKeywordFirstLetter() {
-    parseRequest(ByteBuffer.wrap("a".getBytes()));
+    parseRequest(wrappingByteBuffer("a"));
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseGetRequestFailedKeyword() {
-    parseRequest(ByteBuffer.wrap("gt".getBytes()));
+    String s = "gt";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseGetRequestFailedFullKeyword() {
-    parseRequest(ByteBuffer.wrap("gte".getBytes()));
+    String s = "gte";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseGetRequestFailedKeywordWithKey() {
-    parseRequest(ByteBuffer.wrap("gte key".getBytes()));
+    String s = "gte key";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseGetRequestFailedKeywordWithNewline() {
-    parseRequest(ByteBuffer.wrap("gte key\r\n".getBytes()));
+    String s = "gte key\r\n";
+    wrappingByteBuffer(s);
   }
 
   @Test
   public void parseGetRequestDone() {
-    assertThat(parseRequest(ByteBuffer.wrap("get foo\r\n".getBytes())))
-        .isEqualTo(new GetRequest("foo".getBytes()));
-    assertThat(parseRequest(ByteBuffer.wrap("get averyveryveryverylongkey\r\n".getBytes())))
+    String s = "get foo\r\n";
+    assertThat(parseRequest(wrappingByteBuffer(s))).isEqualTo(new GetRequest("foo".getBytes()));
+    String s2 = "get averyveryveryverylongkey\r\n";
+    assertThat(parseRequest(wrappingByteBuffer(s2)))
         .isEqualTo(new GetRequest("averyveryveryverylongkey".getBytes()));
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixS() {
-    parseRequest(ByteBuffer.wrap("s".getBytes()));
+    String s = "s";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSE() {
-    parseRequest(ByteBuffer.wrap("se".getBytes()));
+    String s = "se";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSET() {
-    parseRequest(ByteBuffer.wrap("set".getBytes()));
+    String s = "set";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpace() {
-    parseRequest(ByteBuffer.wrap("set ".getBytes()));
+    String s = "set ";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpaceKey() {
-    parseRequest(ByteBuffer.wrap("set key".getBytes()));
+    String s = "set key";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpaceKeyFlags() {
-    parseRequest(ByteBuffer.wrap("set key 0".getBytes()));
+    String s = "set key 0";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpaceKeyFlagsExptime() {
-    parseRequest(ByteBuffer.wrap("set key 0 0".getBytes()));
+    String s = "set key 0 0";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpaceKeyFlagsExptimeLength() {
-    parseRequest(ByteBuffer.wrap("set key 0 0 8".getBytes()));
+    String s = "set key 0 0 8";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpaceKeyFlagsExptimeLengthNewline() {
-    parseRequest(ByteBuffer.wrap("set key 0 0 8\r\n".getBytes()));
+    String s = "set key 0 0 8\r\n";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpaceKeyFlagsExptimeLengthNewlineTooShortData() {
-    parseRequest(ByteBuffer.wrap("set key 0 0 8\r\n12345".getBytes()));
+    String s = "set key 0 0 8\r\n12345";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseSetRequestPrefixSETSpaceKeyFlagsExptimeLengthNewlineDataNoNewline() {
-    parseRequest(ByteBuffer.wrap("set key 0 0 8\r\n12345678".getBytes()));
+    String s = "set key 0 0 8\r\n12345678";
+    wrappingByteBuffer(s);
+  }
+
+  @Test(expected = NotEnoughDataException.class)
+  public void parseSetRequestPrefixSETSpaceKeyFlagsExptimeLengthNewlineDataUnfinishedNewline() {
+    String s = "set key 0 0 8\r\n12345678\r";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseSetRequestFailedKeywordFirstLetter() {
-    parseRequest(ByteBuffer.wrap("b".getBytes()));
+    String s = "b";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseSetRequestFailedKeyword() {
-    parseRequest(ByteBuffer.wrap("st".getBytes()));
+    String s = "st";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseSetRequestFailedFullKeyword() {
-    parseRequest(ByteBuffer.wrap("ste".getBytes()));
+    String s = "ste";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseSetRequestFailedKeywordWithKey() {
-    parseRequest(ByteBuffer.wrap("ste key".getBytes()));
+    String s = "ste key";
+    wrappingByteBuffer(s);
   }
 
   @Test
   public void parseSetRequestDoneSimple() {
-    assertThat(parseRequest(ByteBuffer.wrap("set foo 0 0 8\r\n12345678\r\n".getBytes())))
+    String s = "set foo 0 0 8\r\n12345678\r\n";
+    assertThat(parseRequest(wrappingByteBuffer(s)))
         .isEqualTo(
             new SetRequest(
                 "foo".getBytes(),
@@ -162,7 +257,8 @@ public class RequestTest {
 
   @Test
   public void parseSetRequestDoneLongerFlas() {
-    assertThat(parseRequest(ByteBuffer.wrap("set aa 16 0 8\r\n12345678\r\n".getBytes())))
+    String s = "set aa 16 0 8\r\n12345678\r\n";
+    assertThat(parseRequest(wrappingByteBuffer(s)))
         .isEqualTo(
             new SetRequest(
                 "aa".getBytes(),
@@ -174,7 +270,8 @@ public class RequestTest {
 
   @Test
   public void parseSetRequestDoneLongerExptime() {
-    assertThat(parseRequest(ByteBuffer.wrap("set foobar 0 20 4\r\nabcd\r\n".getBytes())))
+    String s = "set foobar 0 20 4\r\nabcd\r\n";
+    assertThat(parseRequest(wrappingByteBuffer(s)))
         .isEqualTo(
             new SetRequest(
                 "foobar".getBytes(),
@@ -186,7 +283,8 @@ public class RequestTest {
 
   @Test
   public void parseSetRequestDoneLongerLength() {
-    assertThat(parseRequest(ByteBuffer.wrap("set bbb 0 2 16\r\n0123456789abcdef\r\n".getBytes())))
+    String s = "set bbb 0 2 16\r\n0123456789abcdef\r\n";
+    assertThat(parseRequest(wrappingByteBuffer(s)))
         .isEqualTo(
             new SetRequest(
                 "bbb".getBytes(),
@@ -198,66 +296,86 @@ public class RequestTest {
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestPrefixD() {
-    parseRequest(ByteBuffer.wrap("d".getBytes()));
+    String s = "d";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestPrefixDE() {
-    parseRequest(ByteBuffer.wrap("de".getBytes()));
+    String s = "de";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestPrefixDEL() {
-    parseRequest(ByteBuffer.wrap("del".getBytes()));
+    String s = "del";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestPrefixDELE() {
-    parseRequest(ByteBuffer.wrap("dele".getBytes()));
+    String s = "dele";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestPrefixDELET() {
-    parseRequest(ByteBuffer.wrap("delet".getBytes()));
+    String s = "delet";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestPrefixDELETE() {
-    parseRequest(ByteBuffer.wrap("delete".getBytes()));
+    String s = "delete";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestPrefixDELETESpace() {
-    parseRequest(ByteBuffer.wrap("delete ".getBytes()));
+    String s = "delete ";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = NotEnoughDataException.class)
   public void parseDeleteRequestNoNewline() {
-    parseRequest(ByteBuffer.wrap("delete foo".getBytes()));
+    String s = "delete foo";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseDeleteRequestFailedKeywordFirstLetter() {
-    parseRequest(ByteBuffer.wrap("c".getBytes()));
+    String s = "c";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseDeleteRequestFailedKeyword() {
-    parseRequest(ByteBuffer.wrap("dt".getBytes()));
+    String s = "dt";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseDeleteRequestFailedFullKeyword() {
-    parseRequest(ByteBuffer.wrap("dte".getBytes()));
+    String s = "dte";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseDeleteRequestFailedKeywordWithKey() {
-    parseRequest(ByteBuffer.wrap("dte key".getBytes()));
+    String s = "dte key";
+    wrappingByteBuffer(s);
   }
 
   @Test(expected = ParseFailedException.class)
   public void parseDeleteRequestFailedKeywordWithNewline() {
-    parseRequest(ByteBuffer.wrap("dte key\r\n".getBytes()));
+    String s = "dte key\r\n";
+    wrappingByteBuffer(s);
+  }
+
+  private ByteBuffer wrappingByteBuffer(String s) {
+    ByteBuffer bbuf = ByteBuffer.wrap(s.getBytes());
+    bbuf.position(s.length());
+    parseRequest(bbuf);
+    return bbuf;
   }
 }
