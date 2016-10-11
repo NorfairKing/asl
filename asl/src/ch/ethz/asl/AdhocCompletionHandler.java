@@ -113,6 +113,5 @@ public class AdhocCompletionHandler
   }
 
   @Override
-  public void failed(Throwable exc, Object attachment) {
-  }
+  public void failed(Throwable exc, Object attachment) {}
 }

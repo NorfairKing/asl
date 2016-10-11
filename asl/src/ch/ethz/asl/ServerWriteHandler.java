@@ -25,7 +25,6 @@ public class ServerWriteHandler {
     executor = Executors.newSingleThreadExecutor();
   }
 
-
   public void handle(final RequestPacket req) throws ExecutionException, InterruptedException {
     executor.submit(new WriteTask(req));
   }
