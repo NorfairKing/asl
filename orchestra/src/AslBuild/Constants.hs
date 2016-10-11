@@ -91,7 +91,7 @@ outDir :: FilePath
 outDir = aslCacheDir </> out
 
 tmpDir :: FilePath
-tmpDir = aslCacheDir </> "orc"
+tmpDir = aslCacheDir </> tmp
 
 assignmentDir :: FilePath
 assignmentDir = aslDir </> "assignment"

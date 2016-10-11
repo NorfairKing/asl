@@ -31,4 +31,7 @@ public abstract class Request {
   public int hashCode() {
     return Arrays.hashCode(this.render().array());
   }
+
+  public abstract RequestKind getKind ();
 }
+

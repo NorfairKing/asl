@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.LocalLogTest where
 
+import           Control.Monad
 import           System.Process
 
 import           Development.Shake
@@ -61,9 +62,9 @@ localLogTestRules = do
             runMemaslap = command [FileStdout logFile] memaslapBin (memaslapArgs msFlags)
 
         -- Make sure to stop memcached
-        actionFinally
-            runMemaslap
-            (terminateProcess ph)
+        actionFinally runMemaslap $ do
+            terminateProcess ph
+            void $ waitForProcess ph
 
     csvOut %>  \_ -> do
         explog <- readFile' logFile

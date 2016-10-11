@@ -49,4 +49,9 @@ public class SetRequest extends Request {
     bbuf.put(RequestParser.NEWLINE);
     return bbuf;
   }
+
+  @Override
+  public RequestKind getKind() {
+    return RequestKind.WRITE_REQUEST;
+  }
 }
