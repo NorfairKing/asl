@@ -203,3 +203,7 @@ resourceGroupName = "myResourceGroup"
 
 resourceGroupLocation :: String
 resourceGroupLocation = "westeurope"
+
+
+localhostIp :: String
+localhostIp = "127.0.0.1"

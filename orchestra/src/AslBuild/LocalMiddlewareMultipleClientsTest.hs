@@ -25,11 +25,11 @@ setups = do
             }
 
     let mwFlags = MiddlewareFlags
-            { mwIp = "localhost"
+            { mwIp = localhostIp
             , mwPort = 11210
             , mwNrThreads = 1
             , mwReplicationFactor = 1
-            , mwServers = [RemoteServerUrl "localhost" $ memcachedPort serverFlags]
+            , mwServers = [RemoteServerUrl localhostIp $ memcachedPort serverFlags]
             , mwVerbosity = LogFine
             }
 

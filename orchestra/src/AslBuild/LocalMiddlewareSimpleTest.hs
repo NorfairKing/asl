@@ -19,16 +19,18 @@ setups :: [LocalMiddlewareTestSetup]
 setups = do
     let time = 1
 
+    let sPort = defaultMemcachedPort
     let mcFlags = MemcachedFlags
-            { memcachedPort = defaultMemcachedPort
+            { memcachedPort = sPort
             , memcachedAsDaemon = False
             }
+
     let mwFlags = MiddlewareFlags
-            { mwIp = "localhost"
-            , mwPort = 11234
+            { mwIp = localhostIp
+            , mwPort = defaultMemcachedPort + 1
             , mwNrThreads = 1
             , mwReplicationFactor = 1
-            , mwServers = [RemoteServerUrl "localhost" 11211]
+            , mwServers = [RemoteServerUrl localhostIp sPort]
             , mwVerbosity = LogFine
             }
 

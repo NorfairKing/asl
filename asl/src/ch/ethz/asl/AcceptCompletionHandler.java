@@ -9,30 +9,33 @@ import ch.ethz.asl.response.ClientErrorResponse;
 import ch.ethz.asl.response.ErrorResponse;
 import ch.ethz.asl.response.Response;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
-public class AdhocCompletionHandler
+import static ch.ethz.asl.Middleware.BUFFER_SIZE;
+import static ch.ethz.asl.Middleware.shutdown;
+
+public class AcceptCompletionHandler
     implements CompletionHandler<AsynchronousSocketChannel, Object> {
   private static final Logger log = Logger.getGlobal();
   private final AsynchronousServerSocketChannel assc;
   private final List<ServerHandler> servers;
 
-  public AdhocCompletionHandler(
+  public AcceptCompletionHandler(
       final AsynchronousServerSocketChannel assc, final List<ServerAddress> servers) {
     this.assc = assc;
     this.servers = mkServerHandlers(servers);
   }
 
   private static List<ServerHandler> mkServerHandlers(final List<ServerAddress> serverAddresses) {
-    List<ServerHandler> handlers = new ArrayList();
+    List<ServerHandler> handlers = new ArrayList<>();
     for (ServerAddress serverAddress : serverAddresses) {
       handlers.add(new ServerHandler(serverAddress));
     }
@@ -41,22 +44,21 @@ public class AdhocCompletionHandler
 
   @Override
   public void completed(final AsynchronousSocketChannel chan, final Object attachment) {
+    assc.accept(null, this); // Ready to accept the next one.
     InitialInput ii = new InitialInput(chan);
     ii.doTheRead(new InitialInputCompletionHandler());
   }
 
   class InitialInput {
-    public ByteBuffer bbuf;
-    public final AsynchronousSocketChannel chan;
+    ByteBuffer bbuf;
+    final AsynchronousSocketChannel chan;
 
-    private static final int BUFFER_SIZE = 1 << 6;
-
-    public InitialInput(final AsynchronousSocketChannel chan) {
+    InitialInput(final AsynchronousSocketChannel chan) {
       this.bbuf = ByteBuffer.allocate(BUFFER_SIZE);
       this.chan = chan;
     }
 
-    public void doTheRead(final InitialInputCompletionHandler handler) {
+    void doTheRead(final InitialInputCompletionHandler handler) {
       this.bbuf =
           ByteBuffer.allocate(BUFFER_SIZE); // Clear does not set values to 0, just reallocate here.
       chan.read(bbuf, this, handler);
@@ -67,11 +69,6 @@ public class AdhocCompletionHandler
 
     @Override
     public void completed(final Integer bytesRead, final InitialInput initialInput) {
-      doTheThing(bytesRead, initialInput);
-      goOn(initialInput);
-    }
-
-    private void doTheThing(int bytesRead, final InitialInput initialInput) {
       AsynchronousSocketChannel chan = initialInput.chan;
       ByteBuffer bbuf = initialInput.bbuf;
       log.finest("Input from client:");
@@ -94,9 +91,7 @@ public class AdhocCompletionHandler
         if (req == null) { // Then preliminary response will not be null.
           try {
             RequestPacket.respond(chan, preliminaryResponse);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          } catch (ExecutionException e) {
+          } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
           }
         } else {
@@ -104,21 +99,29 @@ public class AdhocCompletionHandler
           ServerHandler sh = pickServer(servers, req);
           try {
             sh.handle(packet);
-          } catch (ExecutionException e) {
-            e.printStackTrace();
-          } catch (InterruptedException e) {
+          } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
           }
+        }
+        // Go on reading
+        initialInput.doTheRead(this);
+      } else {
+        try {
+          chan.close();
+        } catch (IOException e) {
+          e.printStackTrace();
         }
       }
     }
 
-    private void goOn(InitialInput initialInput) {
-      initialInput.doTheRead(this);
-    }
-
     @Override
-    public void failed(Throwable exc, InitialInput attachment) {}
+    public void failed(Throwable exc, InitialInput initialInput) {
+      try {
+        initialInput.chan.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   private static ServerHandler pickServer(final List<ServerHandler> servers, final Request req) {
@@ -139,5 +142,11 @@ public class AdhocCompletionHandler
   }
 
   @Override
-  public void failed(Throwable exc, Object attachment) {}
+  public void failed(Throwable exc, Object attachment) {
+    try {
+      assc.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 }

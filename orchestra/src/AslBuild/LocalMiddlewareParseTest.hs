@@ -39,11 +39,11 @@ localMiddlewareParseTestRules =
             sPort = 11236
 
         let mwFlags = MiddlewareFlags
-                { mwIp = "localhost"
+                { mwIp = localhostIp
                 , mwPort = mPort
                 , mwNrThreads = 1
                 , mwReplicationFactor = 1
-                , mwServers = [RemoteServerUrl "localhost" sPort]
+                , mwServers = [RemoteServerUrl localhostIp sPort]
                 , mwVerbosity = LogAll
                 }
 
@@ -166,9 +166,6 @@ localMiddlewareParseTestRules =
                 shouldResultIn READ "get otherkey\r\n"  "END\r\n"
                 shouldResultIn WRITE "delete otherkey\r\n"  "NOT_FOUND\r\n"
 
-                -- Check for error on nonexistent command
-                shouldErrorWith "ste keyyy\r\n"  "ERROR\r\n"
-
                 -- Check for client_error on something that doesnt conform to the protocol,
                 -- like missing data
                 shouldErrorWith "g"         "CLIENT_ERROR Not enough data.\r\n"
@@ -180,21 +177,20 @@ localMiddlewareParseTestRules =
                 shouldErrorWith "get key"   "CLIENT_ERROR Not enough data.\r\n"
                 shouldErrorWith "get key\r" "CLIENT_ERROR Not enough data.\r\n"
 
-                liftIO $ close rconn
+                -- Check for error on nonexistent command
+                shouldErrorWith "st"            "ERROR\r\n"
+                shouldErrorWith "ste key\r\n"   "ERROR\r\n"
+                shouldErrorWith "aaa\r\n"       "ERROR\r\n"
+                shouldErrorWith "deltee k\r\n"  "ERROR\r\n"
+                shouldErrorWith "aaa\r\n"       "ERROR\r\n"
 
-                shouldErrorWith "get key\r\n"
-                    "SERVER_ERROR 0 bytes read from server: localhost/127.0.0.1:11236\r\n"
-
-                liftIO $ close wconn
-
-                shouldErrorWith "set key 0 0 8\r\n12345678\r\n"
-                    "SERVER_ERROR 0 bytes read from server: localhost/127.0.0.1:11236\r\n"
-                shouldErrorWith "delete key\r\n"
-                    "SERVER_ERROR Failed to write to server: localhost/127.0.0.1:11236\r\n"
+                -- On more severe errors, like the server shutting down, the middleware will shutdown too.
 
         actionFinally tests $ do
             terminateProcess middlePH
+            void $ waitForProcess middlePH
+            close rconn
+            close wconn
             close ssock
             close csock
-            waitForProcess middlePH
 

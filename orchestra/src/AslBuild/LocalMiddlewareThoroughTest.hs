@@ -19,7 +19,7 @@ setups :: [LocalMiddlewareTestSetup]
 setups = do
     let time = 1
 
-    nrServers <- [1, 2]
+    nrServers <- [2, 8]
     let serverFlags = do
             port <- take nrServers [11211 ..]
             return MemcachedFlags
@@ -31,15 +31,15 @@ setups = do
     replicationFactor <- takeWhile (<= nrServers) $ iterate (*2) 1
 
     let mwFlags = MiddlewareFlags
-            { mwIp = "localhost"
+            { mwIp = localhostIp
             , mwPort = 11210
             , mwNrThreads = nrThreads
             , mwReplicationFactor = replicationFactor
-            , mwServers = map (RemoteServerUrl "localhost" . memcachedPort) serverFlags
+            , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) serverFlags
             , mwVerbosity = LogFine
             }
 
-    nrClients <- [1, 2]
+    nrClients <- [2, 8]
     keySize <- [16, 128]
     valueSize <- [16, 4096]
     threads <- [2, 16]

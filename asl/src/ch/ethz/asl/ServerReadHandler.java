@@ -13,30 +13,37 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 
+import static ch.ethz.asl.Middleware.BUFFER_SIZE;
+import static ch.ethz.asl.Middleware.shutdown;
+
 public class ServerReadHandler {
+  private final ServerHandler serverHandler;
   private final ServerAddress serverAddress;
   private static final Logger log = Logger.getGlobal();
   private final ExecutorService threadPool;
   private final BlockingQueue<RequestPacket> readqueue;
 
-  public ServerReadHandler(final ServerAddress serverAddress) {
+  public ServerReadHandler(final ServerHandler serverHandler, final ServerAddress serverAddress) {
+    this.serverHandler = serverHandler;
     this.serverAddress = serverAddress;
     int nrThreads = 1; // fixme take this from the flags.
     this.readqueue = new LinkedBlockingQueue<>();
     this.threadPool = Executors.newFixedThreadPool(nrThreads);
     for (int i = 0; i < nrThreads; i++) {
-      threadPool.submit(new ReadWorker());
+      threadPool.submit(new ReadWorker(i));
     }
   }
 
-  public void handle(final RequestPacket req) throws ExecutionException, InterruptedException {
-    readqueue.put(req); // Put is the blocking version. We may have to limit the size of the queue.
+  public void handle(final RequestPacket req) throws InterruptedException {
+    readqueue.put(req);
   }
 
   class ReadWorker implements Runnable {
     private SocketChannel serverConnection;
+    private final int readWorkerIndex;
 
-    public ReadWorker() {
+    public ReadWorker(int index) {
+      this.readWorkerIndex = index;
       connect();
     }
 
@@ -66,11 +73,18 @@ public class ServerReadHandler {
       Response resp = handleToGetResponse(packet.getRequest());
       try {
         packet.respond(resp);
-      } catch (InterruptedException e) {
-        e.printStackTrace(); // FIXME handle this somehow
-      } catch (ExecutionException e) {
+      } catch (InterruptedException | ExecutionException e) {
         e.printStackTrace(); // FIXME handle this somehow
       }
+      if (ServerReadHandler.this.serverHandler.isShuttingDown()) {
+        log.fine(
+            "Shutting down read worker "
+                + readWorkerIndex
+                + " for server "
+                + serverAddress.getSocketAddress());
+        return;
+      }
+
       threadPool.submit(this); // Then we don't have to while(true)
     }
 
@@ -81,29 +95,34 @@ public class ServerReadHandler {
       try {
         bytesWritten = serverConnection.write(rbuf);
       } catch (IOException e) {
+        shutdown();
         return new ServerErrorResponse(
             "Failed to write to server: " + serverAddress.getSocketAddress());
       }
-      log.finest("Sent " + Integer.toString(bytesWritten) + " to server:");
+      if (bytesWritten <= 0) {
+        shutdown();
+        return new ServerErrorResponse("Wrote " + bytesWritten + " bytes to server.");
+      }
+      log.finest("Sent " + bytesWritten + " to server:");
       log.finest(new String(rbuf.array()));
 
-      int bufferSize = 1 << 16;
-      ByteBuffer bbuf2 = ByteBuffer.allocate(bufferSize);
+      ByteBuffer bbuf2 = ByteBuffer.allocate(BUFFER_SIZE);
       int bytesRead2;
       try {
         bytesRead2 = serverConnection.read(bbuf2);
       } catch (IOException e) {
+        shutdown();
         return new ServerErrorResponse(
             "Failed to receive from server: " + serverAddress.getSocketAddress());
       }
-      log.finest("Input from Server:");
-      log.finest(Integer.toString(bytesRead2) + " bytes");
-      if (bytesRead2 > 0) {
-        return new SuccessfulResponse(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2));
-      } else {
+      if (bytesRead2 <= 0) {
+        shutdown();
         return new ServerErrorResponse(
-            "0 bytes read from server: " + serverAddress.getSocketAddress());
+            bytesRead2 + " bytes read from server: " + serverAddress.getSocketAddress());
       }
+      log.finest("Input from Server:");
+      log.finest(bytesRead2 + " bytes");
+      return new SuccessfulResponse(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2));
     }
   }
 }
