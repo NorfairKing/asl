@@ -32,8 +32,8 @@ memaslapSettings = MemaslapSettings
         , msThreads = 64
         , msConcurrency = 64
         , msOverwrite = 1
-        , msStatFreq = Seconds 2
-        , msTime = Seconds 2
+        , msWorkload = WorkFor $ Seconds 2
+        , msStatFreq = Just $ Seconds 2
         , msConfigFile = memaslapConfigFile
         }
     , msConfig = MemaslapConfig

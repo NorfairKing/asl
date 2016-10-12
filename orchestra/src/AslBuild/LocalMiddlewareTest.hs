@@ -41,11 +41,11 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
     serverPHs <- forM serverSetups $ \mcfs ->
         cmd memcachedBin $ memcachedArgs mcfs
 
-    waitMs 250
+    waitMs 100
 
     middlePH <- cmd javaCmd "-jar" outputJarFile $ middlewareArgs middlewareSetup
 
-    waitMs 250
+    waitMs 100
 
     clientPHs <- forM clientSetups $ \mss ->
         cmd memaslapBin $ memaslapArgs $ msFlags mss

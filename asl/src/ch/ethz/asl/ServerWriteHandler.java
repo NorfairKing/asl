@@ -56,6 +56,7 @@ public class ServerWriteHandler {
         log.finest("Writer connected to: " + address);
       } catch (IOException e) {
         e.printStackTrace();
+        shutdown();
       }
     }
 

@@ -108,7 +108,7 @@ instance ToNamedRecord ExperimentResults where
             , "threads" .= msThreads
             , "concurrency" .= msConcurrency
             , "overwrite" .= msOverwrite
-            , "time" .= msTime
+            , "time" .= msTimeUnsafe msWorkload
             , "avg" .= avg
             , "std" .= std
             , "tps" .= tps

@@ -11,7 +11,6 @@ import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
 import           AslBuild.LocalMiddlewareSimpleTest
-import           AslBuild.LocalMiddlewareThoroughTest
 import           AslBuild.Test
 import           AslBuild.Utils
 
@@ -36,7 +35,6 @@ preCommitRules = do
         need [localMiddlewareSimpleTestRule]
         need [localMiddlewareMultipleServersTestRule]
         need [localMiddlewareMultipleClientsTestRule]
-        need [localMiddlewareThoroughTestRule]
 
         need [formatClientRule]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.

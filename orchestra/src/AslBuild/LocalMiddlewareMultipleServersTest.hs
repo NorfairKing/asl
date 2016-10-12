@@ -37,7 +37,7 @@ setups = do
             }
 
     keySize <- [128]
-    valueSize <- [4096]
+    valueSize <- [1024]
     threads <- [2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [2]
@@ -64,9 +64,9 @@ setups = do
                 { msServers = [RemoteServerUrl (mwIp mwFlags) (mwPort mwFlags)]
                 , msThreads = threads
                 , msConcurrency = concurrency
-                , msOverwrite = 0.5
-                , msStatFreq = Seconds $ time + 2
-                , msTime = Seconds $ time + 2
+                , msOverwrite = 0.9
+                , msWorkload = NrRequests 256
+                , msStatFreq = Nothing
                 , msConfigFile = tmpDir
                     </> "local-middleware-multiple-servers-test"
                     </> "local-middleware-multiple-servers-test-memaslap-cfg-" ++ signature

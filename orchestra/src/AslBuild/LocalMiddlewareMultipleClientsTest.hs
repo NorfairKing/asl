@@ -35,7 +35,7 @@ setups = do
 
     nrClients <- [2, 3, 5, 10]
     keySize <- [128]
-    valueSize <- [4096]
+    valueSize <- [1024]
     threads <- [2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [2]
@@ -63,8 +63,8 @@ setups = do
             , msThreads = threads
             , msConcurrency = concurrency
             , msOverwrite = 0.5
-            , msStatFreq = Seconds $ time + 2
-            , msTime = Seconds $ time + 2
+            , msWorkload = NrRequests 256
+            , msStatFreq = Nothing
             , msConfigFile = tmpDir
                 </> "local-middleware-multiple-clients-test"
                 </> "local-middleware-multiple-clients-test-memaslap-cfg-" ++ signature

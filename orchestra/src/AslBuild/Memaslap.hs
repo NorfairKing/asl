@@ -18,10 +18,19 @@ memaslapArgs MemaslapFlags{..} =
     , "--threads=" ++ show msThreads
     , "--concurrency=" ++ show msConcurrency
     , "--overwrite=" ++ show msOverwrite
-    , "--stat_freq=" ++ timeUnit msStatFreq
-    , "--time=" ++ timeUnit msTime
+    , case msStatFreq of
+        Just statFreq -> "--stat_freq=" ++ timeUnit statFreq
+        Nothing -> ""
+    , case msWorkload of
+        WorkFor msTime -> "--time=" ++ timeUnit msTime
+        NrRequests reqs -> "--execute_number=" ++ show reqs
     , "--cfg_cmd=" ++ msConfigFile
     ]
+
+msTimeUnsafe :: MemaslapWorkload -> TimeUnit
+msTimeUnsafe msWorkload = case msWorkload of
+    WorkFor msTime -> msTime
+    w -> error $ "wrong kind of workload, should be WorkFor instead of " ++ show w
 
 renderMemaslapConfig :: MemaslapConfig -> String
 renderMemaslapConfig MemaslapConfig{..} =

@@ -41,12 +41,13 @@ setups = do
 
     nrClients <- [2, 8]
     keySize <- [16, 128]
-    valueSize <- [16, 4096]
+    valueSize <- [16, 1024]
     threads <- [2, 16]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [2, 16]
 
     setProp <- [0.1]
+    nrRequests <- [256, 512]
 
     let signature = intercalate "-"
             [ show nrClients
@@ -58,6 +59,7 @@ setups = do
             , show threads
             , show concurrency
             , show setProp
+            , show nrRequests
             ]
 
     let config = MemaslapConfig
@@ -72,8 +74,8 @@ setups = do
             , msThreads = threads
             , msConcurrency = concurrency
             , msOverwrite = 0.5
-            , msStatFreq = Seconds $ time + 2
-            , msTime = Seconds $ time + 2
+            , msWorkload = NrRequests nrRequests
+            , msStatFreq = Nothing
             , msConfigFile = tmpDir
                 </> "local-middleware-thorough-test"
                 </> "local-middleware-thorough-test-memaslap-cfg-" ++ signature

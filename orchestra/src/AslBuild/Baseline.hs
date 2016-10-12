@@ -123,7 +123,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
         forM_ (indexed experiments) $ \(ix, eSetup@BaselineExperimentSetup{..}) -> do
             let nrOfExperiments = length experiments
             putLoud $ "Running experiment: [" ++ show ix ++ "/" ++ show nrOfExperiments ++ "]"
-            let maxClientTime = maximum $ map (toSeconds . msTime . msFlags . cMemaslapSettings) clientSetups
+            let maxClientTime = maximum $ map (toSeconds . msTimeUnsafe . msWorkload . msFlags . cMemaslapSettings) clientSetups
             putLoud $ "Approximately " ++ toClockString ((1 + 5 + maxClientTime) * (nrOfExperiments - ix)) ++ " remaining."
 
             -- Get the clients configs set up
@@ -247,8 +247,8 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                         , msThreads = threads
                         , msConcurrency = concurrents
                         , msOverwrite = 0.9
-                        , msStatFreq = Seconds runtime
-                        , msTime = Seconds runtime
+                        , msStatFreq = Just $ Seconds runtime
+                        , msWorkload = WorkFor $ Seconds runtime
                         , msConfigFile = sign i "/tmp/memaslapcfg"
                         }
                     }

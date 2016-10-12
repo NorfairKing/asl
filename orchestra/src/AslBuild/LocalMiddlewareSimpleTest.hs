@@ -34,11 +34,12 @@ setups = do
             , mwVerbosity = LogFine
             }
 
-    keySize <- [16, 128]
-    valueSize <- [16, 4096]
+    keySize <- [16, 32]
+    valueSize <- [16, 128]
     threads <- [2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [2]
+
 
     let signature = intercalate "-"
             [ show keySize
@@ -59,8 +60,8 @@ setups = do
                 , msThreads = threads
                 , msConcurrency = concurrency
                 , msOverwrite = 0.5
-                , msStatFreq = Seconds $ time + 2
-                , msTime = Seconds $ time + 2
+                , msWorkload = NrRequests 256
+                , msStatFreq = Nothing
                 , msConfigFile = tmpDir
                     </> "local-middleware-simple-test"
                     </> "local-middleware-simple-test-memaslap-cfg-" ++ signature

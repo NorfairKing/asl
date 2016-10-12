@@ -45,13 +45,21 @@ data MemaslapFlags
     , msThreads     :: Int
     , msConcurrency :: Int
     , msOverwrite   :: Double
-    , msStatFreq    :: TimeUnit
-    , msTime        :: TimeUnit
+    , msStatFreq    :: Maybe TimeUnit
+    , msWorkload    :: MemaslapWorkload
     , msConfigFile  :: FilePath
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MemaslapFlags
 instance FromJSON MemaslapFlags
+
+data MemaslapWorkload
+    = WorkFor TimeUnit
+    | NrRequests Int
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   MemaslapWorkload
+instance FromJSON MemaslapWorkload
 
 data TimeUnit
     = Seconds Int

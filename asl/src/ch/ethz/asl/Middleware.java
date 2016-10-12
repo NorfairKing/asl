@@ -20,7 +20,7 @@ public class Middleware {
   public static boolean shuttingDown = false;
   private final AsynchronousChannelGroup group;
   private final AsynchronousServerSocketChannel assc;
-  public static final int BUFFER_SIZE = 1 << 11;
+  public static final int BUFFER_SIZE = 1 << 16;
 
   public Middleware(
       String myIp, int myPort, List<String> mcAddresses, int numThreadsPTP, int writeToCount)

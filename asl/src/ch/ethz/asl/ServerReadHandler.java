@@ -58,6 +58,7 @@ public class ServerReadHandler {
         log.finest("Reader connected to: " + address);
       } catch (IOException e) {
         e.printStackTrace();
+        shutdown();
       }
     }
 
