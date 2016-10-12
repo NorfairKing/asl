@@ -8,11 +8,12 @@ import           AslBuild.BuildMemcached
 import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
--- import           AslBuild.LocalMiddlewareMultipleClientsTest
--- import           AslBuild.LocalMiddlewareMultipleServersTest
--- import           AslBuild.LocalMiddlewareParseTest
--- import           AslBuild.LocalMiddlewareSimpleTest
--- import           AslBuild.LocalMiddlewareThoroughTest
+import           AslBuild.LocalMiddlewareMultiClientTest
+import           AslBuild.LocalMiddlewareMultipleClientsTest
+import           AslBuild.LocalMiddlewareMultipleServersTest
+import           AslBuild.LocalMiddlewareParseTest
+import           AslBuild.LocalMiddlewareSimpleTest
+import           AslBuild.LocalMiddlewareThoroughTest
 import           AslBuild.Provision
 import           AslBuild.Test
 
@@ -33,11 +34,12 @@ travisRules = travisRule ~> do
         , localLogTestRule
         ]
 
---     need [localMiddlewareParseTestRule]
---     need [localMiddlewareSimpleTestRule]
---     need [localMiddlewareMultipleServersTestRule]
---     need [localMiddlewareMultipleClientsTestRule]
---     need [localMiddlewareThoroughTestRule]
+    need [localMiddlewareParseTestRule]
+    need [localMiddlewareMultiClientTestRule]
+    need [localMiddlewareSimpleTestRule]
+    need [localMiddlewareMultipleServersTestRule]
+    need [localMiddlewareMultipleClientsTestRule]
+    need [localMiddlewareThoroughTestRule]
 
     need [provisionLocalhostRule]
     need [smallLocalBaselineExperimentRule]

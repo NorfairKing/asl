@@ -58,23 +58,19 @@ localMiddlewareParseTestRules =
             listen sock 1
             return sock
 
-        putLoud "1"
         (_, connCmp) <- liftIO $ forkIO $ do
             (wconn, _) <- accept ssock
             (rconn, _) <- accept ssock
             return (wconn, rconn)
 
-        putLoud "2"
         middlePH <- command
             []
             javaCmd $
             [ "-jar", outputJarFile
             ] ++ middlewareArgs mwFlags
 
-        putLoud "3"
         (wconn, rconn) <- liftIO $ connCmp >>= result
 
-        putLoud "4"
         csock <- liftIO $ do
             let localhostAddr = tupleToHostAddress (127, 0, 0, 1)
             -- Create client socket
@@ -85,8 +81,6 @@ localMiddlewareParseTestRules =
             bind sock $ SockAddrInet (fromIntegral cPort) iNADDR_ANY
             connect sock $ SockAddrInet (fromIntegral mPort) localhostAddr
             return sock
-
-        putLoud "5"
 
         let timeoutTime = 1 * 1000 * 1000 -- One second
         let shouldResultIn :: RequestKind -> ByteString -> ByteString -> Action ()

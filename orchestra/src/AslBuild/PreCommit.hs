@@ -6,6 +6,7 @@ import           Development.Shake.FilePath
 import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
+import           AslBuild.LocalMiddlewareMultiClientTest
 import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
@@ -30,6 +31,7 @@ preCommitRules = do
 
         need [localLogTestRule]
         need [localMiddlewareParseTestRule]
+        need [localMiddlewareMultiClientTestRule]
         need [localMiddlewareSimpleTestRule]
         need [localMiddlewareMultipleServersTestRule]
         need [localMiddlewareMultipleClientsTestRule]
