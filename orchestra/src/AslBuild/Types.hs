@@ -2,7 +2,8 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Types where
 
-import           Data.Aeson
+import           Data.Aeson    (FromJSON, ToJSON)
+import           Data.Csv
 import           Data.Hashable
 import           GHC.Generics
 
@@ -48,3 +49,26 @@ remoteServerUrl RemoteServerUrl{..} = serverUrl ++ ":" ++ show serverPort
 
 loginToMemcachedServerUrl :: RemoteLogin -> RemoteServerUrl
 loginToMemcachedServerUrl RemoteLogin{..} = RemoteServerUrl remoteHost 11211
+
+data TimeUnit
+    = Seconds Int
+    | Minutes Int
+    | Hours Int
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   TimeUnit
+instance FromJSON TimeUnit
+
+instance ToField TimeUnit where
+    toField = toField . toSeconds
+
+toSeconds :: TimeUnit -> Int
+toSeconds (Seconds i) = i
+toSeconds (Minutes i) = 60 * i
+toSeconds (Hours i)   = 60 * 60 * i
+
+timeUnit :: TimeUnit -> String
+timeUnit (Seconds i) = show i ++ "s"
+timeUnit (Minutes i) = show i ++ "m"
+timeUnit (Hours i)   = show i ++ "h"
+

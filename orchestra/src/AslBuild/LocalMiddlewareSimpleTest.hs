@@ -32,6 +32,7 @@ setups = do
             , mwReplicationFactor = 1
             , mwServers = [RemoteServerUrl localhostIp sPort]
             , mwVerbosity = LogFine
+            , mwTraceFile = tmpDir </> localMiddlewareSimpleTestRule ++ "trace" <.> csvExt
             }
 
     keySize <- [16, 32]

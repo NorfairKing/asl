@@ -3,9 +3,9 @@ module AslBuild.Experiments where
 import           Development.Shake
 
 import           AslBuild.Baseline
-import           AslBuild.LocalLogTest
+import           AslBuild.StabilityTrace
 
 experimentRules :: Rules ()
 experimentRules = do
-    localLogTestRules
     baselineExperimentRules
+    stabilityTraceRules

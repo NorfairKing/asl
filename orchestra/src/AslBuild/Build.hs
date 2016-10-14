@@ -10,12 +10,14 @@ import           AslBuild.CommitHash
 import           AslBuild.Create
 import           AslBuild.Experiments
 import           AslBuild.Jar
+import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareMultiClientTest
 import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
 import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.LocalMiddlewareThoroughTest
+import           AslBuild.Orc
 import           AslBuild.PreCommit
 import           AslBuild.Provision
 import           AslBuild.Reports
@@ -33,10 +35,12 @@ theShake  = do
     usingConfigFile "config.cfg"
 
     commitHashRules
+    orcRules
     jarRules
     buildMemcachedRules
     reportRules
     testRules
+    localLogTestRules
     localMiddlewareMultipleClientsTestRules
     localMiddlewareMultipleServersTestRules
     localMiddlewareParseTestRules

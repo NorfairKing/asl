@@ -3,14 +3,14 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Baseline.Types where
 
-import           Data.Aeson               (FromJSON, ToJSON)
-import qualified Data.ByteString.Lazy     as LB
+import           Data.Aeson            (FromJSON, ToJSON)
+import qualified Data.ByteString.Lazy  as LB
 import           Data.Csv
 import           GHC.Generics
 
+import           AslBuild.Client.Types
 import           AslBuild.Memaslap
-import           AslBuild.Memcached.Types
-import           AslBuild.Types
+import           AslBuild.Server.Types
 
 
 data BaselineExperimentRuleCfg
@@ -24,6 +24,7 @@ data BaselineExperimentRuleCfg
     , baselineSetup                :: BaseLineSetup
     } deriving (Show, Eq, Generic)
 
+-- TODO refactor all locations together
 data BaselineLocation
     = BaselineLocal
     | BaselineRemote
@@ -45,29 +46,6 @@ data BaselineExperimentSetup
 
 instance ToJSON   BaselineExperimentSetup
 instance FromJSON BaselineExperimentSetup
-
-data ClientSetup
-    = ClientSetup
-    { cRemoteLogin             :: RemoteLogin
-    , cLocalLog                :: FilePath
-    , cRemoteLog               :: FilePath
-    , cResultsFile             :: FilePath
-    , cLocalMemaslapConfigFile :: FilePath
-    , cIndex                   :: Int
-    , cMemaslapSettings        :: MemaslapSettings
-    } deriving (Show, Eq, Generic)
-
-instance ToJSON   ClientSetup
-instance FromJSON ClientSetup
-
-data ServerSetup
-    = ServerSetup
-    { sRemoteLogin    :: RemoteLogin
-    , sMemcachedFlags :: MemcachedFlags
-    } deriving (Show, Eq, Generic)
-
-instance ToJSON   ServerSetup
-instance FromJSON ServerSetup
 
 data ExperimentResults
     = ExperimentResults

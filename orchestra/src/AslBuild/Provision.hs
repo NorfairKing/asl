@@ -9,7 +9,8 @@ import           Development.Shake
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
-import           AslBuild.PreCommit
+import           AslBuild.Jar
+import           AslBuild.Orc
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm
@@ -35,6 +36,9 @@ provisionLocalhostMemcachedRule = "provision-localhost-memcached"
 provisionLocalhostMemaslapRule :: String
 provisionLocalhostMemaslapRule = "provision-localhost-memaslap"
 
+provisionLocalhostMiddlewareRule :: String
+provisionLocalhostMiddlewareRule = "provision-localhost-middleware"
+
 provisionLocalhostRules :: Rules ()
 provisionLocalhostRules = do
     provisionLocalhostRule ~> do
@@ -43,20 +47,26 @@ provisionLocalhostRules = do
         need
             [ provisionLocalhostMemcachedRule
             , provisionLocalhostMemaslapRule
+            , provisionLocalhostMiddlewareRule
             ]
 
     provisionLocalhostGlobalPackagesRule ~> return ()
-
-    orcBin `byCopying` buildBinInStack
-
     provisionLocalhostOrcRule ~> need [orcBin]
 
-    provisionLocalhostMemcachedRule ~> need [memcachedBin]
+    remoteMemcached `byCopying` memcachedBin
+    provisionLocalhostMemcachedRule ~> need [remoteMemcached]
 
-    provisionLocalhostMemaslapRule ~> need [memaslapBin]
+    remoteMemaslap `byCopying` memaslapBin
+    provisionLocalhostMemaslapRule ~> need [remoteMemaslap]
+
+    remoteMiddleware `byCopying` outputJarFile
+    provisionLocalhostMiddlewareRule ~> need [remoteMiddleware]
 
 localhostLogin :: RemoteLogin
 localhostLogin = RemoteLogin Nothing "localhost"
+
+provisionVmsRule :: String
+provisionVmsRule = "provision-vms"
 
 provisionVmsGlobalPackagesRule :: String
 provisionVmsGlobalPackagesRule = "provision-vms-global-packages"
@@ -70,38 +80,60 @@ provisionVmsMemcachedRule = "provision-vms-memcached"
 provisionVmsMemaslapRule :: String
 provisionVmsMemaslapRule = "provision-vms-memaslap"
 
+provisionVmsMiddlewareRule :: String
+provisionVmsMiddlewareRule = "provision-vms-middleware"
+
 provisionVmsRules :: Rules ()
 provisionVmsRules = do
-    provisionVmsGlobalPackagesRule ~> do
-        eachVm $ \rl -> overSsh rl "yes | sudo apt-get update"
-        eachVm $ \rl -> overSsh rl "yes | sudo apt-get install build-essential htop"
+    provisionVmsRule ~> (getAllVmsToProvision >>= provisionVms)
+    provisionVmsGlobalPackagesRule ~> (getAllVmsToProvision >>= provisionVmsGlobalPackages)
+    provisionVmsOrcRule ~> (getAllVmsToProvision >>= provisionVmsOrc)
+    provisionVmsMemcachedRule ~> (getAllVmsToProvision >>= provisionVmsMemcached)
+    provisionVmsMemaslapRule ~> (getAllVmsToProvision >>= provisionVmsMemaslap)
+    provisionVmsMiddlewareRule ~> (getAllVmsToProvision >>= provisionVmsMiddleware)
 
-    provisionVmsOrcRule ~> do
-        need [orcBin]
-        eachVm' (\rl -> rsyncTo rl orcBin orcBin)
+provisionVms :: [RemoteLogin] -> Action ()
+provisionVms rls = do
+    provisionVmsGlobalPackages rls
+    provisionVmsOrc rls
+    provisionVmsMemcached rls
+    provisionVmsMemaslap rls
+    provisionVmsMiddleware rls
 
-    provisionVmsMemcachedRule ~>
-        eachVm (`orcRemotely` memcachedBin)
+provisionVmsGlobalPackages :: [RemoteLogin] -> Action ()
+provisionVmsGlobalPackages rls = do
+    phPar rls $ \rl -> overSsh rl "yes | sudo apt-get update"
+    phPar rls $ \rl -> overSsh rl "yes | sudo apt-get install build-essential htop"
 
-    provisionVmsMemaslapRule ~>
-        eachVm (`orcRemotely` memaslapBin)
+provisionVmsOrc :: [RemoteLogin] -> Action ()
+provisionVmsOrc rls = do
+    need [orcBin]
+    phPar rls $ \rl -> rsyncTo rl orcBin orcBin
+
+provisionVmsMemcached :: [RemoteLogin] -> Action ()
+provisionVmsMemcached = (`phPar` (`orcRemotely` remoteMemcached))
+
+provisionVmsMemaslap :: [RemoteLogin] -> Action ()
+provisionVmsMemaslap = (`phPar` (`orcRemotely` remoteMemaslap))
+
+provisionVmsMiddleware :: [RemoteLogin] -> Action ()
+provisionVmsMiddleware = (`phPar` (`orcRemotely` remoteMiddleware))
 
 orcRemotely :: CmdResult r => RemoteLogin -> String -> Action r
 orcRemotely rl target = overSsh rl $ unwords [orcBin, "build", target]
 
 eachVm :: (RemoteLogin -> Action ProcessHandle) -> Action ()
 eachVm func = do
-    vms <- getVmsToProvision
-    phs <- forM vms func
-    liftIO $ mapM_ waitForProcess phs
+    vms <- getAllVmsToProvision
+    phPar vms func
 
 eachVm' :: (RemoteLogin -> Action ()) -> Action ()
 eachVm' func = do
-    vms <- getVmsToProvision
+    vms <- getAllVmsToProvision
     forM_ vms func
 
-getVmsToProvision :: Action [RemoteLogin]
-getVmsToProvision = do
+getAllVmsToProvision :: Action [RemoteLogin]
+getAllVmsToProvision = do
     vms <- getRawVmData
     return $ map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmFullUrl) vms
 

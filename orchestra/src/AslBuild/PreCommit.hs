@@ -3,6 +3,9 @@ module AslBuild.PreCommit where
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import           AslBuild.Analysis
+import           AslBuild.Baseline
+import           AslBuild.BuildMemcached
 import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
@@ -11,6 +14,8 @@ import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
 import           AslBuild.LocalMiddlewareSimpleTest
+import           AslBuild.Orc
+import           AslBuild.StabilityTrace
 import           AslBuild.Test
 import           AslBuild.Utils
 
@@ -24,7 +29,10 @@ preCommitRules :: Rules ()
 preCommitRules = do
     preCommitRule ~> do
         need [outputJarFile]
-        need [buildBinInStack]
+        need [orcBin]
+        need [memcachedBin]
+        need [memaslapBin]
+
         need [codeHealthRule]
         need [testRule]
         need [documentationRule]
@@ -36,28 +44,19 @@ preCommitRules = do
         need [localMiddlewareMultipleServersTestRule]
         need [localMiddlewareMultipleClientsTestRule]
 
+        need [smallLocalBaselineExperimentRule]
+        need [smallLocalStabilityTraceRule]
+
+        need [analysisRule]
+
         need [formatClientRule]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.
 
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 
-    buildBin
     codeHealth
     documentation
     formatClient
-
-buildBinInStack :: FilePath
-buildBinInStack = aslDir </> ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/orc"
-
-aslBuildDir :: FilePath
-aslBuildDir = aslDir </> "orchestra"
-
-buildBin :: Rules ()
-buildBin =
-    buildBinInStack %> \_ -> do
-        files <- getDirectoryFiles "" [aslBuildDir <//> "*.hs"]
-        need files
-        cmd (Cwd aslBuildDir) stackCmd "build"
 
 codeHealthRule :: String
 codeHealthRule = "code-health"

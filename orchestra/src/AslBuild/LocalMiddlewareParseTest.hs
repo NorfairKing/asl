@@ -2,8 +2,8 @@
 module AslBuild.LocalMiddlewareParseTest where
 
 import           Control.Monad
-import           Data.ByteString           (ByteString)
-import           Network.Socket            hiding (recv, send)
+import           Data.ByteString            (ByteString)
+import           Network.Socket             hiding (recv, send)
 import           Network.Socket.ByteString
 import           System.Process
 import           System.Timeout
@@ -11,6 +11,7 @@ import           System.Timeout
 import           Control.Concurrent.Thread
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.BuildMemcached
 import           AslBuild.Constants
@@ -45,6 +46,7 @@ localMiddlewareParseTestRules =
                 , mwReplicationFactor = 1
                 , mwServers = [RemoteServerUrl localhostIp sPort]
                 , mwVerbosity = LogAll
+                , mwTraceFile = tmpDir </> localMiddlewareParseTestRule ++ "-trace" <.> csvExt
                 }
 
         ssock <- liftIO $ do

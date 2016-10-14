@@ -28,7 +28,7 @@ waitMs i = do
     putLoud $ unwords ["Waiting for", show i, "milliseconds."]
     liftIO $ threadDelay $ i * 1000
 
-scriptAt :: RemoteLogin -> Script -> Action ()
+scriptAt :: CmdResult r => RemoteLogin -> Script -> Action r
 scriptAt rl s@Script{..} = do
     unit $ copyScriptOver rl s
     let fullScript = unlines scriptContent

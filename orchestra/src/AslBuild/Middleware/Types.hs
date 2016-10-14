@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 module AslBuild.Middleware.Types where
 
+import           Data.Aeson
 import           GHC.Generics
 
 import           AslBuild.Types
@@ -13,7 +14,11 @@ data MiddlewareFlags
     , mwReplicationFactor :: Int
     , mwServers           :: [RemoteServerUrl]
     , mwVerbosity         :: LogLevel
+    , mwTraceFile         :: FilePath
     } deriving (Show, Eq, Generic)
+
+instance FromJSON MiddlewareFlags
+instance ToJSON   MiddlewareFlags
 
 data LogLevel
     = LogOff
@@ -23,3 +28,6 @@ data LogLevel
     | LogFinest
     | LogAll
     deriving (Show, Eq, Generic, Enum)
+
+instance FromJSON LogLevel
+instance ToJSON   LogLevel

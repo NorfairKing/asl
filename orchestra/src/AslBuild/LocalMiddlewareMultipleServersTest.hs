@@ -34,6 +34,7 @@ setups = do
             , mwReplicationFactor = 1
             , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) serverFlags
             , mwVerbosity = LogFine
+            , mwTraceFile = tmpDir </> localMiddlewareMultipleServersTestRule ++ "-trace" <.> csvExt
             }
 
     keySize <- [128]

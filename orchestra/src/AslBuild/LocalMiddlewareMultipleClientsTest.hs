@@ -31,6 +31,7 @@ setups = do
             , mwReplicationFactor = 1
             , mwServers = [RemoteServerUrl localhostIp $ memcachedPort serverFlags]
             , mwVerbosity = LogFine
+            , mwTraceFile = tmpDir </> localMiddlewareMultipleClientsTestRule ++ "-trace" <.> csvExt
             }
 
     nrClients <- [2, 3, 5, 10]

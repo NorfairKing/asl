@@ -61,22 +61,6 @@ data MemaslapWorkload
 instance ToJSON   MemaslapWorkload
 instance FromJSON MemaslapWorkload
 
-data TimeUnit
-    = Seconds Int
-    deriving (Show, Eq, Generic)
-
-instance ToJSON   TimeUnit
-instance FromJSON TimeUnit
-
-instance ToField TimeUnit where
-    toField = toField . toSeconds
-
-toSeconds :: TimeUnit -> Int
-toSeconds (Seconds i) = i
-
-timeUnit :: TimeUnit -> String
-timeUnit (Seconds i) = show i ++ "s"
-
 data MemaslapLog
     = MemaslapLog
     { avg :: Double

@@ -1,8 +1,6 @@
 module AslBuild.Constants where
 
 import           Development.Shake.FilePath
-import           System.Directory
-import           System.IO.Unsafe
 
 -- Username
 myNetzh :: String
@@ -50,6 +48,10 @@ pdf = "pdf"
 
 tex :: String
 tex = "tex"
+
+csv :: String
+csv = "csv"
+
 xml :: String
 xml = "xml"
 
@@ -81,11 +83,8 @@ makefile = "Makefile"
 aslDir :: FilePath
 aslDir = ""
 
-{-# NOINLINE aslCacheDir #-}
 aslCacheDir :: FilePath
-aslCacheDir = unsafePerformIO $ do
-    home <- getHomeDirectory
-    return $ home </> ".orc"
+aslCacheDir = "/tmp/asl"
 
 outDir :: FilePath
 outDir = aslCacheDir </> out
@@ -141,6 +140,9 @@ javaExt = java
 xmlExt :: Extension
 xmlExt = xml
 
+csvExt :: Extension
+csvExt = csv
+
 propertiesExt :: Extension
 propertiesExt = properties
 
@@ -190,12 +192,6 @@ azureCmd = "azure"
 defaultMemcachedPort :: Int
 defaultMemcachedPort = 11211
 
-orcBin :: FilePath
-orcBin = outDir </> "orc"
-
-orcLocalBin :: FilePath
-orcLocalBin = "/home/syd/.local/bin/orc"
-
 -- Azure
 
 resourceGroupName :: String
@@ -204,6 +200,15 @@ resourceGroupName = "myResourceGroup"
 resourceGroupLocation :: String
 resourceGroupLocation = "westeurope"
 
-
 localhostIp :: String
 localhostIp = "127.0.0.1"
+
+-- Remote caching
+remoteMemaslap :: FilePath
+remoteMemaslap = "/tmp/memaslap"
+
+remoteMemcached :: FilePath
+remoteMemcached = "/tmp/memcached"
+
+remoteMiddleware :: FilePath
+remoteMiddleware = "/tmp/asl.jar"

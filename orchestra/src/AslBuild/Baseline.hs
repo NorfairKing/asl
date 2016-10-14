@@ -13,10 +13,13 @@ import           Data.List
 
 import           AslBuild.Baseline.Types
 import           AslBuild.BuildMemcached
+import           AslBuild.Client
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
+import           AslBuild.Provision
+import           AslBuild.Server
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm
@@ -111,12 +114,20 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
 
     csvOutFile %> \_ -> do
         need [memcachedBin, memaslapBin, baselineExperimentsCacheFile]
+
         experiments <- do
             contents <- liftIO $ LB.readFile baselineExperimentsCacheFile
             case A.eitherDecode contents of
                 Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
                 Right exps -> return exps
 
+        case baselineLocation of
+            BaselineLocal -> need [provisionLocalhostRule]
+            BaselineRemote -> do
+                -- TODO, only start the Vms we use.
+                need [startVmsRule]
+                provisionVms $ nub $ map cRemoteLogin $ concatMap clientSetups experiments
+                provisionVms $ nub $ map (sRemoteLogin . serverSetup) experiments
 
         -- Intentionally no parallelism here.
         -- We need to do experiments one at a time.
@@ -126,40 +137,27 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             let maxClientTime = maximum $ map (toSeconds . msTimeUnsafe . msWorkload . msFlags . cMemaslapSettings) clientSetups
             putLoud $ "Approximately " ++ toClockString ((1 + 5 + maxClientTime) * (nrOfExperiments - ix)) ++ " remaining."
 
-            -- Get the clients configs set up
-            forP_ clientSetups $ \ClientSetup{..} -> do
-                -- Generate the memsalap config locally
-                writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
-
-                -- Copy the memaslap config to the client
-                rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
+            -- Set up the memaslap configs on the clients
+            setupClientConfigs clientSetups
 
             let ServerSetup{..} = serverSetup
 
             -- Start memcached on the server
-            scriptAt sRemoteLogin $ script
-                [ unwords $ memcachedBin : memcachedArgs sMemcachedFlags
-                ]
+            startServersOn [serverSetup]
 
             -- Wait for the server to get started
-            wait 1
+            waitMs 250
 
-            -- In parallel because they have to start at the same time.
-            parScriptAt $ flip map clientSetups $ \ClientSetup{..} ->
-                let line = unwords $
-                        memaslapBin : memaslapArgs (msFlags cMemaslapSettings)
-                        ++ [">", cRemoteLog, "2>&1", "&"]
-                    s = script [line]
-                in (cRemoteLogin, s)
+            -- Start the client memaslaps
+            startClientsOn clientSetups
 
             -- Wait long enough to be sure that memaslap is fully done.
             wait (maxClientTime + 5)
 
             -- Copy the logs back here
-            phPar clientSetups $ \ClientSetup{..} ->
-                rsyncFrom cRemoteLogin cRemoteLog cLocalLog
+            copyClientLogsBack clientSetups
 
-            -- Make an analysis file for all the logs.
+            -- Prepare the analysis files
             forM_ clientSetups $ \cSetup@ClientSetup{..} -> do
                 experimentLog <- liftIO $ readFile cLocalLog
                 case parseLog experimentLog of
@@ -174,7 +172,11 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                         liftIO $ LB.writeFile cResultsFile $ A.encodePretty results
 
             -- Make sure no memcached servers are running anymore
-            unit $ overSsh sRemoteLogin $ unwords ["killall", memcachedBinName]
+            shutdownServers [serverSetup]
+
+        case baselineLocation of
+            BaselineRemote -> need [stopVmsRule]
+            _ -> return ()
 
         let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles
@@ -191,9 +193,13 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                 p = 11211
                 c = replicate maxNrClients $ RemoteLogin Nothing l
                 m = RemoteServerUrl l p
-                s = ServerSetup (RemoteLogin Nothing l) MemcachedFlags
-                    { memcachedPort = p
-                    , memcachedAsDaemon = True
+                s = ServerSetup
+                    { sRemoteLogin = RemoteLogin Nothing l
+                    , sMemcachedFlags = MemcachedFlags
+                        { memcachedPort = p
+                        , memcachedAsDaemon = True
+                        }
+                    , sIndex = 0
                     }
             return (c, m, s)
         BaselineRemote -> do
@@ -201,9 +207,13 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
             let p = 11211
                 c_ = map (\vm -> RemoteLogin (Just $ vmAdmin vm) (vmFullUrl vm)) cs
                 m_ = RemoteServerUrl (vmPrivateIp s) p
-                s_ = ServerSetup (RemoteLogin (Just $ vmAdmin s) (vmFullUrl s)) MemcachedFlags
-                    { memcachedPort = p
-                    , memcachedAsDaemon = True
+                s_ = ServerSetup
+                    { sRemoteLogin = RemoteLogin (Just $ vmAdmin s) (vmFullUrl s)
+                    , sMemcachedFlags = MemcachedFlags
+                        { memcachedPort = p
+                        , memcachedAsDaemon = True
+                        }
+                    , sIndex = 0
                     }
             return (c_, m_, s_)
     return $ do

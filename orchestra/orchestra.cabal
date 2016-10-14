@@ -22,6 +22,8 @@ library
     , AslBuild.Build
     , AslBuild.BuildMemcached
     , AslBuild.Clean
+    , AslBuild.Client
+    , AslBuild.Client.Types
     , AslBuild.CommitHash
     , AslBuild.CommonActions
     , AslBuild.Constants
@@ -29,10 +31,10 @@ library
     , AslBuild.Experiments
     , AslBuild.Jar
     , AslBuild.LocalLogTest
+    , AslBuild.LocalMiddlewareMultiClientTest
     , AslBuild.LocalMiddlewareMultipleClientsTest
     , AslBuild.LocalMiddlewareMultipleServersTest
     , AslBuild.LocalMiddlewareParseTest
-    , AslBuild.LocalMiddlewareMultiClientTest
     , AslBuild.LocalMiddlewareSimpleTest
     , AslBuild.LocalMiddlewareTest
     , AslBuild.LocalMiddlewareTest.Types
@@ -41,13 +43,20 @@ library
     , AslBuild.Memaslap.Types
     , AslBuild.Memcached
     , AslBuild.Memcached.Types
+    , AslBuild.Middle
+    , AslBuild.Middle.Types
     , AslBuild.Middleware
     , AslBuild.Middleware.Types
     , AslBuild.OptParse
+    , AslBuild.Orc
     , AslBuild.PreCommit
     , AslBuild.Provision
     , AslBuild.Reports
+    , AslBuild.Server
+    , AslBuild.Server.Types
     , AslBuild.Ssh
+    , AslBuild.StabilityTrace
+    , AslBuild.StabilityTrace.Types
     , AslBuild.Test
     , AslBuild.Travis
     , AslBuild.Types

@@ -1,5 +1,7 @@
 package ch.ethz.asl;
 
+import ch.ethz.asl.request.RequestPacket;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +18,7 @@ public class RunMW {
   static int numThreadsPTP = -1;
   static int writeToCount = -1;
   static Level verbosity = Level.INFO;
+  static String logfile = "/tmp/trace.csv";
 
   public static void main(String[] args) throws Exception {
 
@@ -31,7 +34,7 @@ public class RunMW {
 
     logger.setLevel(verbosity);
     logger.addHandler(new AdhocLogger());
-    new Middleware(myIp, myPort, mcAddresses, numThreadsPTP, writeToCount).run();
+    new Middleware(myIp, myPort, mcAddresses, numThreadsPTP, writeToCount, logfile).run();
   }
 
   private static void parseArguments(String[] args) {
@@ -115,6 +118,9 @@ public class RunMW {
           verbosity = Level.ALL;
           break;
       }
+    }
+    if (params.get("f") != null) {
+      logfile = params.get("f").get(0);
     }
   }
 

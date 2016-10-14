@@ -3,12 +3,14 @@
 module AslBuild.LocalMiddlewareMultiClientTest where
 
 import           Control.Monad
-import           Data.ByteString           (ByteString)
-import           Development.Shake
-import           Network.Socket            hiding (recv, send)
+import           Data.ByteString            (ByteString)
+import           Network.Socket             hiding (recv, send)
 import           Network.Socket.ByteString
 import           System.Process
 import           System.Timeout
+
+import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
@@ -59,7 +61,8 @@ localMiddlewareMultiClientTestRules =
                     , mwNrThreads = 1
                     , mwReplicationFactor = 1
                     , mwServers = [RemoteServerUrl "localhost" sPort]
-                    , mwVerbosity = LogAll
+                    , mwVerbosity = LogFine
+                    , mwTraceFile = tmpDir </> localMiddlewareMultiClientTestRule ++ "-trace" <.> csvExt
                     }
 
             serverPH <- command [] memcachedBin

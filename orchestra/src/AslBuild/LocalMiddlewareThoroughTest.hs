@@ -37,6 +37,7 @@ setups = do
             , mwReplicationFactor = replicationFactor
             , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) serverFlags
             , mwVerbosity = LogFine
+            , mwTraceFile = tmpDir </> localMiddlewareThoroughTestRule ++ "-trace" <.> csvExt
             }
 
     nrClients <- [2, 8]

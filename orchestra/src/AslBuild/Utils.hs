@@ -15,7 +15,7 @@ forP_ :: [a] -> (a -> Action ()) -> Action ()
 forP_ ls a = void $ forP ls a
 
 indexed :: [a] -> [(Int, a)]
-indexed = zip [1..]
+indexed = zip [0..]
 
 toClockString :: Int -> String
 toClockString i

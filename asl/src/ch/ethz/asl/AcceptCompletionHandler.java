@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
+import static ch.ethz.asl.Instrumentor.now;
 import static ch.ethz.asl.Middleware.BUFFER_SIZE;
 import static ch.ethz.asl.Middleware.shutdown;
 
@@ -26,12 +27,16 @@ public class AcceptCompletionHandler
     implements CompletionHandler<AsynchronousSocketChannel, Object> {
   private static final Logger log = Logger.getGlobal();
   private final AsynchronousServerSocketChannel assc;
+  private final Instrumentor instrumentor;
   private final List<ServerHandler> servers;
 
   public AcceptCompletionHandler(
-      final AsynchronousServerSocketChannel assc, final List<ServerAddress> servers) {
+      final AsynchronousServerSocketChannel assc,
+      final List<ServerAddress> servers,
+      Instrumentor instrumentor) {
     this.assc = assc;
     this.servers = mkServerHandlers(servers);
+    this.instrumentor = instrumentor;
   }
 
   private static List<ServerHandler> mkServerHandlers(final List<ServerAddress> serverAddresses) {
@@ -69,6 +74,7 @@ public class AcceptCompletionHandler
 
     @Override
     public void completed(final Integer bytesRead, final InitialInput initialInput) {
+      long receivedAt = now();
       AsynchronousSocketChannel chan = initialInput.chan;
       ByteBuffer bbuf = initialInput.bbuf;
       log.finest("Input from client:");
@@ -95,7 +101,8 @@ public class AcceptCompletionHandler
             e.printStackTrace();
           }
         } else {
-          RequestPacket packet = new RequestPacket(chan, req);
+          RequestPacket packet = new RequestPacket(chan, req, instrumentor);
+          packet.setReceivedAt(receivedAt);
           ServerHandler sh = pickServer(servers, req);
           try {
             sh.handle(packet);

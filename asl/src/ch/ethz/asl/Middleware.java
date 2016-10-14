@@ -21,14 +21,21 @@ public class Middleware {
   private final AsynchronousChannelGroup group;
   private final AsynchronousServerSocketChannel assc;
   public static final int BUFFER_SIZE = 1 << 16;
+  private final Instrumentor instrumentor;
 
   public Middleware(
-      String myIp, int myPort, List<String> mcAddresses, int numThreadsPTP, int writeToCount)
+      String myIp,
+      int myPort,
+      List<String> mcAddresses,
+      int numThreadsPTP,
+      int writeToCount,
+      String logfile)
       throws IOException {
     this.myAddress = new InetSocketAddress(myIp, myPort);
     this.servers = makeServers(mcAddresses);
     this.group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
     this.assc = AsynchronousServerSocketChannel.open(group);
+    this.instrumentor = new Instrumentor(logfile);
   }
 
   private static List<ServerAddress> makeServers(List<String> servers) {
@@ -59,7 +66,7 @@ public class Middleware {
   public void startServer() {
     try {
       assc.bind(myAddress);
-      assc.accept(null, new AcceptCompletionHandler(assc, servers));
+      assc.accept(null, new AcceptCompletionHandler(assc, servers, instrumentor));
     } catch (BindException e) {
       e.printStackTrace();
       System.exit(1);
