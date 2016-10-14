@@ -21,6 +21,7 @@ import           AslBuild.Orc
 import           AslBuild.PreCommit
 import           AslBuild.Provision
 import           AslBuild.Reports
+import           AslBuild.RunDebug
 import           AslBuild.Ssh
 import           AslBuild.Test
 import           AslBuild.Travis
@@ -48,6 +49,7 @@ theShake  = do
     localMiddlewareSimpleTestRules
     localMiddlewareThoroughTestRules
     experimentRules
+    runDebugRules
     analysisRules
     sshRules
     createRules
