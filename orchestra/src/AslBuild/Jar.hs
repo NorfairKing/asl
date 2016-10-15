@@ -26,7 +26,7 @@ jarRules = do
     jarRule ~> need [outputJarFile]
 
     jarInBuildDir %> \_ -> do
-        sourceFiles <- absFilesInDir javaSourceDir ["//*" <.> java]
+        sourceFiles <- absFilesInDir javaSourceDir ["//*" <.> javaExt]
         need $ buildFile : sourceFiles
         let jarTarget = jar
         cmd (Cwd aslDir) antCmd jarTarget

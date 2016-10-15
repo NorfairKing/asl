@@ -74,7 +74,7 @@ public class ServerReadHandler {
       Response resp = handleToGetResponse(packet.getRequest());
       try {
         packet.respond(resp);
-      } catch (InterruptedException | ExecutionException e) {
+      } catch (InterruptedException | ExecutionException | IOException e) {
         e.printStackTrace(); // FIXME handle this somehow
       }
       if (ServerReadHandler.this.serverHandler.isShuttingDown()) {

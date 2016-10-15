@@ -88,7 +88,7 @@ localMiddlewareParseTestRules =
         let shouldResultIn :: RequestKind -> ByteString -> ByteString -> Action ()
             shouldResultIn reqKind input output = do
                 let sconn = case reqKind of
-                        READ -> rconn
+                        READ  -> rconn
                         WRITE -> wconn
                 liftIO $ sendAll csock input
                 mres <- liftIO $ timeout timeoutTime $ recv sconn 1024
@@ -185,8 +185,6 @@ localMiddlewareParseTestRules =
                 shouldErrorWith "aaa\r\n"       "ERROR\r\n"
                 shouldErrorWith "deltee k\r\n"  "ERROR\r\n"
                 shouldErrorWith "aaa\r\n"       "ERROR\r\n"
-
-                -- On more severe errors, like the server shutting down, the middleware will shutdown too.
 
         actionFinally tests $ do
             terminateProcess middlePH

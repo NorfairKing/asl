@@ -5,18 +5,19 @@ import ch.ethz.asl.request.RequestPacket;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Instrumentor {
   private final String file;
   private final BufferedWriter writer;
   private static final char COMMA = ',';
   private static final char NEWLINE = '\n';
-  private long counter;
+  private AtomicLong counter;
   private static final int SMAPLE_SIZE = 1000;
 
   public Instrumentor(final String file) throws IOException {
     this.file = file;
-    this.counter = 0;
+    this.counter = new AtomicLong(0);
 
     FileWriter fstream = new FileWriter(file);
     writer = new BufferedWriter(fstream);
@@ -29,7 +30,7 @@ public class Instrumentor {
   }
 
   public void finaliseRequest(RequestPacket packet) throws IOException {
-    if (counter % SMAPLE_SIZE != 0) {
+    if (counter.getAndIncrement() % SMAPLE_SIZE != 0) {
       return;
     } // Only write stats of every so-manyth request.
 
@@ -38,7 +39,5 @@ public class Instrumentor {
     writer.write(Long.toString(packet.getRespondedAt()));
     writer.write(NEWLINE);
     writer.flush();
-
-    counter++;
   }
 }

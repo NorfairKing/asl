@@ -13,7 +13,9 @@ public class RequestPacket {
   private static final Logger log = Logger.getGlobal();
   private final AsynchronousSocketChannel chan;
   private final Request req;
+
   private final Instrumentor instrumentor;
+
   private long receivedTime;
   private long respondedTime;
 
