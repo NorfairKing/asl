@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class RequestPacket {
@@ -18,15 +19,20 @@ public class RequestPacket {
 
   private long receivedTime;
   private long respondedTime;
+  private AtomicInteger replicationCounter;
 
   public RequestPacket(
       final AsynchronousSocketChannel chan, final Request req, final Instrumentor instrumentor) {
     this.chan = chan;
     this.req = req;
     this.instrumentor = instrumentor;
+    this.replicationCounter = new AtomicInteger(1);
   }
 
   public void respond(Response res) throws InterruptedException, ExecutionException, IOException {
+    if (replicationCounter.decrementAndGet() > 0) {
+      return;
+    }
     RequestPacket.respond(this.chan, res);
     instrumentor.finaliseRequest(this);
   }
@@ -67,5 +73,9 @@ public class RequestPacket {
 
   public Request getRequest() {
     return req;
+  }
+
+  public void setReplicationCounter(int size) {
+    this.replicationCounter.set(size);
   }
 }

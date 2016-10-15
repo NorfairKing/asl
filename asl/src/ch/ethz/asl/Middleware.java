@@ -20,6 +20,7 @@ public class Middleware {
   public static boolean shuttingDown = false;
   private final AsynchronousChannelGroup group;
   private final AsynchronousServerSocketChannel assc;
+  private final int replicationFactor;
   public static final int BUFFER_SIZE = 1 << 16;
   private final Instrumentor instrumentor;
 
@@ -27,7 +28,7 @@ public class Middleware {
       String myIp,
       int myPort,
       List<String> mcAddresses,
-      int numThreadsPTP,
+      int numThreadsPTP, // TODO use this.
       int writeToCount,
       String logfile)
       throws IOException {
@@ -35,6 +36,7 @@ public class Middleware {
     this.servers = makeServers(mcAddresses);
     this.group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
     this.assc = AsynchronousServerSocketChannel.open(group);
+    this.replicationFactor = writeToCount;
     this.instrumentor = new Instrumentor(logfile);
   }
 
@@ -66,7 +68,8 @@ public class Middleware {
   public void startServer() {
     try {
       assc.bind(myAddress);
-      assc.accept(null, new AcceptCompletionHandler(assc, servers, instrumentor));
+      assc.accept(
+          null, new AcceptCompletionHandler(assc, servers, instrumentor, replicationFactor));
     } catch (BindException e) {
       e.printStackTrace();
       System.exit(1);

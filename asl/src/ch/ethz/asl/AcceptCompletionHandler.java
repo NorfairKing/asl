@@ -1,9 +1,9 @@
 package ch.ethz.asl;
 
-import ch.ethz.asl.request.Request;
-import ch.ethz.asl.request.RequestPacket;
 import ch.ethz.asl.generic_parsing.NotEnoughDataException;
 import ch.ethz.asl.generic_parsing.ParseFailedException;
+import ch.ethz.asl.request.Request;
+import ch.ethz.asl.request.RequestPacket;
 import ch.ethz.asl.request.request_parsing.RequestParser;
 import ch.ethz.asl.response.ClientErrorResponse;
 import ch.ethz.asl.response.ErrorResponse;
@@ -15,6 +15,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -28,14 +29,17 @@ public class AcceptCompletionHandler
   private final AsynchronousServerSocketChannel assc;
   private final Instrumentor instrumentor;
   private final List<ServerHandler> servers;
+  private final int replicationFactor;
 
   public AcceptCompletionHandler(
       final AsynchronousServerSocketChannel assc,
       final List<ServerAddress> servers,
-      Instrumentor instrumentor) {
+      final Instrumentor instrumentor,
+      final int replicationFactor) {
     this.assc = assc;
     this.servers = mkServerHandlers(servers);
     this.instrumentor = instrumentor;
+    this.replicationFactor = replicationFactor;
   }
 
   private static List<ServerHandler> mkServerHandlers(final List<ServerAddress> serverAddresses) {
@@ -102,12 +106,7 @@ public class AcceptCompletionHandler
         } else {
           RequestPacket packet = new RequestPacket(chan, req, instrumentor);
           packet.setReceivedAt(receivedAt);
-          ServerHandler sh = pickServer(servers, req);
-          try {
-            sh.handle(packet);
-          } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-          }
+          sendToServerHandlers(packet);
         }
         // Go on reading
         initialInput.doTheRead(this);
@@ -130,13 +129,36 @@ public class AcceptCompletionHandler
     }
   }
 
-  private static ServerHandler pickServer(final List<ServerHandler> servers, final Request req) {
+  private void sendToServerHandlers(RequestPacket packet) {
+    List<ServerHandler> handlers = new LinkedList<>();
+    switch (packet.getRequest().getKind()) {
+      case READ_REQUEST:
+        handlers.add(servers.get(pickServerIndex(servers, packet.getRequest())));
+        break;
+      case WRITE_REQUEST:
+        int initix = pickServerIndex(servers, packet.getRequest());
+        for (int i = 0; i < replicationFactor; i++) {
+          handlers.add(servers.get((initix + i) % servers.size()));
+        }
+        break;
+    }
+    packet.setReplicationCounter(handlers.size());
+    try {
+      for (ServerHandler sh : handlers) {
+        sh.handle(packet);
+      }
+    } catch (ExecutionException | InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static int pickServerIndex(final List<ServerHandler> servers, final Request req) {
     int hash = req.hashCode();
     log.finest("hash of request: " + Integer.toString(req.hashCode()));
     int nrServers = servers.size();
     int serverIndex = mod(hash, nrServers);
     log.finest("Chose server index: " + Integer.toString(serverIndex));
-    return servers.get(serverIndex);
+    return serverIndex;
   }
 
   private static int mod(final int x, final int y) {
