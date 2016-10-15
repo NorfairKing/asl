@@ -43,7 +43,6 @@ setups = do
         , nrClients = ncs
         }
 
--- TODO set nrClients to different values
 localMiddlewareMultiClientTestRules :: Rules ()
 localMiddlewareMultiClientTestRules =
     localMiddlewareMultiClientTestRule ~> do
@@ -57,11 +56,11 @@ localMiddlewareMultiClientTestRules =
                     }
 
             let mwFlags = MiddlewareFlags
-                    { mwIp = "localhost"
+                    { mwIp = localhostIp
                     , mwPort = mPort
                     , mwNrThreads = 1
                     , mwReplicationFactor = 1
-                    , mwServers = [RemoteServerUrl "localhost" sPort]
+                    , mwServers = [RemoteServerUrl localhostIp sPort]
                     , mwVerbosity = LogFine
                     , mwTraceFile = tmpDir </> localMiddlewareMultiClientTestRule ++ "-trace" <.> csvExt
                     }

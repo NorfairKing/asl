@@ -11,6 +11,7 @@ import           AslBuild.LocalMiddlewareMultiClientTest
 import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
+import           AslBuild.LocalMiddlewareReplicationTest
 import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.Orc
 import           AslBuild.Provision
@@ -36,6 +37,7 @@ travisRules = travisRule ~> do
 
     need [localMiddlewareParseTestRule]
     need [localMiddlewareMultiClientTestRule]
+    need [localMiddlewareReplicationTestRule]
     need [localMiddlewareSimpleTestRule]
     need [localMiddlewareMultipleServersTestRule]
     need [localMiddlewareMultipleClientsTestRule]

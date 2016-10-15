@@ -15,6 +15,7 @@ import           AslBuild.LocalMiddlewareMultiClientTest
 import           AslBuild.LocalMiddlewareMultipleClientsTest
 import           AslBuild.LocalMiddlewareMultipleServersTest
 import           AslBuild.LocalMiddlewareParseTest
+import           AslBuild.LocalMiddlewareReplicationTest
 import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.LocalMiddlewareThoroughTest
 import           AslBuild.Orc
@@ -47,6 +48,7 @@ theShake  = do
     localMiddlewareMultipleServersTestRules
     localMiddlewareParseTestRules
     localMiddlewareMultiClientTestRules
+    localMiddlewareReplicationTestRules
     localMiddlewareSimpleTestRules
     localMiddlewareThoroughTestRules
     experimentRules
