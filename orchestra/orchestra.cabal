@@ -22,7 +22,6 @@ library
     , AslBuild.Build
     , AslBuild.BuildMemcached
     , AslBuild.Clean
-    , AslBuild.RunDebug
     , AslBuild.Client
     , AslBuild.Client.Types
     , AslBuild.CommitHash
@@ -53,6 +52,7 @@ library
     , AslBuild.PreCommit
     , AslBuild.Provision
     , AslBuild.Reports
+    , AslBuild.RunDebug
     , AslBuild.Server
     , AslBuild.Server.Types
     , AslBuild.Ssh
@@ -62,6 +62,7 @@ library
     , AslBuild.Travis
     , AslBuild.Types
     , AslBuild.Utils
+    , AslBuild.VisualVm
     , AslBuild.Vm
     , AslBuild.Vm.Types
   build-depends:

@@ -25,6 +25,7 @@ import           AslBuild.RunDebug
 import           AslBuild.Ssh
 import           AslBuild.Test
 import           AslBuild.Travis
+import           AslBuild.VisualVm
 import           AslBuild.Vm
 
 doTheShake :: IO ()
@@ -49,6 +50,7 @@ theShake  = do
     localMiddlewareSimpleTestRules
     localMiddlewareThoroughTestRules
     experimentRules
+    visualVmRules
     runDebugRules
     analysisRules
     sshRules
