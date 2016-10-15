@@ -1,10 +1,10 @@
-package ch.ethz.asl.request.request_parsing;
+package ch.ethz.asl.generic_parsing;
 
 public class ParseProgress {
   public byte[] res;
   public int nextoffset;
 
-  ParseProgress(byte[] res, int nextoffset) {
+  public ParseProgress(byte[] res, int nextoffset) {
     this.res = res;
     this.nextoffset = nextoffset;
   }

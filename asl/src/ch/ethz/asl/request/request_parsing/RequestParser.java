@@ -1,17 +1,21 @@
 package ch.ethz.asl.request.request_parsing;
 
+import ch.ethz.asl.generic_parsing.NotEnoughDataException;
+import ch.ethz.asl.generic_parsing.ParseFailedException;
+import ch.ethz.asl.generic_parsing.ParseProgress;
 import ch.ethz.asl.request.DeleteRequest;
 import ch.ethz.asl.request.GetRequest;
 import ch.ethz.asl.request.Request;
 import ch.ethz.asl.request.SetRequest;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+
+import static ch.ethz.asl.generic_parsing.GenericParser.SPACE;
+import static ch.ethz.asl.generic_parsing.GenericParser.parseUntilNewline;
+import static ch.ethz.asl.generic_parsing.GenericParser.parseUntilSpace;
 
 public class RequestParser {
 
-  public static final byte[] NEWLINE = "\r\n".getBytes();
-  public static final byte[] SPACE = " ".getBytes();
   public static final byte[] KEYWORD_GET = "get".getBytes();
   public static final byte[] KEYWORD_SET = "set".getBytes();
   public static final byte[] KEYWORD_DELETE = "delete".getBytes();
@@ -177,50 +181,5 @@ public class RequestParser {
     ParseProgress keyProgress = parseUntilNewline(byteBuffer, KEYWORD_DELETE.length + SPACE.length);
     byte[] key = keyProgress.res;
     return new DeleteRequest(key);
-  }
-
-  static ParseProgress parseUntilNewline(ByteBuffer byteBuffer, int offset) {
-    int position = byteBuffer.position();
-    byte[] res;
-    int nextoff;
-    for (int i = offset; true; i++) {
-      if (position <= i + 1) {
-        throw new NotEnoughDataException();
-      }
-      byte fst = byteBuffer.get(i);
-      byte snd = byteBuffer.get(i + 1);
-      if (fst == NEWLINE[0] && snd == NEWLINE[1]) {
-        res = copyOver(byteBuffer, offset, i - offset);
-        nextoff = i + 2;
-        break;
-      }
-    }
-    return new ParseProgress(res, nextoff);
-  }
-
-  static ParseProgress parseUntilSpace(ByteBuffer byteBuffer, int offset) {
-    int position = byteBuffer.position();
-    byte[] res;
-    int nextoff;
-    for (int i = offset; true; i++) {
-      if (position <= i) {
-        throw new NotEnoughDataException();
-      }
-
-      if (byteBuffer.get(i) == ' ') {
-        res = copyOver(byteBuffer, offset, i - offset);
-        nextoff = i + 1;
-        break;
-      }
-    }
-    return new ParseProgress(res, nextoff);
-  }
-
-  static byte[] copyOver(ByteBuffer byteBuffer, int off, int len) {
-    byte[] res = new byte[len];
-    for (int j = 0; j < len; j++) {
-      res[j] = byteBuffer.get(j + off);
-    }
-    return res;
   }
 }

@@ -50,6 +50,7 @@ localMiddlewareMultiClientTestRules =
         need [memcachedBin, memaslapBin, outputJarFile]
 
         forM_ setups $ \MulticlientTestSetup{..} -> do
+            putLoud $ "Running local middleware multiclient test with " ++ show nrClients ++ " pretend clients."
             let memcachedFlags = MemcachedFlags
                     { memcachedPort = sPort
                     , memcachedAsDaemon = False

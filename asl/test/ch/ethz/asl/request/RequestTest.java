@@ -1,7 +1,7 @@
 package ch.ethz.asl.request;
 
-import ch.ethz.asl.request.request_parsing.NotEnoughDataException;
-import ch.ethz.asl.request.request_parsing.ParseFailedException;
+import ch.ethz.asl.generic_parsing.NotEnoughDataException;
+import ch.ethz.asl.generic_parsing.ParseFailedException;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;

@@ -5,6 +5,10 @@ import ch.ethz.asl.request.request_parsing.RequestParser;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static ch.ethz.asl.generic_parsing.GenericParser.NEWLINE;
+import static ch.ethz.asl.generic_parsing.GenericParser.SPACE;
+import static ch.ethz.asl.request.request_parsing.RequestParser.KEYWORD_SET;
+
 public class SetRequest extends Request {
   private final byte[] flags;
   private final byte[] exptime;
@@ -23,30 +27,30 @@ public class SetRequest extends Request {
   public ByteBuffer render() {
     ByteBuffer bbuf =
         ByteBuffer.allocate(
-            RequestParser.KEYWORD_SET.length
-                + RequestParser.SPACE.length
+            KEYWORD_SET.length
+                + SPACE.length
                 + this.key.length
-                + RequestParser.SPACE.length
+                + SPACE.length
                 + this.flags.length
-                + RequestParser.SPACE.length
+                + SPACE.length
                 + this.exptime.length
-                + RequestParser.SPACE.length
+                + SPACE.length
                 + this.length.length
-                + RequestParser.NEWLINE.length
+                + NEWLINE.length
                 + this.value.length
-                + RequestParser.NEWLINE.length);
-    bbuf.put(RequestParser.KEYWORD_SET);
-    bbuf.put(RequestParser.SPACE);
+                + NEWLINE.length);
+    bbuf.put(KEYWORD_SET);
+    bbuf.put(SPACE);
     bbuf.put(this.key);
-    bbuf.put(RequestParser.SPACE);
+    bbuf.put(SPACE);
     bbuf.put(this.flags);
-    bbuf.put(RequestParser.SPACE);
+    bbuf.put(SPACE);
     bbuf.put(this.exptime);
-    bbuf.put(RequestParser.SPACE);
+    bbuf.put(SPACE);
     bbuf.put(this.length);
-    bbuf.put(RequestParser.NEWLINE);
+    bbuf.put(NEWLINE);
     bbuf.put(this.value);
-    bbuf.put(RequestParser.NEWLINE);
+    bbuf.put(NEWLINE);
     return bbuf;
   }
 

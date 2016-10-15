@@ -4,13 +4,15 @@ import ch.ethz.asl.request.request_parsing.RequestParser;
 
 import java.nio.ByteBuffer;
 
+import static ch.ethz.asl.generic_parsing.GenericParser.NEWLINE;
+
 public class ErrorResponse implements Response {
 
   @Override
   public ByteBuffer render() {
-    ByteBuffer res = ByteBuffer.allocate(ERROR_STR.length + RequestParser.NEWLINE.length);
+    ByteBuffer res = ByteBuffer.allocate(ERROR_STR.length + NEWLINE.length);
     res.put(ERROR_STR);
-    res.put(RequestParser.NEWLINE);
+    res.put(NEWLINE);
     return res;
   }
 

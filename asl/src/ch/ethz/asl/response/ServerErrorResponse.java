@@ -5,6 +5,9 @@ import ch.ethz.asl.request.request_parsing.RequestParser;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
+import static ch.ethz.asl.generic_parsing.GenericParser.NEWLINE;
+import static ch.ethz.asl.generic_parsing.GenericParser.SPACE;
+
 public class ServerErrorResponse implements Response {
   private final Optional<String> message;
 
@@ -26,14 +29,11 @@ public class ServerErrorResponse implements Response {
     }
     ByteBuffer res =
         ByteBuffer.allocate(
-            SERVER_ERROR_STR.length
-                + RequestParser.SPACE.length
-                + messagePayload.length
-                + RequestParser.NEWLINE.length);
+            SERVER_ERROR_STR.length + SPACE.length + messagePayload.length + NEWLINE.length);
     res.put(SERVER_ERROR_STR);
-    res.put(RequestParser.SPACE);
+    res.put(SPACE);
     res.put(messagePayload);
-    res.put(RequestParser.NEWLINE);
+    res.put(NEWLINE);
     return res;
   }
 

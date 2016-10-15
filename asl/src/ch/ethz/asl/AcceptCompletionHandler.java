@@ -2,8 +2,8 @@ package ch.ethz.asl;
 
 import ch.ethz.asl.request.Request;
 import ch.ethz.asl.request.RequestPacket;
-import ch.ethz.asl.request.request_parsing.NotEnoughDataException;
-import ch.ethz.asl.request.request_parsing.ParseFailedException;
+import ch.ethz.asl.generic_parsing.NotEnoughDataException;
+import ch.ethz.asl.generic_parsing.ParseFailedException;
 import ch.ethz.asl.request.request_parsing.RequestParser;
 import ch.ethz.asl.response.ClientErrorResponse;
 import ch.ethz.asl.response.ErrorResponse;
@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 
 import static ch.ethz.asl.Instrumentor.now;
 import static ch.ethz.asl.Middleware.BUFFER_SIZE;
-import static ch.ethz.asl.Middleware.shutdown;
 
 public class AcceptCompletionHandler
     implements CompletionHandler<AsynchronousSocketChannel, Object> {
