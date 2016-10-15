@@ -35,17 +35,19 @@ public class AcceptCompletionHandler
       final AsynchronousServerSocketChannel assc,
       final List<ServerAddress> servers,
       final Instrumentor instrumentor,
-      final int replicationFactor) {
+      final int replicationFactor,
+      final int readThreadpoolSize) {
     this.assc = assc;
-    this.servers = mkServerHandlers(servers);
+    this.servers = mkServerHandlers(servers, readThreadpoolSize);
     this.instrumentor = instrumentor;
     this.replicationFactor = replicationFactor;
   }
 
-  private static List<ServerHandler> mkServerHandlers(final List<ServerAddress> serverAddresses) {
+  private static List<ServerHandler> mkServerHandlers(
+      final List<ServerAddress> serverAddresses, final int readThreadpoolSize) {
     List<ServerHandler> handlers = new ArrayList<>();
     for (ServerAddress serverAddress : serverAddresses) {
-      handlers.add(new ServerHandler(serverAddress));
+      handlers.add(new ServerHandler(serverAddress, readThreadpoolSize));
     }
     return handlers;
   }

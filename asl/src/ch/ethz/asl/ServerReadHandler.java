@@ -23,13 +23,15 @@ public class ServerReadHandler {
   private final ExecutorService threadPool;
   private final BlockingQueue<RequestPacket> readqueue;
 
-  public ServerReadHandler(final ServerHandler serverHandler, final ServerAddress serverAddress) {
+  public ServerReadHandler(
+      final ServerHandler serverHandler,
+      final ServerAddress serverAddress,
+      final int readThreadpoolSize) {
     this.serverHandler = serverHandler;
     this.serverAddress = serverAddress;
-    int nrThreads = 1; // fixme take this from the flags.
     this.readqueue = new LinkedBlockingQueue<>();
-    this.threadPool = Executors.newFixedThreadPool(nrThreads);
-    for (int i = 0; i < nrThreads; i++) {
+    this.threadPool = Executors.newFixedThreadPool(readThreadpoolSize);
+    for (int i = 0; i < readThreadpoolSize; i++) {
       threadPool.submit(new ReadWorker(i));
     }
   }

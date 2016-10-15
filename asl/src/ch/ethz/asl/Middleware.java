@@ -21,14 +21,16 @@ public class Middleware {
   private final AsynchronousChannelGroup group;
   private final AsynchronousServerSocketChannel assc;
   private final int replicationFactor;
-  public static final int BUFFER_SIZE = 1 << 16;
+  private final int readThreadpoolSize;
   private final Instrumentor instrumentor;
+
+  public static final int BUFFER_SIZE = 1 << 16;
 
   public Middleware(
       String myIp,
       int myPort,
       List<String> mcAddresses,
-      int numThreadsPTP, // TODO use this.
+      int numThreadsPTP,
       int writeToCount,
       String logfile)
       throws IOException {
@@ -37,6 +39,7 @@ public class Middleware {
     this.group = AsynchronousChannelGroup.withThreadPool(Executors.newSingleThreadExecutor());
     this.assc = AsynchronousServerSocketChannel.open(group);
     this.replicationFactor = writeToCount;
+    this.readThreadpoolSize = numThreadsPTP;
     this.instrumentor = new Instrumentor(logfile);
   }
 
@@ -69,7 +72,9 @@ public class Middleware {
     try {
       assc.bind(myAddress);
       assc.accept(
-          null, new AcceptCompletionHandler(assc, servers, instrumentor, replicationFactor));
+          null,
+          new AcceptCompletionHandler(
+              assc, servers, instrumentor, replicationFactor, readThreadpoolSize));
     } catch (BindException e) {
       e.printStackTrace();
       System.exit(1);
