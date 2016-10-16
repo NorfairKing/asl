@@ -51,17 +51,35 @@ report1AssetsDir = report1Dir </> "assets"
 architecturePng :: FilePath
 architecturePng = report1AssetsDir </> "architecture" <.> pngExt
 
+report1Graphs :: FilePath
+report1Graphs = report1Dir </> "graphs"
+
+architectureGraphName :: String
+architectureGraphName = "architecture_graph"
+
+architectureGraphDot :: FilePath
+architectureGraphDot = report1Graphs </> architectureGraphName <.> dotExt
+
+architectureGraphEps :: FilePath
+architectureGraphEps = report1Graphs </> architectureGraphName <.> epsExt
+
 report1Rules :: Rules ()
 report1Rules = do
     report1Rule ~> need [milestone1ReportOut]
 
     milestone1ReportInBuildDir %> \_ -> do
-        need $ [commonTex, architecturePng, milestone1ReporttexInBuildDir] ++ plotsFor remoteBaselineAnalysis ++ allPlots
+        need $
+            [commonTex, architecturePng, architectureGraphEps, milestone1ReporttexInBuildDir]
+            ++ plotsFor remoteBaselineAnalysis ++ allPlots
         cmd (Cwd report1Dir)
             "latexmk"
             milestone1Reporttex
             "-pdf"
             "-interaction=nonstopmode"
             "-shell-escape"
+
+    architectureGraphEps %> \_ -> do
+        need [architectureGraphDot]
+        cmd (FileStdout architectureGraphEps) dotCmd "-Teps" architectureGraphDot
 
     milestone1ReportOut `byCopying` milestone1ReportInBuildDir

@@ -3,6 +3,7 @@
 \usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{minted}
+\usepackage{float}
 
 \input{../common.tex}
 
@@ -47,13 +48,20 @@ The main class \java{RunMW}\javafile{RunMW} creates a single object of class \ja
 It binds to a socket on the given Inet address and readies to accept connections using a completionhandler of class \java{AcceptCompletionHandler}\javafile{AcceptCompletionHandler}.
 For every accepted connection, the initial read happens asynchronously and is completed with a shared completionhandler of class \java{InitialInputCompletionHandler}\javafile{AcceptCompletionHandler}.
 When the first piece of data is available, it is parsed into a \java{Request}\javafile{request/Request} by the \java{RequestParser}\javafile{request/request_parsing/RequestParser}.
-The \java{Request} and the \java{SocketChannel} for the connecting client are bundled in a so-called \java{RequestPacket}\javafile{request/RequestPacket}.
+The \java{Request} and the \java{SocketChannel}\footnote{\tiny\url{https://docs.oracle.com/javase/8/docs/api/java/nio/channels/SocketChannel.html}} for the connecting client are bundled in a so-called \java{RequestPacket}\javafile{request/RequestPacket}.
 Next, the request's key is hashed to an \java{int}.
 The hash modulo the number of back-end servers is used as the index of the primary server for that key.
 The secondary servers are the subsequent servers, up to the replication factor.
 If the request is a write request, a so-called replication counter is set in the \java{RequestPacket}.
 Then the \java{RequestPacket} passed on to the \java{ServerHandler}s\javafile{ServerHandler} corresponding to the chosen servers.
 Each \java{ServerHandler} contains a \java{ServerReadHandler}\javafile{ServerReadHandler} and a \java{ServerWriteHandler}\javafile{ServerWriteHandler}.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{\graph{architecture_graph.eps}}
+  \end{center}
+  \caption{Overal architecture}
+\end{figure}
 
 In the case of a read request, the \java{RequestPacket} is added to a \java{BlockingQueue} in the \java{ServerReadHandler}.
 A pool of \java{ReadWorker}s\javafile{ServerReadHandler} dequeues the \java{RequestPacket}s one by one and synchronously queries the back-end server and simply passes on the response to the client.
@@ -69,8 +77,6 @@ If a replication counter reaches \java{0}, the response is forwarded to the appr
 % Reference throughout the report all relevant java source files, result files, etc. by providing the gitlab link in a footnote, for instance\footnote{\url{https://gitlab.inf.ethz.ch/zistvan/asl-fall16-project/blob/master/src/ch/ethz/SomeClass.java}}. An exception to this rule is the referencing of log files belonging to experiments. These should be referenced by an ID, or short name, and there has to be a table at the end of the report mapping these to files in the git repository.
 
 \includegraphics[width=0.5\textwidth]{\asset{architecture.png}}
-
-\javafile{Middleware}
 
 
 \subsection{Load Balancing and Hashing}\label{sec:desc:hashing}

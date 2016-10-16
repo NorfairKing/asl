@@ -31,8 +31,17 @@ txt = "txt"
 tmp :: String
 tmp = "tmp"
 
+eps :: String
+eps = "eps"
+
 lib :: String
 lib = "lib"
+
+dot :: String
+dot = "dot"
+
+svg :: String
+svg = "svg"
 
 png :: String
 png = "png"
@@ -137,6 +146,12 @@ txtExt = txt
 jarExt :: Extension
 jarExt = jar
 
+dotExt :: Extension
+dotExt = dot
+
+epsExt :: Extension
+epsExt = eps
+
 pngExt :: Extension
 pngExt = png
 
@@ -148,6 +163,9 @@ xmlExt = xml
 
 csvExt :: Extension
 csvExt = csv
+
+svgExt :: Extension
+svgExt = svg
 
 propertiesExt :: Extension
 propertiesExt = properties
@@ -176,6 +194,9 @@ wgetCmd = "wget"
 tarCmd :: String
 tarCmd = "tar"
 
+dotCmd :: String
+dotCmd = "dot"
+
 makeCmd :: String
 makeCmd = "make"
 
@@ -193,6 +214,9 @@ sedCmd = "sed"
 
 azureCmd :: String
 azureCmd = "azure"
+
+convertCmd :: String
+convertCmd = "convert"
 
 -- Memcached
 defaultMemcachedPort :: Int

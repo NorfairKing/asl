@@ -1,3 +1,21 @@
 digraph architecture {
-  mw [label="Middleware"];
+    mw [label="Middleware"];
+    ach [label="AcceptCompletionHandler"];
+    iich [label="InitialInputCompletionHandler"];
+    rp [label="RequestParser"];
+    sh [label="ServerHandler"];
+    srh [label="ServerReadHandler"];
+    swh [label="ServerWriteHandler"];
+    rw [label="ReadWorker"];
+    ww [label="WriteWorker"];
+
+    mw -> ach [label="accept"];
+    ach -> iich [label="read"];
+    iich -> rp [label="parse(ByteBuffer)"];
+    rp -> iich [label="Request"];
+    iich -> sh [label="RequestPacket"];
+    sh -> srh [label="READ"];
+    sh -> swh [label="WRITE"];
+    srh -> rw [label="dequeue"];
+    swh -> ww [label="dequeue"];
 }
