@@ -46,6 +46,23 @@ Milestone}
 The main class \java{RunMW}\javafile{RunMW} creates a single object of class \java{Middleware}\javafile{Middleware}.
 It binds to a socket on the given Inet address and readies to accept connections using a completionhandler of class \java{AcceptCompletionHandler}\javafile{AcceptCompletionHandler}.
 For every accepted connection, the initial read happens asynchronously and is completed with a shared completionhandler of class \java{InitialInputCompletionHandler}\javafile{AcceptCompletionHandler}.
+When the first piece of data is available, it is parsed into a \java{Request}\javafile{request/Request} by the \java{RequestParser}\javafile{request/request_parsing/RequestParser}.
+The \java{Request} and the \java{SocketChannel} for the connecting client are bundled in a so-called \java{RequestPacket}\javafile{request/RequestPacket}.
+Next, the request's key is hashed to an \java{int}.
+The hash modulo the number of back-end servers is used as the index of the primary server for that key.
+The secondary servers are the subsequent servers, up to the replication factor.
+If the request is a write request, a so-called replication counter is set in the \java{RequestPacket}.
+Then the \java{RequestPacket} passed on to the \java{ServerHandler}s\javafile{ServerHandler} corresponding to the chosen servers.
+Each \java{ServerHandler} contains a \java{ServerReadHandler}\javafile{ServerReadHandler} and a \java{ServerWriteHandler}\javafile{ServerWriteHandler}.
+
+In the case of a read request, the \java{RequestPacket} is added to a \java{BlockingQueue} in the \java{ServerReadHandler}.
+A pool of \java{ReadWorker}s\javafile{ServerReadHandler} dequeues the \java{RequestPacket}s one by one and synchronously queries the back-end server and simply passes on the response to the client.
+
+In the case of a write request, the \java{RequestPacket} is added to a \java{BlockingQueue} in the \java{ServerWriteHandler}.
+A single \java{WriteWorker}\javafile{ServerWriteHandler} continuously sends all available requests to the server and adds the \java{RequestPacket}s to a queue of sent requests.
+Whenever any data is available, it is split into the different responses and as many \java{RequestPacket}s as there are responses are dequeued from the 'sent' queue in the same order.
+Each of the corresponding \java{RequestPacket}s has their replication counter decremented.
+If a replication counter reaches \java{0}, the response is forwarded to the appropriate client.
 
 % Mark on the figure where are the points that you instrumented the architecture (see Section~2.3 of the Project Description) and give the different timestamps a name that you\textbf{ will use throughout the three milestones }whenever referencing measurements (e.g., $T_{requestreceived}$, $T_{responsesent}$).
 % 
