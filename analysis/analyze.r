@@ -2,23 +2,20 @@ library(igraph)
 
 args <- commandArgs(trailingOnly=TRUE)
 
-if (length(args) < 1) {
-  stop("Input CSV filepath expected as first argument")
-}
-
-if (length(args) < 2) {
-  stop("Output plot filepaths expected as second argument")
+if (length(args) < 3) {
+  stop("Usage analyze.r <resultsfile> <plotprefix> <outputdir>")
 }
 
 resFile <- args[1] # First argument
 filePrefix <- args[2]
+outDir <- args[3]
 outFileTps <- paste(filePrefix, "tps", sep="-")
 outFileAvg <- paste(filePrefix, "avg", sep="-")
 
 res = read.csv(resFile, header=TRUE)
 
 startPng <- function(file) {
-  png(filename=file, height=600, width=800, bg="white")
+  png(filename=paste(outDir, file, sep="/"), height=600, width=800, bg="white")
   base2 = rgb(0xB5/256, 0x89/256, 0x00/256, 0.1)
   par(bg=base2)
 }

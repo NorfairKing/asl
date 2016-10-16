@@ -104,6 +104,12 @@ analysisDir = aslDir </> "analysis"
 reportsDir :: FilePath
 reportsDir = aslDir </> reports
 
+report1Dir :: FilePath
+report1Dir = reportsDir </> "report1"
+
+report1PlotsDir :: FilePath
+report1PlotsDir = report1Dir </> "plots"
+
 codeSrcDir :: FilePath
 codeSrcDir = aslDir </> asl
 

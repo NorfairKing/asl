@@ -23,38 +23,43 @@ cleanAnalysisRule = "clean-analysis"
 
 data BaselineAnalysisCfg
     = BaselineAnalysisCfg
-    { experiment :: BaselineExperimentRuleCfg
-    , filePrefix :: FilePath
+    { experiment     :: BaselineExperimentRuleCfg
+    , filePrefix     :: FilePath
+    , analysisOutDir :: FilePath
     }
 
 plotsFor :: BaselineAnalysisCfg -> [FilePath]
 plotsFor BaselineAnalysisCfg{..} = do
     prefix <- ["avg", "tps"]
     nrclients <- [1 .. maxNrClients experiment]
-    return $ analysisDir </> intercalate "-" [filePrefix, prefix, show nrclients] <.> pngExt
-
-remoteBaselineAnalysis :: BaselineAnalysisCfg
-remoteBaselineAnalysis = BaselineAnalysisCfg
-    { experiment = remoteBaselineExperiment
-    , filePrefix = "remote-baseline-experiment"
-    }
+    return $ analysisOutDir </> intercalate "-" [filePrefix, prefix, show nrclients] <.> pngExt
 
 smallLocalBaselineAnalysis :: BaselineAnalysisCfg
 smallLocalBaselineAnalysis = BaselineAnalysisCfg
     { experiment = smallLocalBaselineExperiment
     , filePrefix = "small-local-baseline-experiment"
+    , analysisOutDir = analysisDir
     }
 
 localBaselineAnalysis :: BaselineAnalysisCfg
 localBaselineAnalysis = BaselineAnalysisCfg
     { experiment = localBaselineExperiment
     , filePrefix = "local-baseline-experiment"
+    , analysisOutDir = analysisDir
     }
 
 bigLocalBaselineAnalysis :: BaselineAnalysisCfg
 bigLocalBaselineAnalysis = BaselineAnalysisCfg
     { experiment = bigLocalBaselineExperiment
     , filePrefix = "big-local-baseline-experiment"
+    , analysisOutDir = analysisDir
+    }
+
+remoteBaselineAnalysis :: BaselineAnalysisCfg
+remoteBaselineAnalysis = BaselineAnalysisCfg
+    { experiment = remoteBaselineExperiment
+    , filePrefix = "remote-baseline-experiment"
+    , analysisOutDir = report1PlotsDir
     }
 
 allBaselineAnalyses :: [BaselineAnalysisCfg]
@@ -89,7 +94,7 @@ baselineAnalysisRuleFor bac@BaselineAnalysisCfg{..} = plotsFor bac &%> \_ -> do
     need [rBin]
     needRLibs ["pkgmaker"]
     needRLibs ["igraph"]
-    unit $ rScript analysisScript results $ analysisDir </> filePrefix
+    unit $ rScript analysisScript results filePrefix analysisOutDir
 
 rScript :: CmdArguments args => args
 rScript = cmd rBin (AddEnv "R_LIBS" rlibdir)
