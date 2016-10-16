@@ -54,39 +54,38 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
             wait runtime
             putLoud "Done waiting, killing processes!"
 
-            forM_ (indexed serverPHs) $ \(ix, serverPH) -> do
-                sec <- liftIO $ getProcessExitCode serverPH
-                case sec of
-                    Just (ExitFailure ec) -> fail $ unwords
-                        [ "Server"
-                        , show ix
-                        , "failed with exitcode: "
-                        , show ec
-                        ]
-                    _ -> return ()
-
-            mec <- liftIO $ getProcessExitCode middlePH
-            case mec of
-                Just (ExitFailure ec) ->
-                    fail $ "Middleware failed with exitcode: " ++ show ec
-                _ -> return ()
-
-            forM_ (indexed clientPHs) $ \(ix, clientPH) -> do
-                clc <- liftIO $ getProcessExitCode clientPH
-                case clc of
-                    Just (ExitFailure ec) -> fail $ unwords
-                        [ "Client"
-                        , show ix
-                        , "failed with exitcode: "
-                        , show ec
-                        ]
-                    _ -> return ()
-
     actionFinally goOn $ do
         mapM_ terminateProcess clientPHs
         terminateProcess middlePH
         mapM_ terminateProcess serverPHs
 
-        mapM_ waitForProcess clientPHs
-        void $ waitForProcess middlePH
-        mapM_ waitForProcess serverPHs
+    forM_ (indexed clientPHs) $ \(ix, clientPH) -> do
+        sec <- liftIO $ waitForProcess clientPH
+        case sec of
+            ExitFailure ec -> fail $ unwords
+                [ "Client"
+                , show ix
+                , "failed with exitcode: "
+                , show ec
+                ]
+            _ -> return ()
+
+    mec <- liftIO $ waitForProcess middlePH
+    case mec of
+        ExitFailure 143 -> return () -- Terminated by orc, good!
+        ExitFailure ec -> fail $ unwords
+            [ "Middleware failed with exitcode: "
+            , show ec
+            ]
+        _ -> return ()
+
+    forM_ (indexed serverPHs) $ \(ix, serverPH) -> do
+        sec <- liftIO $ waitForProcess serverPH
+        case sec of
+            ExitFailure ec -> fail $ unwords
+                [ "Server"
+                , show ix
+                , "failed with exitcode: "
+                , show ec
+                ]
+            _ -> return ()

@@ -60,7 +60,9 @@ runDebugRules =
         writeMemaslapConfig (msConfigFile $ msFlags cfs) (msConfig cfs)
 
         serverPh <- cmd memcachedBin $ memcachedArgs mcfs
+        waitMs 100
         middlePh <- cmd javaCmd "-jar" outputJarFile $ middlewareArgs mwfs
+        waitMs 100
         clientPh <- cmd memaslapBin $ memaslapArgs $ msFlags cfs
 
 

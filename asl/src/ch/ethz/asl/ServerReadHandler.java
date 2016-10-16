@@ -69,11 +69,12 @@ public class ServerReadHandler {
       RequestPacket packet = null;
       try {
         packet = readqueue.take();
+        packet.setDequeued();
       } catch (InterruptedException e) {
         e.printStackTrace();
         return;
       }
-      Response resp = handleToGetResponse(packet.getRequest());
+      Response resp = handleToGetResponse(packet);
       try {
         packet.respond(resp);
       } catch (InterruptedException | ExecutionException | IOException e) {
@@ -91,7 +92,8 @@ public class ServerReadHandler {
       threadPool.submit(this); // Then we don't have to while(true)
     }
 
-    public Response handleToGetResponse(final Request req) {
+    public Response handleToGetResponse(final RequestPacket packet) {
+      Request req = packet.getRequest();
       ByteBuffer rbuf = req.render();
       rbuf.position(0);
       int bytesWritten;
@@ -108,6 +110,7 @@ public class ServerReadHandler {
       }
       log.finest("Sent " + bytesWritten + " to server:");
       log.finest(new String(rbuf.array()));
+      packet.setAsked();
 
       ByteBuffer bbuf2 = ByteBuffer.allocate(BUFFER_SIZE);
       int bytesRead2;

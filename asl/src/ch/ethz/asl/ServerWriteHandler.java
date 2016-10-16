@@ -80,6 +80,7 @@ public class ServerWriteHandler {
       RequestPacket packet = null;
       try {
         packet = writequeue.take();
+        packet.setDequeued();
       } catch (InterruptedException e) {
         log.fine(
             "Write worker for server: "
@@ -88,6 +89,7 @@ public class ServerWriteHandler {
         return;
       }
       sendWrite(packet);
+      packet.setAsked();
       try {
         sentqueue.put(packet);
       } catch (InterruptedException e) {

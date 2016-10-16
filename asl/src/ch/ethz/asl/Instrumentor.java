@@ -13,7 +13,7 @@ public class Instrumentor {
   private static final char COMMA = ',';
   private static final char NEWLINE = '\n';
   private AtomicLong counter;
-  private static final int SMAPLE_SIZE = 1000;
+  private static final int SAMPLE_SIZE = 1000;
 
   public Instrumentor(final String file) throws IOException {
     this.file = file;
@@ -21,7 +21,9 @@ public class Instrumentor {
 
     FileWriter fstream = new FileWriter(file);
     writer = new BufferedWriter(fstream);
-    String header = "ReceivedTime,RespondedTime" + NEWLINE;
+    String header =
+        "ReceivedTime,ParsedTime,EnqueuedTime,DequeuedTime,AskedTime,RepliedTime,RespondedTime"
+            + NEWLINE;
     writer.write(header);
   }
 
@@ -30,11 +32,21 @@ public class Instrumentor {
   }
 
   public void finaliseRequest(RequestPacket packet) throws IOException {
-    if (counter.getAndIncrement() % SMAPLE_SIZE != 0) {
+    if (counter.getAndIncrement() % SAMPLE_SIZE != 0) {
       return;
     } // Only write stats of every so-manyth request.
 
     writer.write(Long.toString(packet.getReceivedAt()));
+    writer.write(COMMA);
+    writer.write(Long.toString(packet.getParsedAt()));
+    writer.write(COMMA);
+    writer.write(Long.toString(packet.getEnqueuedAt()));
+    writer.write(COMMA);
+    writer.write(Long.toString(packet.getDequeuedAt()));
+    writer.write(COMMA);
+    writer.write(Long.toString(packet.getAskedAt()));
+    writer.write(COMMA);
+    writer.write(Long.toString(packet.getRepliedAt()));
     writer.write(COMMA);
     writer.write(Long.toString(packet.getRespondedAt()));
     writer.write(NEWLINE);

@@ -6,6 +6,7 @@ import ch.ethz.asl.response.Response;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -17,8 +18,13 @@ public class RequestPacket {
 
   private final Instrumentor instrumentor;
 
-  private long receivedTime;
-  private long respondedTime;
+  private Optional<Long> receivedTime;
+  private Optional<Long> parsedTime;
+  private Optional<Long> enqueuedTime;
+  private Optional<Long> dequeuedTime;
+  private Optional<Long> askedTime;
+  private Optional<Long> repliedTime;
+  private Optional<Long> respondedTime;
   private AtomicInteger replicationCounter;
 
   public RequestPacket(
@@ -27,13 +33,22 @@ public class RequestPacket {
     this.req = req;
     this.instrumentor = instrumentor;
     this.replicationCounter = new AtomicInteger(1);
+    this.receivedTime = Optional.empty();
+    this.parsedTime = Optional.empty();
+    this.enqueuedTime = Optional.empty();
+    this.dequeuedTime = Optional.empty();
+    this.askedTime = Optional.empty();
+    this.repliedTime = Optional.empty();
+    this.respondedTime = Optional.empty();
   }
 
   public void respond(Response res) throws InterruptedException, ExecutionException, IOException {
     if (replicationCounter.decrementAndGet() > 0) {
       return;
     }
+    setReplied();
     RequestPacket.respond(this.chan, res);
+    setResponded();
     instrumentor.finaliseRequest(this);
   }
 
@@ -56,19 +71,80 @@ public class RequestPacket {
   }
 
   public long getReceivedAt() {
-    return receivedTime;
+    return receivedTime.get();
   }
 
   public void setReceivedAt(long time) {
-    receivedTime = time;
+    if (receivedTime.isPresent()) {
+      return;
+    }
+    receivedTime = Optional.of(time);
+  }
+
+  public long getParsedAt() {
+    return parsedTime.get();
+  }
+
+  public void setParsed() {
+    if (parsedTime.isPresent()) {
+      return;
+    }
+    parsedTime = Optional.of(System.currentTimeMillis());
+  }
+
+  public long getEnqueuedAt() {
+    return enqueuedTime.get();
+  }
+
+  public void setEnqueued() {
+    if (enqueuedTime.isPresent()) {
+      return;
+    }
+    enqueuedTime = Optional.of(System.currentTimeMillis());
+  }
+
+  public long getDequeuedAt() {
+    return dequeuedTime.get();
+  }
+
+  public void setDequeued() {
+    if (dequeuedTime.isPresent()) {
+      return;
+    }
+    dequeuedTime = Optional.of(System.currentTimeMillis());
+  }
+
+  public long getAskedAt() {
+    return askedTime.get();
+  }
+
+  public void setAsked() {
+    if (askedTime.isPresent()) {
+      return;
+    }
+    askedTime = Optional.of(System.currentTimeMillis());
+  }
+
+  public long getRepliedAt() {
+    return repliedTime.get();
+  }
+
+  public void setReplied() {
+    if (repliedTime.isPresent()) {
+      return;
+    }
+    repliedTime = Optional.of(System.currentTimeMillis());
   }
 
   public long getRespondedAt() {
-    return receivedTime;
+    return respondedTime.get();
   }
 
   private void setResponded() {
-    receivedTime = System.currentTimeMillis();
+    if (respondedTime.isPresent()) {
+      return;
+    }
+    respondedTime = Optional.of(System.currentTimeMillis());
   }
 
   public Request getRequest() {

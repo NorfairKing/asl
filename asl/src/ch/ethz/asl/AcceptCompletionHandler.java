@@ -108,6 +108,7 @@ public class AcceptCompletionHandler
         } else {
           RequestPacket packet = new RequestPacket(chan, req, instrumentor);
           packet.setReceivedAt(receivedAt);
+          packet.setParsed();
           sendToServerHandlers(packet);
         }
         // Go on reading
