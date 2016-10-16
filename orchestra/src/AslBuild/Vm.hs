@@ -38,19 +38,20 @@ vmRules = do
             Left err -> fail $ "Aeson vm data file failed to decode: " ++ err
             Right vms -> liftIO $ LB.writeFile vmDataFile $ encodePretty $ map azureUnpack vms
 
-    startVmsRule ~> do
-        rawVmData <- getRawVmData
-        phPar rawVmData $ \VmData{..} ->
-            cmd azureCmd "vm" "start"
-                "--resource-group" resourceGroupName
-                "--name" vmName
+    startVmsRule ~> (getRawVmData >>= startVms)
+    stopVmsRule ~> (getRawVmData >>= stopVms)
 
-    stopVmsRule ~> do
-        rawVmData <- getRawVmData
-        phPar rawVmData $ \VmData{..} ->
-            cmd azureCmd "vm" "stop"
-                "--resource-group" resourceGroupName
-                "--name" vmName
+startVms :: [VmData] -> Action ()
+startVms vms = phPar vms $ \VmData{..} ->
+    cmd azureCmd "vm" "start"
+        "--resource-group" resourceGroupName
+        "--name" vmName
+
+stopVms :: [VmData] -> Action ()
+stopVms vms = phPar vms $ \VmData{..} ->
+    cmd azureCmd "vm" "stop"
+        "--resource-group" resourceGroupName
+        "--name" vmName
 
 
 getRawVmData :: Action [VmData]
@@ -58,7 +59,7 @@ getRawVmData = do
     need [vmDataFile]
     contents <- liftIO $ LB.readFile vmDataFile
     case eitherDecode contents :: Either String [VmData] of
-        Left err -> fail $ "Raw vm data file failed to decode: " ++ err
+        Left err  -> fail $ "Raw vm data file failed to decode: " ++ err
         Right vms -> return vms
 
 getVms
@@ -67,7 +68,7 @@ getVms
     -> Int -- Number of servers
     -> Action ([VmData], [VmData], [VmData])
 getVms nrc nrm nrs = do
-    rawVms <- getRawVmData
+    rawVms <- reverse <$> getRawVmData
     let total = nrc + nrm + nrs
     let nrAvailable = length rawVms
     if total > nrAvailable

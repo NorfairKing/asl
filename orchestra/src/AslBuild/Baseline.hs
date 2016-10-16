@@ -115,19 +115,20 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
     csvOutFile %> \_ -> do
         need [memcachedBin, memaslapBin, baselineExperimentsCacheFile]
 
-        experiments <- do
+        (experiments, vmsNeeded) <- do
             contents <- liftIO $ LB.readFile baselineExperimentsCacheFile
             case A.eitherDecode contents of
                 Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
                 Right exps -> return exps
 
+        startVms vmsNeeded
         case baselineLocation of
             BaselineLocal -> need [provisionLocalhostRule]
             BaselineRemote -> do
                 -- TODO, only start the Vms we use.
-                need [startVmsRule]
                 provisionVms $ nub $ map cRemoteLogin $ concatMap clientSetups experiments
                 provisionVms $ nub $ map (sRemoteLogin . serverSetup) experiments
+
 
         -- Intentionally no parallelism here.
         -- We need to do experiments one at a time.
@@ -174,9 +175,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             -- Make sure no memcached servers are running anymore
             shutdownServers [serverSetup]
 
-        case baselineLocation of
-            BaselineRemote -> need [stopVmsRule]
-            _ -> return ()
+        stopVms vmsNeeded
 
         let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles
@@ -185,9 +184,9 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             Just results -> liftIO $ LB.writeFile csvOutFile $ resultsCsv results
 
 
-mkBaselineExperiments :: BaselineExperimentRuleCfg -> Action [BaselineExperimentSetup]
+mkBaselineExperiments :: BaselineExperimentRuleCfg -> Action ([BaselineExperimentSetup], [VmData])
 mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
-    (clientLogins, memcachedServer, serverSetup) <- case baselineLocation of
+    (clientLogins, memcachedServer, serverSetup, remoteVmsNeeded) <- case baselineLocation of
         BaselineLocal -> do
             let l = "localhost"
                 p = 11211
@@ -201,7 +200,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                         }
                     , sIndex = 0
                     }
-            return (c, m, s)
+            return (c, m, s, [])
         BaselineRemote -> do
             (cs, s) <- (\(c,_,[s]) -> (c, s)) <$> getVms maxNrClients 0 1
             let p = 11211
@@ -215,14 +214,14 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                         }
                     , sIndex = 0
                     }
-            return (c_, m_, s_)
-    return $ do
+            return (c_, m_, s_, s:cs)
+    return $ (\exps -> (exps, remoteVmsNeeded)) $ do
         let BaseLineSetup{..} = baselineSetup
 
         let servers = [memcachedServer]
         let threads = length servers
 
-        concurrents <- takeWhile (<= maxNrVirtualClients) $ iterate (*2) threads
+        concurrents <- takeWhile (<= maxNrVirtualClients) $ iterate (* 2) threads
         rep <- [1 .. repetitions]
 
         nrClients <- [1 .. length clientLogins]
@@ -247,10 +246,10 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                 , cIndex = i
                 , cMemaslapSettings = MemaslapSettings
                     { msConfig = MemaslapConfig
-                        { keysizeDistributions = [Distribution 128 128 1]
-                        , valueDistributions = [Distribution 2048 2048 1]
-                        , setProportion = 0.1
-                        , getProportion = 0.9
+                        { keysizeDistributions = [Distribution 16 16 1]
+                        , valueDistributions = [Distribution 128 128 1]
+                        , setProportion = 0.01
+                        , getProportion = 0.99
                         }
                     , msFlags = MemaslapFlags
                         { msServers = servers

@@ -2,6 +2,7 @@
 module AslBuild.Provision where
 
 import           Control.Monad
+import           System.FilePath
 import           System.Process
 
 import           Development.Shake
@@ -103,11 +104,12 @@ provisionVms rls = do
 provisionVmsGlobalPackages :: [RemoteLogin] -> Action ()
 provisionVmsGlobalPackages rls = do
     phPar rls $ \rl -> overSsh rl "yes | sudo apt-get update"
-    phPar rls $ \rl -> overSsh rl "yes | sudo apt-get install build-essential htop"
+    phPar rls $ \rl -> overSsh rl "yes | sudo apt-get install build-essential htop libevent-dev"
 
 provisionVmsOrc :: [RemoteLogin] -> Action ()
 provisionVmsOrc rls = do
     need [orcBin]
+    phPar rls $ \rl -> overSsh rl $ "mkdir -p " ++ takeDirectory orcBin
     phPar rls $ \rl -> rsyncTo rl orcBin orcBin
 
 provisionVmsMemcached :: [RemoteLogin] -> Action ()
@@ -117,7 +119,7 @@ provisionVmsMemaslap :: [RemoteLogin] -> Action ()
 provisionVmsMemaslap = (`phPar` (`orcRemotely` remoteMemaslap))
 
 provisionVmsMiddleware :: [RemoteLogin] -> Action ()
-provisionVmsMiddleware = (`phPar` (`orcRemotely` remoteMiddleware))
+provisionVmsMiddleware = (`phPar` (\rl -> rsyncTo rl outputJarFile remoteMiddleware))
 
 orcRemotely :: CmdResult r => RemoteLogin -> String -> Action r
 orcRemotely rl target = overSsh rl $ unwords [orcBin, "build", target]

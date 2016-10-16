@@ -4,6 +4,7 @@ module AslBuild.CommonActions where
 import           Control.Concurrent
 import           Control.Monad
 import           System.Directory
+import           System.Exit
 import           System.Process
 
 import           Development.Shake
@@ -16,7 +17,8 @@ import           AslBuild.Types
 phPar :: [a] -> (a -> Action ProcessHandle) -> Action ()
 phPar ls func = do
     phs <- forM ls func
-    liftIO $ mapM_ waitForProcess phs
+    ecs <- liftIO $ mapM waitForProcess phs
+    unless (all (== ExitSuccess) ecs) $ fail "Parallel action failed."
 
 wait :: Int -> Action ()
 wait i = do
