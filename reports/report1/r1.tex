@@ -1,9 +1,12 @@
 \documentclass[11pt]{article}
 \usepackage[a4paper, portrait, margin=1in]{geometry}
 \usepackage{hyperref}
+\usepackage{caption}
 \usepackage{graphicx}
 \usepackage{minted}
+\usepackage{multicol}
 \usepackage{float}
+\usepackage{tikz}
 
 \input{../common.tex}
 
@@ -76,7 +79,39 @@ If a replication counter reaches \java{0}, the response is forwarded to the appr
 % 
 % Reference throughout the report all relevant java source files, result files, etc. by providing the gitlab link in a footnote, for instance\footnote{\url{https://gitlab.inf.ethz.ch/zistvan/asl-fall16-project/blob/master/src/ch/ethz/SomeClass.java}}. An exception to this rule is the referencing of log files belonging to experiments. These should be referenced by an ID, or short name, and there has to be a table at the end of the report mapping these to files in the git repository.
 
-\includegraphics[width=0.5\textwidth]{\asset{architecture.png}}
+\begin{figure}[H]
+  \begin{center}
+    \begin{tikzpicture}
+      \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[width=0.8\textwidth]{\asset{architecture.png}}};
+      \begin{scope}[x={(image.south east)},y={(image.north west)}]
+        \node[color=red] (recv) at (0.080, 0.550) {\textbf{(1)}};
+        \node[color=red] (recv) at (0.215, 0.250) {\textbf{(2)}};
+        \node[color=red] (recv) at (0.300, 0.250) {\textbf{(3)}};
+        \node[color=red] (recv) at (0.450, 0.250) {\textbf{(4)}};
+        \node[color=red] (recv) at (0.700, 0.357) {\textbf{(5)}};
+        \node[color=red] (recv) at (0.650, 0.257) {\textbf{(6)}};
+        \node[color=red] (recv) at (0.700, 0.257) {\textbf{(7)}};
+        \node[color=red] (recv) at (0.050, 0.257) {\textbf{(8)}};
+      \end{scope}
+    \end{tikzpicture}
+  \end{center}
+
+  \captionsetup{singlelinecheck=off}
+  \caption{Instrumentation}
+\end{figure}
+
+\begin{multicols}{2}
+  \begin{enumerate}
+    \item Received
+    \item Parsed
+    \item Enqueued
+    \item Dequeued
+    \item Sent request
+    \item Received first response
+    \item Received last response
+    \item Sent response
+  \end{enumerate}
+\end{multicols}
 
 
 \subsection{Load Balancing and Hashing}\label{sec:desc:hashing}
