@@ -14,12 +14,14 @@ import           AslBuild.Types
 import           AslBuild.Utils
 
 setupClientConfigs :: [ClientSetup] -> Action ()
-setupClientConfigs clientSetups = forP_ clientSetups $ \ClientSetup{..} -> do
+setupClientConfigs clientSetups = do
     -- Generate the memsalap config locally
-    writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
+    forP_ clientSetups $ \ClientSetup{..} ->
+        writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
 
     -- Copy the memaslap config to the client
-    rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
+    phPar clientSetups $ \ClientSetup{..} ->
+        rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
 
 startClientsOn :: [ClientSetup] -> Action ()
 startClientsOn clientSetups =

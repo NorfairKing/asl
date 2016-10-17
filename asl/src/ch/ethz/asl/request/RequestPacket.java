@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import static ch.ethz.asl.Instrumentor.*;
+
 public class RequestPacket {
   private static final Logger log = Logger.getGlobal();
   private final AsynchronousSocketChannel chan;
@@ -89,7 +91,7 @@ public class RequestPacket {
     if (parsedTime.isPresent()) {
       return;
     }
-    parsedTime = Optional.of(System.currentTimeMillis());
+    parsedTime = Optional.of(now());
   }
 
   public long getEnqueuedAt() {
@@ -100,7 +102,7 @@ public class RequestPacket {
     if (enqueuedTime.isPresent()) {
       return;
     }
-    enqueuedTime = Optional.of(System.currentTimeMillis());
+    enqueuedTime = Optional.of(now());
   }
 
   public long getDequeuedAt() {
@@ -111,7 +113,7 @@ public class RequestPacket {
     if (dequeuedTime.isPresent()) {
       return;
     }
-    dequeuedTime = Optional.of(System.currentTimeMillis());
+    dequeuedTime = Optional.of(now());
   }
 
   public long getAskedAt() {
@@ -122,7 +124,7 @@ public class RequestPacket {
     if (askedTime.isPresent()) {
       return;
     }
-    askedTime = Optional.of(System.currentTimeMillis());
+    askedTime = Optional.of(now());
   }
 
   public long getRepliedAt() {
@@ -133,7 +135,7 @@ public class RequestPacket {
     if (repliedTime.isPresent()) {
       return;
     }
-    repliedTime = Optional.of(System.currentTimeMillis());
+    repliedTime = Optional.of(now());
   }
 
   public long getRespondedAt() {
@@ -144,7 +146,7 @@ public class RequestPacket {
     if (respondedTime.isPresent()) {
       return;
     }
-    respondedTime = Optional.of(System.currentTimeMillis());
+    respondedTime = Optional.of(now());
   }
 
   public Request getRequest() {

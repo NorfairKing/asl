@@ -4,6 +4,7 @@ module AslBuild.StabilityTrace
     , module AslBuild.StabilityTrace.Types
     ) where
 
+import           Control.Concurrent
 import           Control.Monad
 import           Data.List
 import           System.Process
@@ -31,6 +32,7 @@ stabilityTraceRules :: Rules ()
 stabilityTraceRules = do
     generateTargetFor smallLocalStabilityTrace
     generateTargetFor localStabilityTrace
+    generateTargetFor bigLocalStabilityTrace
 
 smallLocalStabilityTraceRule :: String
 smallLocalStabilityTraceRule = "small-local-stability-trace"
@@ -39,10 +41,11 @@ smallLocalStabilityTrace :: StabilityTraceCfg
 smallLocalStabilityTrace = StabilityTraceCfg
     { target = smallLocalStabilityTraceRule
     , csvOutFile = resultsDir </> "small-local-stability-trace-results.csv"
-    , nrServers = 1
-    , nrClients = 1
+    , nrServers = 2
+    , nrClients = 2
     , location = StabilityLocal
-    , runtime = Seconds 5
+    , runtime = Seconds 10
+    , logLevel = LogFine
     }
 
 localStabilityTracelRule :: String
@@ -56,6 +59,21 @@ localStabilityTrace = StabilityTraceCfg
     , nrClients = 3
     , location = StabilityLocal
     , runtime = Hours 1
+    , logLevel = LogOff
+    }
+
+bigLocalStabilityTracelRule :: String
+bigLocalStabilityTracelRule = "big-local-stability-trace"
+
+bigLocalStabilityTrace :: StabilityTraceCfg
+bigLocalStabilityTrace = StabilityTraceCfg
+    { target = bigLocalStabilityTracelRule
+    , csvOutFile = resultsDir </> "big-local-stability-trace-results.csv"
+    , nrServers = 8
+    , nrClients = 32
+    , location = StabilityLocal
+    , runtime = Hours 1
+    , logLevel = LogOff
     }
 
 remoteStabilityTracelRule :: String
@@ -69,6 +87,7 @@ remoteStabilityTrace = StabilityTraceCfg
     , nrClients = 3
     , location = StabilityRemote
     , runtime = Hours 1
+    , logLevel = LogOff
     }
 
 
@@ -102,11 +121,14 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
         -- Start the middleware
         middlePh <- startMiddleOn middleSetup
 
+        -- Wait for the middleware to get started
+        waitMs 250
+
         -- Start the clients
         startClientsOn clientSetups
 
-        -- Wait long enough to be sure that all clients are done
-        wait $ toSeconds stsRuntime
+        -- Wait for the experiment to finish
+        actionFinally (waitNicely $ toSeconds stsRuntime) (return ())
 
         -- Shut down the middleware
         shutdownMiddle middleSetup
@@ -117,6 +139,20 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
 
         -- Copy the middleware logs back
         copyMiddleTraceBack middleSetup
+
+waitNicely :: Int -> Action ()
+waitNicely is = do
+    putLoud $ "Waiting for " ++ toClockString is
+    go is
+  where
+    period = 10
+    go s = do
+        putLoud $ toClockString s ++ " remaining."
+        if s < period
+        then liftIO $ threadDelay $ s * 1000 * 1000
+        else do
+            liftIO $ threadDelay $ period * 1000 * 1000
+            go $ s - period
 
 getSetup :: StabilityTraceCfg -> Action StabilityTraceSetup
 getSetup StabilityTraceCfg{..} = do
@@ -156,7 +192,7 @@ getSetup StabilityTraceCfg{..} = do
                             (memcachedPort sMemcachedFlags))
                     servers
                 , mwTraceFile = "/tmp" </> target ++ "-trace" <.> csvExt
-                , mwVerbosity = LogOff
+                , mwVerbosity = logLevel
                 }
             }
 
@@ -181,7 +217,7 @@ getSetup StabilityTraceCfg{..} = do
                     -- TODO private IP of middleware
                     { msServers = [RemoteServerUrl localhostIp middlePort]
                     , msThreads = 1
-                    , msConcurrency = 1
+                    , msConcurrency = 64
                     , msOverwrite = 0.9
                     , msStatFreq = Just runtime
                     , msWorkload = WorkFor runtime

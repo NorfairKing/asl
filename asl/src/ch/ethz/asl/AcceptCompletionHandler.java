@@ -93,10 +93,10 @@ public class AcceptCompletionHandler
           req = RequestParser.parseRequest(bbuf);
           log.finest("Parsed request: " + req.toString());
         } catch (NotEnoughDataException e) {
-          log.finest("Not enough data to parse request.");
+          log.fine("Not enough data to parse request.");
           preliminaryResponse = new ClientErrorResponse("Not enough data.");
         } catch (ParseFailedException e) {
-          log.finest("Failed to parse a request.");
+          log.fine("Failed to parse a request.");
           preliminaryResponse = new ErrorResponse();
         }
         if (req == null) { // Then preliminary response will not be null.

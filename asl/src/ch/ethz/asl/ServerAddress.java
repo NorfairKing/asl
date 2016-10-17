@@ -14,7 +14,13 @@ public class ServerAddress {
     socketAddress = new InetSocketAddress(serverUrl, serverPort);
   }
 
-  public SocketAddress getSocketAddress() {
+  public SocketAddress getSocketAddress()
+  {
     return socketAddress;
+  }
+
+  @Override
+  public String toString() {
+    return socketAddress.toString();
   }
 }

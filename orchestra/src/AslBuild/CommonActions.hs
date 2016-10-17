@@ -56,7 +56,7 @@ copyScriptOver rl s@Script{..} = do
 
 parScriptAt :: [(RemoteLogin, Script)] -> Action ()
 parScriptAt ss = do
-    mapM_ (unit . uncurry copyScriptOver) ss
+    phPar ss $ uncurry copyScriptOver
     phPar ss $ \(rl, s) -> do
         let fullScript = unlines $ scriptContent s
         liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript

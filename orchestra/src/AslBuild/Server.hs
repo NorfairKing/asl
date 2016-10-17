@@ -4,6 +4,8 @@ module AslBuild.Server
     , module AslBuild.Server.Types
     ) where
 
+import           Data.List
+
 import           Development.Shake
 
 import           AslBuild.CommonActions
@@ -18,5 +20,5 @@ startServersOn sss = phPar sss $ \ServerSetup{..} -> scriptAt sRemoteLogin $ scr
     ]
 
 shutdownServers :: [ServerSetup] -> Action ()
-shutdownServers sss = phPar sss $ \ServerSetup{..} ->
-    overSsh sRemoteLogin $ unwords ["killall", remoteMemcached]
+shutdownServers sss = phPar (nub $ map sRemoteLogin sss) $ \rl ->
+    overSsh rl $ unwords ["killall", remoteMemcached]

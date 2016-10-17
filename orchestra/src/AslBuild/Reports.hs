@@ -3,7 +3,7 @@ module AslBuild.Reports where
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           AslBuild.Analysis
+import           AslBuild.Analysis.Baseline
 import           AslBuild.Constants
 import           AslBuild.Utils
 
@@ -70,7 +70,7 @@ report1Rules = do
     milestone1ReportInBuildDir %> \_ -> do
         need $
             [commonTex, architecturePng, architectureGraphEps, milestone1ReporttexInBuildDir]
-            ++ plotsFor remoteBaselineAnalysis ++ allPlots
+            ++ plotsForBaseline remoteBaselineAnalysis
         cmd (Cwd report1Dir)
             "latexmk"
             milestone1Reporttex

@@ -2,6 +2,7 @@ module AslBuild.StabilityTrace.Types where
 
 import           AslBuild.Client.Types
 import           AslBuild.Middle.Types
+import           AslBuild.Middleware.Types
 import           AslBuild.Server.Types
 import           AslBuild.Types
 
@@ -13,6 +14,7 @@ data StabilityTraceCfg
     , nrServers  :: Int
     , location   :: StabilityLocation
     , runtime    :: TimeUnit
+    , logLevel   :: LogLevel
     } deriving (Show, Eq)
 
 data StabilityLocation

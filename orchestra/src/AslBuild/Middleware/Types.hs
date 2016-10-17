@@ -27,7 +27,15 @@ data LogLevel
     | LogFiner
     | LogFinest
     | LogAll
-    deriving (Show, Eq, Generic, Enum)
+    deriving (Show, Eq, Generic)
+
+logLevelInt :: LogLevel -> Int
+logLevelInt LogOff    = 0
+logLevelInt LogInfo   = 1
+logLevelInt LogFine   = 2
+logLevelInt LogFiner  = 3
+logLevelInt LogFinest = 4
+logLevelInt LogAll    = 5
 
 instance FromJSON LogLevel
 instance ToJSON   LogLevel

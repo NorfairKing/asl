@@ -18,7 +18,7 @@ startMiddleOn MiddleSetup{..} = scriptAt mRemoteLogin $ script
     , unwords $
         [javaCmd, "-jar", remoteMiddleware]
         ++ middlewareArgs mMiddlewareFlags
-        ++ ["2>&1", "&"]
+        ++ ["&"]
     ]
 
 shutdownMiddle :: MiddleSetup -> Action ()

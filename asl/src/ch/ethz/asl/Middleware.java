@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class Middleware {
 
-  private static final Logger logger = Logger.getGlobal();
+  private static final Logger log = Logger.getGlobal();
 
   private final SocketAddress myAddress;
   private final List<ServerAddress> servers;
@@ -56,7 +56,7 @@ public class Middleware {
       return;
     } // Don't shut down twice.
     shuttingDown = true;
-    logger.fine("Shutting down entire middleware.");
+    log.fine("Shutting down entire middleware.");
   }
 
   public static boolean isShuttingDown() {
@@ -71,6 +71,7 @@ public class Middleware {
   public void startServer() {
     try {
       assc.bind(myAddress);
+      log.fine("Bound to " + myAddress);
       assc.accept(
           null,
           new AcceptCompletionHandler(
@@ -96,6 +97,7 @@ public class Middleware {
         }
         Thread.sleep(100);
       } catch (InterruptedException e) {
+        e.printStackTrace();
         break;
       }
     }
