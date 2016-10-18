@@ -17,7 +17,7 @@ localMiddlewareSimpleTestRule = "local-middleware-simple-test"
 
 setups :: [LocalMiddlewareTestSetup]
 setups = do
-    let time = 1
+    let rtime = 1
 
     let sPort = defaultMemcachedPort
     let mcFlags = MemcachedFlags
@@ -70,7 +70,7 @@ setups = do
             }
 
     return LocalMiddlewareTestSetup
-        { runtime = time
+        { runtime = rtime
         , clientSetups = [msSets]
         , middlewareSetup = mwFlags
         , serverSetups = [mcFlags]

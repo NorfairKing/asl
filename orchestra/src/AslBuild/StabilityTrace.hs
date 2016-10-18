@@ -6,6 +6,8 @@ module AslBuild.StabilityTrace
 
 import           Control.Concurrent
 import           Control.Monad
+import qualified Data.Aeson.Encode.Pretty      as A
+import qualified Data.ByteString.Lazy          as LB
 import           Data.List
 import           System.Process
 
@@ -44,7 +46,7 @@ smallLocalStabilityTrace = StabilityTraceCfg
     , nrServers = 1
     , nrClients = 1
     , location = StabilityLocal
-    , runtime = Hours 1
+    , runtime = Seconds 5
     , logLevel = LogFiner
     }
 
@@ -140,6 +142,22 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
         -- Copy the middleware logs back
         copyMiddleTraceBack middleSetup
 
+        -- Copy the client logs back
+        copyClientLogsBack clientSetups
+
+        -- Prepare analysis files for the client logs.
+        forP_ clientSetups $ \cSetup@ClientSetup{..} -> do
+            mel <- parseLog cLocalLog
+            case mel of
+                Nothing -> fail $ "could not parse logfile: " ++ cLocalLog
+                Just parsedLog -> do
+                    let results = StabilityTraceExperimentResults
+                            { sterClientSetup = cSetup
+                            , sterMemaslapLog = parsedLog
+                            , sterClientIndex = cIndex
+                            }
+                    liftIO $ LB.writeFile cResultsFile $ A.encodePretty results
+
 waitNicely :: Int -> Action ()
 waitNicely is = do
     putLoud $ "Waiting for " ++ toClockString is
@@ -219,7 +237,7 @@ getSetup StabilityTraceCfg{..} = do
                     , msThreads = 1
                     , msConcurrency = 64
                     , msOverwrite = 0.9
-                    , msStatFreq = Just runtime
+                    , msStatFreq = Just $ Seconds 1
                     , msWorkload = WorkFor runtime
                     , msConfigFile = "/tmp" </> sign cix "memaslapcfg"
                     }

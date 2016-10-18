@@ -17,7 +17,7 @@ localMiddlewareThoroughTestRule = "local-middleware-thorough-test"
 
 setups :: [LocalMiddlewareTestSetup]
 setups = do
-    let time = 1
+    let rtime = 1
 
     nrServers <- [2, 8]
     let serverFlags = do
@@ -63,7 +63,7 @@ setups = do
             , show nrRequests
             ]
 
-    let config = MemaslapConfig
+    let mconfig = MemaslapConfig
             { keysizeDistributions = [Distribution keySize keySize 1]
             , valueDistributions = [Distribution valueSize valueSize 1]
             , setProportion = setProp
@@ -83,12 +83,12 @@ setups = do
             }
 
     let msSets = MemaslapSettings
-            { msConfig = config
+            { msConfig = mconfig
             , msFlags = flags
             }
 
     return LocalMiddlewareTestSetup
-        { runtime = time
+        { runtime = rtime
         , clientSetups = replicate nrClients msSets
         , middlewareSetup = mwFlags
         , serverSetups = serverFlags

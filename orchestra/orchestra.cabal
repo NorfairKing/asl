@@ -45,6 +45,7 @@ library
     , AslBuild.LocalMiddlewareThoroughTest
     , AslBuild.Memaslap
     , AslBuild.Memaslap.Types
+    , AslBuild.Memaslap.LogParser
     , AslBuild.Memcached
     , AslBuild.Memcached.Types
     , AslBuild.Middle
@@ -74,13 +75,14 @@ library
     , shake                         >= 0.15   && < 0.16
     , aeson
     , aeson-pretty
+    , attoparsec                    >= 0.13   && < 0.14
     , bytestring                    >= 0.10   && < 0.11
     , cassava                       >= 0.4    && < 0.5
     , directory                     >= 1.2    && < 1.3
+    , filepath                      >= 1.4    && < 1.5
     , hashable                      >= 1.2    && < 1.3
     , mtl
     , network
-    , filepath                      >= 1.4    && < 1.5
     , optparse-applicative          >= 0.13   && < 0.14
     , process                       >= 1.4    && < 1.5
     , split

@@ -1,10 +1,8 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Memaslap.Types where
 
 import           Data.Aeson     (FromJSON, ToJSON)
-import           Data.Csv
 import           GHC.Generics
 
 import           AslBuild.Types
@@ -63,14 +61,88 @@ instance FromJSON MemaslapWorkload
 
 data MemaslapLog
     = MemaslapLog
-    { avg :: Double
-    , std :: Double
-    , tps :: Double
+    { config         :: () -- Fill in later if needed
+    , triples        :: [StatsTriple]
+    , totalStatsTrip :: TotalStatsTrip
+    , finalStats     :: FinalStats
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MemaslapLog
 instance FromJSON MemaslapLog
 
-instance ToNamedRecord MemaslapLog where
-    toNamedRecord MemaslapLog{..} = namedRecord
-        [ "avg" .= avg, "std" .= std, "tps" .= tps]
+data StatsTriple
+    = StatsTriple
+    { getStats  :: StatisticsLog
+    , setStats  :: StatisticsLog
+    , bothStats :: StatisticsLog
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON StatsTriple
+instance FromJSON StatsTriple
+
+data StatisticsLog
+    = StatisticsLog
+    { periodStats :: Statistics
+    , globalStats :: Statistics
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON StatisticsLog
+instance FromJSON StatisticsLog
+
+data Statistics
+    = Statistics
+    { time    :: Int
+    , ops     :: Int
+    , tps     :: Int
+    , net     :: Double
+    , getMiss :: Int
+    , minUs   :: Int
+    , maxUs   :: Int
+    , avgUs   :: Int
+    , stdDev  :: Double
+    , geoDist :: Double
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON Statistics
+instance FromJSON Statistics
+
+data TotalStatsTrip
+    = TotalStatsTrip
+    { totalGetStats  :: TotalStats
+    , totalSetStats  :: TotalStats
+    , totalBothStats :: TotalStats
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON TotalStatsTrip
+instance FromJSON TotalStatsTrip
+
+data TotalStats
+    = TotalStats
+    { totalEvents   :: Int
+    , totalMin      :: Int
+    , totalMax      :: Int
+    , totalAvg      :: Int
+    , totalGeo      :: Double
+    , totalStd      :: Double
+    , totalLog2Dist :: () -- Fill in later if necessary
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   TotalStats
+instance FromJSON TotalStats
+
+data FinalStats
+    = FinalStats
+    { finalGets         :: Int
+    , finalSets         :: Int
+    , finalGetMisses    :: Int
+    , finalWrittenBytes :: Int
+    , finalReadBytes    :: Int
+    , finalObjectBytes  :: Int
+    , finalRuntime      :: ()
+    , finalOps          :: Int
+    , finalTps          :: Int
+    , finalNetRate      :: ()
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON   FinalStats
+instance FromJSON FinalStats

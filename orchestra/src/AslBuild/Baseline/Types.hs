@@ -76,9 +76,9 @@ instance ToNamedRecord ExperimentResults where
     toNamedRecord ExperimentResults{..} =
         let BaselineExperimentSetup{..} = erSetup
             ClientSetup{..} = erClientSetup
-            MemaslapLog{..} = erMemaslapLog
             MemaslapSettings{..} = cMemaslapSettings
             MemaslapFlags{..} = msFlags
+            SimplifiedStats{..} = simplifyStats erMemaslapLog
         in namedRecord
             [ "nrClients" .= length clientSetups
             , "clientIndex" .= erClientIndex
@@ -87,7 +87,22 @@ instance ToNamedRecord ExperimentResults where
             , "concurrency" .= msConcurrency
             , "overwrite" .= msOverwrite
             , "time" .= msTimeUnsafe msWorkload
-            , "avg" .= avg
-            , "std" .= std
-            , "tps" .= tps
+            , "avg" .= simpleAvg
+            , "std" .= simpleStd
+            , "tps" .= simpleTps
             ]
+
+data SimplifiedStats
+    = SimplifiedStats
+    { simpleAvg :: Int
+    , simpleStd :: Double
+    , simpleTps :: Int
+    }
+
+simplifyStats :: MemaslapLog -> SimplifiedStats
+simplifyStats MemaslapLog{..} = SimplifiedStats
+    { simpleAvg = totalAvg
+    , simpleStd = totalStd
+    , simpleTps = finalTps finalStats
+    }
+  where TotalStats{..} = totalBothStats totalStatsTrip

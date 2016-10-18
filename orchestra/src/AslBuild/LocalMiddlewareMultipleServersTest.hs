@@ -17,7 +17,7 @@ localMiddlewareMultipleServersTestRule = "local-middleware-multiple-servers-test
 
 setups :: [LocalMiddlewareTestSetup]
 setups = do
-    let time = 1
+    let rtime = 1
 
     nrServers <- [2, 3, 5, 10]
     let serverFlags = do
@@ -75,7 +75,7 @@ setups = do
             }
 
     return LocalMiddlewareTestSetup
-        { runtime = time
+        { runtime = rtime
         , clientSetups = [msSets]
         , middlewareSetup = mwFlags
         , serverSetups = serverFlags

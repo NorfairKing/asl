@@ -159,9 +159,9 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             copyClientLogsBack clientSetups
 
             -- Prepare the analysis files
-            forM_ clientSetups $ \cSetup@ClientSetup{..} -> do
-                experimentLog <- liftIO $ readFile cLocalLog
-                case parseLog experimentLog of
+            forP_ clientSetups $ \cSetup@ClientSetup{..} -> do
+                mel <- parseLog cLocalLog
+                case mel of
                     Nothing -> fail $ "could not parse logfile: " ++ cLocalLog
                     Just parsedLog -> do
                         let results = ExperimentResults
