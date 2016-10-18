@@ -3,10 +3,10 @@ library(igraph)
 args <- commandArgs(trailingOnly=TRUE)
 
 if (length(args) < 3) {
-  stop("Usage analyze.r <resultsfile> <plotprefix> <outputdir>")
+  stop("Usage analyze_baseline.r <resultsfile> <plotprefix> <outputdir>")
 }
 
-resFile <- args[1] # First argument
+resFile <- args[1]
 filePrefix <- args[2]
 outDir <- args[3]
 outFileTps <- paste(filePrefix, "tps", sep="-")

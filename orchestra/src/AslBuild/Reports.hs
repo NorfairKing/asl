@@ -4,6 +4,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Baseline
+import           AslBuild.Analysis.StabilityTrace
 import           AslBuild.Constants
 import           AslBuild.Utils
 
@@ -71,6 +72,7 @@ report1Rules = do
         need $
             [commonTex, architecturePng, architectureGraphEps, milestone1ReporttexInBuildDir]
             ++ plotsForBaseline remoteBaselineAnalysis
+            ++ plotsForStabilityTrace localStabilityTraceAnalysis
         cmd (Cwd report1Dir)
             "latexmk"
             milestone1Reporttex

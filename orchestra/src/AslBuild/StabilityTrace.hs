@@ -41,11 +41,11 @@ smallLocalStabilityTrace :: StabilityTraceCfg
 smallLocalStabilityTrace = StabilityTraceCfg
     { target = smallLocalStabilityTraceRule
     , csvOutFile = resultsDir </> "small-local-stability-trace-results.csv"
-    , nrServers = 2
-    , nrClients = 2
+    , nrServers = 1
+    , nrClients = 1
     , location = StabilityLocal
-    , runtime = Seconds 10
-    , logLevel = LogFine
+    , runtime = Hours 1
+    , logLevel = LogFiner
     }
 
 localStabilityTracelRule :: String

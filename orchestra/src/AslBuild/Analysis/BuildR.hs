@@ -28,6 +28,7 @@ rlib name =
 rLibs :: [String]
 rLibs =
     [ "igraph"
+    , "caTools"
     , "pkgmaker"
     ]
 

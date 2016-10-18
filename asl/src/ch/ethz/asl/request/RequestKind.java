@@ -6,11 +6,11 @@ public enum RequestKind {
 
   @Override
   public String toString() {
-    switch(this){
+    switch (this) {
       case READ_REQUEST:
-        return "READ";
+        return "read";
       case WRITE_REQUEST:
-        return "WRITE";
+        return "write";
     }
     return super.toString();
   }

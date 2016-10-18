@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Analysis.StabilityTrace where
 
+import           Data.List
+
 import           Development.Shake
 import           Development.Shake.FilePath
 
@@ -21,35 +23,37 @@ data StabilityTraceAnalysisCfg
     , analysisOutDir :: FilePath
     }
 
-plotsFor :: StabilityTraceAnalysisCfg -> [FilePath]
-plotsFor StabilityTraceAnalysisCfg{..} = []
-    -- return $ analysisOutDir </> intercalate "-" [filePrefix, prefix, show nrclients] <.> pngExt
+plotsForStabilityTrace :: StabilityTraceAnalysisCfg -> [FilePath]
+plotsForStabilityTrace StabilityTraceAnalysisCfg{..} = do
+    kind <- ["read", "write"]
+    metric <- ["resp", "tps"]
+    return $ analysisOutDir </> intercalate "-" [filePrefix, kind, metric] <.> pngExt
 
 smallLocalStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
 smallLocalStabilityTraceAnalysis = StabilityTraceAnalysisCfg
     { experiment = smallLocalStabilityTrace
-    , filePrefix = "small-local-stabilityTrace-experiment"
+    , filePrefix = "small-local-stability-trace"
     , analysisOutDir = analysisDir
     }
 
 localStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
 localStabilityTraceAnalysis = StabilityTraceAnalysisCfg
     { experiment = localStabilityTrace
-    , filePrefix = "local-stabilityTrace-experiment"
-    , analysisOutDir = analysisDir
+    , filePrefix = "local-stability-trace"
+    , analysisOutDir = report1PlotsDir
     }
 
 bigLocalStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
 bigLocalStabilityTraceAnalysis = StabilityTraceAnalysisCfg
     { experiment = bigLocalStabilityTrace
-    , filePrefix = "big-local-stabilityTrace-experiment"
+    , filePrefix = "big-local-stability-trace"
     , analysisOutDir = analysisDir
     }
 
 remoteStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
 remoteStabilityTraceAnalysis = StabilityTraceAnalysisCfg
     { experiment = remoteStabilityTrace
-    , filePrefix = "remote-stabilityTrace-experiment"
+    , filePrefix = "remote-stability-trace"
     , analysisOutDir = report1PlotsDir
     }
 
@@ -57,12 +61,12 @@ allStabilityTraceAnalyses :: [StabilityTraceAnalysisCfg]
 allStabilityTraceAnalyses =
     [ smallLocalStabilityTraceAnalysis
     , localStabilityTraceAnalysis
-    , bigLocalStabilityTraceAnalysis
-    , remoteStabilityTraceAnalysis
+    -- , bigLocalStabilityTraceAnalysis
+    -- , remoteStabilityTraceAnalysis
     ]
 
 allStabilityTracePlots :: [FilePath]
-allStabilityTracePlots = concatMap plotsFor allStabilityTraceAnalyses
+allStabilityTracePlots = concatMap plotsForStabilityTrace allStabilityTraceAnalyses
 
 stabilityTraceAnalysisRules :: Rules ()
 stabilityTraceAnalysisRules = do
@@ -70,7 +74,7 @@ stabilityTraceAnalysisRules = do
     mapM_ stabilityTraceAnalysisRuleFor allStabilityTraceAnalyses
 
 stabilityTraceAnalysisRuleFor :: StabilityTraceAnalysisCfg -> Rules ()
-stabilityTraceAnalysisRuleFor bac@StabilityTraceAnalysisCfg{..} = plotsFor bac &%> \_ -> do
+stabilityTraceAnalysisRuleFor bac@StabilityTraceAnalysisCfg{..} = plotsForStabilityTrace bac &%> \_ -> do
     let results = csvOutFile experiment
     resultsExist <- doesFileExist results
 
@@ -78,4 +82,5 @@ stabilityTraceAnalysisRuleFor bac@StabilityTraceAnalysisCfg{..} = plotsFor bac &
 
     need [rBin]
     needRLibs ["pkgmaker"]
+    needRLibs ["caTools"]
     unit $ rScript stabilityTraceAnalysisScript results filePrefix analysisOutDir
