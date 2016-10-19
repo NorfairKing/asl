@@ -6,7 +6,7 @@ module AslBuild.Memaslap.LogParser
 import           Control.Monad
 import           Data.Attoparsec.ByteString
 import           Data.Attoparsec.ByteString.Char8 (decimal, double, endOfLine,
-                                                   isEndOfLine, space)
+                                                   isEndOfLine, signed, space)
 import           Data.ByteString                  (ByteString)
 import qualified Data.ByteString                  as SB
 
@@ -28,7 +28,7 @@ memaslapLog :: Parser MemaslapLog
 memaslapLog = do
     header
     trips <- many' statsTriple
-    totals <- totalStatsT
+    totals <- option Nothing $ Just <$> totalStatsT
     finals <- final
     return MemaslapLog
         { config = ()
@@ -36,6 +36,11 @@ memaslapLog = do
         , totalStatsTrip = totals
         , finalStats = finals
         }
+
+-- stop :: Parser a
+-- stop = do
+--     rest <- takeByteString
+--     error $ show rest
 
 header :: Parser ()
 header = do
@@ -132,11 +137,11 @@ statistics = do
     spaces
     g <- decimal
     spaces
-    mn <- decimal
+    mn <- integer
     spaces
-    mx <- decimal
+    mx <- integer
     spaces
-    av <- decimal
+    av <- integer
     spaces
     st <- double
     spaces
@@ -179,9 +184,9 @@ totalStats = do
     void space
     void $ string "events)"
     endOfLine
-    mn <- titled "Min:" decimal
-    mx <- titled "Max:" decimal
-    av <- titled "Avg:" decimal
+    mn <- titled "Min:" integer
+    mx <- titled "Max:" integer
+    av <- titled "Avg:" integer
     ge <- titled "Geo:" double
     st <- titled "Std:" double
     spaces
@@ -208,6 +213,9 @@ totalStats = do
         r <- p
         endOfLine
         return r
+
+integer :: Integral a => Parser a
+integer = signed decimal
 
 
 final :: Parser FinalStats

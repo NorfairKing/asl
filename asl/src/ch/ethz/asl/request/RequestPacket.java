@@ -27,6 +27,7 @@ public class RequestPacket {
   private Optional<Long> askedTime;
   private Optional<Long> repliedTime;
   private Optional<Long> respondedTime;
+  private boolean alreadyFailed;
   private AtomicInteger replicationCounter;
 
   public RequestPacket(
@@ -42,6 +43,7 @@ public class RequestPacket {
     this.askedTime = Optional.empty();
     this.repliedTime = Optional.empty();
     this.respondedTime = Optional.empty();
+    this.alreadyFailed = false;
   }
 
   public void respond(Response res) throws InterruptedException, ExecutionException, IOException {
@@ -58,12 +60,17 @@ public class RequestPacket {
       throws InterruptedException, ExecutionException {
     log.finest("Produced response: " + res.toString());
 
+    if (!chan.isOpen()) {
+      log.info("Not writing to client connection because it is closed.");
+      return;
+    }
+
     ByteBuffer responseBytes = res.render();
     responseBytes.position(0);
     int bytesWritten2 = chan.write(responseBytes).get();
     log.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
     if (bytesWritten2 <= 0) {
-      log.fine("Failed to write response to client, closing connection.");
+      log.info("Failed to write response to client, closing connection.");
       try {
         chan.close();
       } catch (IOException e) {
@@ -147,6 +154,14 @@ public class RequestPacket {
       return;
     }
     respondedTime = Optional.of(now());
+  }
+
+  public void setFailed() {
+    alreadyFailed = true;
+  }
+
+  public boolean hasAlreadyFailed() {
+    return alreadyFailed;
   }
 
   public Request getRequest() {

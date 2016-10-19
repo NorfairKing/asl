@@ -115,6 +115,7 @@ public class AcceptCompletionHandler
         initialInput.doTheRead(this);
       } else {
         try {
+          log.info("Got " + bytesRead + " from client, closing the connection.");
           chan.close();
         } catch (IOException e) {
           e.printStackTrace();
@@ -125,6 +126,7 @@ public class AcceptCompletionHandler
     @Override
     public void failed(Throwable exc, InitialInput initialInput) {
       try {
+        log.info("Initial input failed, closing the connection.");
         initialInput.chan.close();
       } catch (IOException e) {
         e.printStackTrace();

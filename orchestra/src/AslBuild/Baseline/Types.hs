@@ -58,51 +58,62 @@ data ExperimentResults
 instance ToJSON   ExperimentResults
 instance FromJSON ExperimentResults
 
-resultsCsv :: [ExperimentResults] -> LB.ByteString
+data ExperimentLogLine
+    = ExperimentLogLine
+    { eNrClients   :: Int
+    , eClientIndex :: Int
+    , eRep         :: Int
+    , eThreads     :: Int
+    , eConcurrency :: Int
+    , eAvg         :: Int
+    , eStd         :: Double
+    , eTps         :: Int
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON ExperimentLogLine
+instance FromJSON ExperimentLogLine
+
+resultsCsv :: [ExperimentLogLine] -> LB.ByteString
 resultsCsv = encodeByName $ header
     [ "nrClients"
     , "clientIndex"
     , "rep"
     , "threads"
     , "concurrency"
-    , "overwrite"
-    , "time"
     , "avg"
     , "std"
     , "tps"
     ]
 
-instance ToNamedRecord ExperimentResults where
-    toNamedRecord ExperimentResults{..} =
-        let BaselineExperimentSetup{..} = erSetup
-            ClientSetup{..} = erClientSetup
-            MemaslapSettings{..} = cMemaslapSettings
-            MemaslapFlags{..} = msFlags
-            SimplifiedStats{..} = simplifyStats erMemaslapLog
-        in namedRecord
-            [ "nrClients" .= length clientSetups
-            , "clientIndex" .= erClientIndex
-            , "rep" .= repetition
-            , "threads" .= msThreads
-            , "concurrency" .= msConcurrency
-            , "overwrite" .= msOverwrite
-            , "time" .= msTimeUnsafe msWorkload
-            , "avg" .= simpleAvg
-            , "std" .= simpleStd
-            , "tps" .= simpleTps
+instance ToNamedRecord ExperimentLogLine where
+    toNamedRecord ExperimentLogLine{..} =
+        namedRecord
+            [ "nrClients" .= eNrClients
+            , "clientIndex" .= eClientIndex
+            , "rep" .= eRep
+            , "threads" .= eThreads
+            , "concurrency" .= eConcurrency
+            , "avg" .= eAvg
+            , "std" .= eStd
+            , "tps" .= eTps
             ]
 
-data SimplifiedStats
-    = SimplifiedStats
-    { simpleAvg :: Int
-    , simpleStd :: Double
-    , simpleTps :: Int
-    }
 
-simplifyStats :: MemaslapLog -> SimplifiedStats
-simplifyStats MemaslapLog{..} = SimplifiedStats
-    { simpleAvg = totalAvg
-    , simpleStd = totalStd
-    , simpleTps = finalTps finalStats
-    }
-  where TotalStats{..} = totalBothStats totalStatsTrip
+makeLogLine :: ExperimentResults -> Maybe ExperimentLogLine
+makeLogLine ExperimentResults{..} = do
+    let BaselineExperimentSetup{..} = erSetup
+        ClientSetup{..} = erClientSetup
+        MemaslapSettings{..} = cMemaslapSettings
+        MemaslapFlags{..} = msFlags
+        MemaslapLog{..} = erMemaslapLog
+    TotalStats{..} <- totalBothStats <$> totalStatsTrip
+    return ExperimentLogLine
+        { eNrClients = length clientSetups
+        , eClientIndex = erClientIndex
+        , eRep = repetition
+        , eThreads = msThreads
+        , eConcurrency = msConcurrency
+        , eAvg = totalAvg
+        , eStd = totalStd
+        , eTps = finalTps finalStats
+        }

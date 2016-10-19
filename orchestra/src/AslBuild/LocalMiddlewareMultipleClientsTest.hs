@@ -24,19 +24,9 @@ setups = do
             , memcachedAsDaemon = False
             }
 
-    let mwFlags = MiddlewareFlags
-            { mwIp = localhostIp
-            , mwPort = 11210
-            , mwNrThreads = 1
-            , mwReplicationFactor = 1
-            , mwServers = [RemoteServerUrl localhostIp $ memcachedPort serverFlags]
-            , mwVerbosity = LogFine
-            , mwTraceFile = tmpDir </> localMiddlewareMultipleClientsTestRule ++ "-trace" <.> csvExt
-            }
-
-    nrClients <- [2, 3, 5, 10]
-    keySize <- [128]
-    valueSize <- [1024]
+    nrClients <- [2 .. 10]
+    keySize <- [16]
+    valueSize <- [128]
     threads <- [2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [2]
@@ -51,6 +41,18 @@ setups = do
             , show concurrency
             , show setProp
             ]
+
+    let mwFlags = MiddlewareFlags
+            { mwIp = localhostIp
+            , mwPort = 11210
+            , mwNrThreads = 1
+            , mwReplicationFactor = 1
+            , mwServers = [RemoteServerUrl localhostIp $ memcachedPort serverFlags]
+            , mwVerbosity = LogFine
+            , mwTraceFile = tmpDir
+                </> localMiddlewareMultipleClientsTestRule
+                </> localMiddlewareMultipleClientsTestRule ++ "-trace-" ++ signature <.> csvExt
+            }
 
     let mconfig = MemaslapConfig
             { keysizeDistributions = [Distribution keySize keySize 1]

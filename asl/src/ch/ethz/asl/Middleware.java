@@ -9,6 +9,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Middleware {
@@ -56,7 +57,8 @@ public class Middleware {
       return;
     } // Don't shut down twice.
     shuttingDown = true;
-    log.fine("Shutting down entire middleware.");
+    log.setLevel(Level.INFO);
+    log.info("Shutting down entire middleware.");
   }
 
   public static boolean isShuttingDown() {

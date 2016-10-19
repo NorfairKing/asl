@@ -38,13 +38,13 @@ public class ServerWriteHandler {
   }
 
   public void handle(final RequestPacket req) throws InterruptedException {
-    log.finest(
+    log.finer(
         "Putting request on write queue for server "
             + serverAddress
             + ", now sized "
             + writequeue.size());
     writequeue.put(req);
-    log.fine(
+    log.finer(
         "Put request on write queue, for server "
             + serverAddress
             + ", now sized "
@@ -64,12 +64,12 @@ public class ServerWriteHandler {
 
     private void connect() {
       SocketAddress address = serverAddress.getSocketAddress();
-      log.fine("Writer connecting to: " + address);
+      log.finer("Writer connecting to: " + address);
       serverConnection = null;
       try {
         serverConnection = AsynchronousSocketChannel.open();
         serverConnection.connect(address).get();
-        log.fine("Writer connected to: " + address);
+        log.finer("Writer connected to: " + address);
       } catch (IOException | InterruptedException | ExecutionException e) {
         e.printStackTrace();
         shutdown();
@@ -85,7 +85,7 @@ public class ServerWriteHandler {
     public void run() {
       while (true) {
         if (ServerWriteHandler.this.serverHandler.isShuttingDown()) {
-          log.fine("Shutting down write worker for server: " + serverAddress.getSocketAddress());
+          log.info("Shutting down write worker for server: " + serverAddress.getSocketAddress());
           return; // Stop
         }
         handleOneRequest();
@@ -95,13 +95,13 @@ public class ServerWriteHandler {
     private void handleOneRequest() {
       RequestPacket packet = null;
       try {
-        log.fine(
+        log.finer(
             "Dequeuing request from writequeue for server "
                 + serverAddress
                 + ", now sized "
                 + writequeue.size());
         packet = writequeue.take();
-        log.fine(
+        log.finer(
             "Dequeud request from writequeue, for server "
                 + serverAddress
                 + ", now sized "
@@ -109,7 +109,7 @@ public class ServerWriteHandler {
         packet.setDequeued();
       } catch (InterruptedException e) {
         e.printStackTrace();
-        log.fine(
+        log.severe(
             "Write worker for server: "
                 + serverAddress.getSocketAddress()
                 + " was interrupted while waiting for requests.");
@@ -121,7 +121,7 @@ public class ServerWriteHandler {
         sentqueue.put(packet);
       } catch (InterruptedException e) {
         e.printStackTrace();
-        log.fine(
+        log.severe(
             "Write worker for server: "
                 + serverAddress.getSocketAddress()
                 + " was interrupted adding a request to the sent queue.");
@@ -137,16 +137,16 @@ public class ServerWriteHandler {
         bytesWritten = serverConnection.write(rbuf).get();
       } catch (InterruptedException | ExecutionException e) {
         e.printStackTrace();
-        log.fine("Exception while trying to write to server " + serverAddress.getSocketAddress());
+        log.severe("Exception while trying to write to server " + serverAddress);
         shutdown();
         return;
       }
+      log.finer("Wrote " + bytesWritten + " bytes to server " + serverAddress);
       if (bytesWritten <= 0) {
-        log.fine("Wrote " + bytesWritten + " bytes to server " + serverAddress.getSocketAddress());
+        log.severe("Wrote " + bytesWritten + " bytes to server " + serverAddress);
         shutdown();
         return;
       }
-      log.finest("Sent " + bytesWritten + " to server:");
       log.finest(new String(rbuf.array()));
     }
   }
@@ -161,19 +161,19 @@ public class ServerWriteHandler {
     @Override
     public void completed(Integer bytesRead, ByteBuffer bbuf) {
       if (ServerWriteHandler.this.serverHandler.isShuttingDown()) {
-        log.fine(
+        log.info(
             "Shutting down writer read completion handler for server: "
                 + serverAddress.getSocketAddress());
         return;
       }
 
+      log.finer("Read " + bytesRead + " bytes from server " + serverAddress);
       if (bytesRead <= 0) {
-        log.fine("Read " + bytesRead + " bytes from server " + serverAddress.getSocketAddress());
+        log.severe("Read " + bytesRead + " bytes from server " + serverAddress);
         shutdown();
         return;
       }
-      log.finest("Input from Server:");
-      log.finest(bytesRead + " bytes");
+      log.finest(new String(bbuf.array()));
       byte[] dst = new byte[bytesRead];
       bbuf.position(0);
       bbuf.get(dst);
@@ -188,7 +188,7 @@ public class ServerWriteHandler {
           packet = sentqueue.take();
         } catch (InterruptedException e) {
           e.printStackTrace();
-          log.fine(
+          log.severe(
               "Write worker for server: "
                   + serverAddress.getSocketAddress()
                   + " was interrupted while taking packets out of the sent queue.");

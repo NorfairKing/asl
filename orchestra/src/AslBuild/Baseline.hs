@@ -171,6 +171,13 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                                 , erClientIndex = cIndex
                                 }
                         liftIO $ LB.writeFile cResultsFile $ A.encodePretty results
+                        case makeLogLine results of
+                            Just _ -> return ()
+                            Nothing -> fail $ unwords
+                                [ "Could not make log line from experiment results"
+                                , cResultsFile
+                                , ", total stats missing?"
+                                ]
 
             -- Make sure no memcached servers are running anymore
             shutdownServers [serverSetup]
@@ -179,7 +186,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
 
         let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles
-        case mapM A.decode' explogs of
+        case mapM (makeLogLine <=< A.decode') explogs of
             Nothing -> fail "Could not parse result files."
             Just results -> liftIO $ LB.writeFile csvOutFile $ resultsCsv results
 

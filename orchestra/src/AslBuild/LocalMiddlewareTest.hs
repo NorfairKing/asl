@@ -41,24 +41,22 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
     serverPHs <- forM serverSetups $ \mcfs ->
         cmd memcachedBin $ memcachedArgs mcfs
 
-    waitMs 100
+    waitMs 500
 
     middlePH <- cmd javaCmd "-jar" outputJarFile $ middlewareArgs middlewareSetup
 
-    waitMs 100
+    waitMs 500
 
     clientPHs <- forM clientSetups $ \mss ->
         cmd memaslapBin $ memaslapArgs $ msFlags mss
 
     let goOn = do
             wait runtime
-            putLoud "Done waiting, killing processes!"
+            putLoud "Done waiting!"
 
-    actionFinally goOn $ do
-        mapM_ terminateProcess clientPHs
-        terminateProcess middlePH
-        mapM_ terminateProcess serverPHs
+    actionFinally goOn $ return ()
 
+    --liftIO $ mapM_ terminateProcess clientPHs
     forM_ (indexed clientPHs) $ \(ix, clientPH) -> do
         sec <- liftIO $ waitForProcess clientPH
         case sec of
@@ -70,6 +68,7 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
                 ]
             _ -> return ()
 
+    liftIO $ terminateProcess middlePH
     mec <- liftIO $ waitForProcess middlePH
     case mec of
         ExitFailure 143 -> return () -- Terminated by orc, good!
@@ -79,6 +78,7 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
             ]
         _ -> return ()
 
+    liftIO $ mapM_ terminateProcess serverPHs
     forM_ (indexed serverPHs) $ \(ix, serverPH) -> do
         sec <- liftIO $ waitForProcess serverPH
         case sec of

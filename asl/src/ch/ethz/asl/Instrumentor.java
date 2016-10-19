@@ -5,6 +5,7 @@ import ch.ethz.asl.request.RequestPacket;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -51,23 +52,33 @@ public class Instrumentor {
     if (!checkAndIncrement(packet)) {
       return;
     }
+    StringBuilder sb = new StringBuilder();
+    if (packet.hasAlreadyFailed()) {
+      sb.append("FAILED\n");
+    } else {
+      try {
+        sb.append(packet.getRequest().getKind().toString());
+        sb.append(COMMA);
+        sb.append(packet.getReceivedAt());
+        sb.append(COMMA);
+        sb.append(packet.getParsedAt());
+        sb.append(COMMA);
+        sb.append(packet.getEnqueuedAt());
+        sb.append(COMMA);
+        sb.append(packet.getDequeuedAt());
+        sb.append(COMMA);
+        sb.append(packet.getAskedAt());
+        sb.append(COMMA);
+        sb.append(packet.getRepliedAt());
+        sb.append(COMMA);
+        sb.append(packet.getRespondedAt());
+        sb.append(NEWLINE);
+      } catch (NoSuchElementException e) {
+        sb = new StringBuilder("FAILED\n");
+      }
+    }
     writerLock.lock();
-    writer.write(packet.getRequest().getKind().toString());
-    writer.write(COMMA);
-    writer.write(Long.toString(packet.getReceivedAt()));
-    writer.write(COMMA);
-    writer.write(Long.toString(packet.getParsedAt()));
-    writer.write(COMMA);
-    writer.write(Long.toString(packet.getEnqueuedAt()));
-    writer.write(COMMA);
-    writer.write(Long.toString(packet.getDequeuedAt()));
-    writer.write(COMMA);
-    writer.write(Long.toString(packet.getAskedAt()));
-    writer.write(COMMA);
-    writer.write(Long.toString(packet.getRepliedAt()));
-    writer.write(COMMA);
-    writer.write(Long.toString(packet.getRespondedAt()));
-    writer.write(NEWLINE);
+    writer.write(sb.toString());
     writer.flush();
     writerLock.unlock();
   }

@@ -63,7 +63,7 @@ data MemaslapLog
     = MemaslapLog
     { config         :: () -- Fill in later if needed
     , triples        :: [StatsTriple]
-    , totalStatsTrip :: TotalStatsTrip
+    , totalStatsTrip :: Maybe TotalStatsTrip
     , finalStats     :: FinalStats
     } deriving (Show, Eq, Generic)
 
