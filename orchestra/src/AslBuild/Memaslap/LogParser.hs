@@ -4,11 +4,10 @@ module AslBuild.Memaslap.LogParser
     ) where
 
 import           Control.Monad
-import           Data.Attoparsec.ByteString
-import           Data.Attoparsec.ByteString.Char8 (decimal, double, endOfLine,
-                                                   isEndOfLine, signed, space)
-import           Data.ByteString                  (ByteString)
-import qualified Data.ByteString                  as SB
+import           Text.Parsec
+import           Text.Parsec.Language
+import           Text.Parsec.String
+import qualified Text.Parsec.Token       as Token
 
 import           Development.Shake
 
@@ -17,17 +16,17 @@ import           AslBuild.Memaslap.Types
 parseLog :: FilePath -> Action (Maybe MemaslapLog)
 parseLog logFile = do
     need [logFile]
-    contents <- liftIO $ SB.readFile logFile
-    case parseOnly memaslapLog contents of
+    eer <- liftIO $ parseFromFile memaslapLog logFile
+    case eer of
         Left err -> do
-            putLoud $ "Error parsing log: " ++ err
+            putLoud $ "Error parsing log: " ++ show err
             return Nothing
         Right res -> return $ Just res
 
 memaslapLog :: Parser MemaslapLog
 memaslapLog = do
     header
-    trips <- many' statsTriple
+    trips <- many statsTriple
     totals <- option Nothing $ Just <$> totalStatsT
     finals <- final
     return MemaslapLog
@@ -36,11 +35,6 @@ memaslapLog = do
         , totalStatsTrip = totals
         , finalStats = finals
         }
-
--- stop :: Parser a
--- stop = do
---     rest <- takeByteString
---     error $ show rest
 
 header :: Parser ()
 header = do
@@ -52,37 +46,36 @@ header = do
     lineThatStartsWith "set proportion: "
     lineThatStartsWith "get proportion: "
 
-lineThatStartsWith :: ByteString -> Parser ()
+lineThatStartsWith :: String -> Parser ()
 lineThatStartsWith str = do
     void $ string str
-    skipWhile (not . isEndOfLine)
-    endOfLine
+    void $ anyChar `manyTill` try endOfLine
 
 ansiThingy :: Parser ()
 ansiThingy = do
-    void $ word8 0x1b
-    void $ word8 0x5b
-    void $ word8 0x31
-    void $ word8 0x3b
-    void $ word8 0x31
-    void $ word8 0x48
-    void $ word8 0x1b
-    void $ word8 0x5b
-    void $ word8 0x32
-    void $ word8 0x4a
-    endOfLine
+    void $ char '\ESC'
+    void $ char '['
+    void $ char '1'
+    void $ char ';'
+    void $ char '1'
+    void $ char 'H'
+    void $ char '\ESC'
+    void $ char '['
+    void $ char '2'
+    void $ char 'J'
+    void endOfLine
 
 statsTriple :: Parser StatsTriple
 statsTriple = do
     ansiThingy
     void $ string "Get Statistics"
-    endOfLine
+    void endOfLine
     gl <- statisticsLog
     void $ string "Set Statistics"
-    endOfLine
+    void endOfLine
     sl <- statisticsLog
     void $ string "Total Statistics"
-    endOfLine
+    void endOfLine
     tl <- statisticsLog
     return StatsTriple
         { getStats = gl
@@ -118,7 +111,6 @@ statisticsLog = do
     ps <- statistics
     void $ string "Global"
     gs <- statistics
-    endOfLine
     return StatisticsLog
         { periodStats = ps
         , globalStats = gs
@@ -126,27 +118,16 @@ statisticsLog = do
 
 statistics :: Parser Statistics
 statistics = do
-    spaces
-    t <- decimal
-    spaces
-    o <- decimal
-    spaces
-    tp <- decimal
-    spaces
+    t <- integer
+    o <- integer
+    tp <- integer
     n <- double
-    spaces
-    g <- decimal
-    spaces
+    g <- integer
     mn <- integer
-    spaces
     mx <- integer
-    spaces
     av <- integer
-    spaces
-    st <- double
-    spaces
-    ge <- double
-    endOfLine
+    st <- doubleOrNan
+    ge <- doubleOrNan
     return Statistics
         { time = t
         , ops = o
@@ -160,8 +141,11 @@ statistics = do
         , geoDist = ge
         }
 
-spaces :: Parser ()
-spaces = void $ many1' space
+doubleOrNan :: Parser Double
+doubleOrNan =
+    try (string "nan" >> spaces >> return (-1))
+    <|> try (string "-nan" >> spaces >> return (-1))
+    <|> double
 
 totalStatsT :: Parser TotalStatsTrip
 totalStatsT = do
@@ -180,10 +164,9 @@ totalStatsT = do
 totalStats :: Parser TotalStats
 totalStats = do
     void $ string "("
-    es <- decimal
-    void space
+    es <- integer
     void $ string "events)"
-    endOfLine
+    void endOfLine
     mn <- titled "Min:" integer
     mx <- titled "Max:" integer
     av <- titled "Avg:" integer
@@ -191,10 +174,10 @@ totalStats = do
     st <- titled "Std:" double
     spaces
     void $ string "Log2 Dist:"
-    endOfLine
-    void $ manyTill anyWord8 $ do
-        endOfLine -- An empty line
-        endOfLine
+    void endOfLine
+    void $ manyTill anyChar $ try $ do
+        void endOfLine -- An empty line
+        void endOfLine
     return TotalStats
         { totalEvents = es
         , totalMin = mn
@@ -205,18 +188,12 @@ totalStats = do
         , totalLog2Dist = ()
         }
   where
-    titled :: ByteString -> Parser a -> Parser a
+    titled :: String -> Parser a -> Parser a
     titled s p = do
         spaces
         void $ string s
         spaces
-        r <- p
-        endOfLine
-        return r
-
-integer :: Integral a => Parser a
-integer = signed decimal
-
+        p
 
 final :: Parser FinalStats
 final = do
@@ -226,22 +203,20 @@ final = do
     wb <- titled "written_bytes:"
     rb <- titled "read_bytes:"
     ob <- titled "object_bytes:"
-    endOfLine
     void $ string "Run time: "
     void double
-    void anyWord8
+    void anyChar
     spaces
     void $ string "Ops:"
     spaces
-    os <- decimal
+    os <- integer
     spaces
     void $ string "TPS:"
     spaces
-    ts <- decimal
+    ts <- integer
     spaces
     void $ string "Net_rate:"
-    skipWhile (not . isEndOfLine)
-    endOfLine
+    void $ anyChar `manyTill` try endOfLine
     return FinalStats
         { finalGets = cg
         , finalSets = cs
@@ -255,10 +230,19 @@ final = do
         , finalNetRate = ()
         }
   where
-    titled :: ByteString -> Parser Int
+    titled :: String -> Parser Int
     titled s = do
         void $ string s
-        spaces
-        r <- decimal
-        endOfLine
-        return r
+        void space
+        integer
+
+integer :: Integral a => Parser a
+integer = fromIntegral <$> Token.integer (Token.makeTokenParser emptyDef)
+
+double :: Parser Double
+double = Token.float $ Token.makeTokenParser emptyDef
+
+-- stop :: Parser a
+-- stop = do
+--     rest <- getInput
+--     error $ show rest
