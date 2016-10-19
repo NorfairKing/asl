@@ -115,7 +115,7 @@ public class AcceptCompletionHandler
         initialInput.doTheRead(this);
       } else {
         try {
-          log.info("Got " + bytesRead + " from client, closing the connection.");
+          log.fine("Got " + bytesRead + " from client, closing the connection.");
           chan.close();
         } catch (IOException e) {
           e.printStackTrace();

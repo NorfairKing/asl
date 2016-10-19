@@ -41,11 +41,11 @@ setups = do
             }
 
     nrClients <- [2, 8]
-    keySize <- [16, 128]
-    valueSize <- [16, 1024]
-    threads <- [2, 16]
+    keySize <- [16, 16]
+    valueSize <- [128, 1024]
+    threads <- [1, 2]
     -- Concurrency must be a multiple of thread count.
-    concurrency <- (* threads) <$> [2, 16]
+    concurrency <- (* threads) <$> [16, 64]
 
     setProp <- [0.1]
     nrRequests <- [256, 512]
