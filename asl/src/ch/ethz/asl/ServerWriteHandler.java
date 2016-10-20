@@ -15,7 +15,6 @@ import java.nio.channels.CompletionHandler;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
 import static ch.ethz.asl.Middleware.BUFFER_SIZE;

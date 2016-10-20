@@ -158,7 +158,7 @@ public class AcceptCompletionHandler
   }
 
   private static int pickServerIndex(final List<ServerHandler> servers, final Request req) {
-    int hash = req.hashCode();
+    int hash = req.keyHash();
     log.finest("hash of request: " + Integer.toString(req.hashCode()));
     int nrServers = servers.size();
     int serverIndex = mod(hash, nrServers);

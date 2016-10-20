@@ -4,7 +4,10 @@ module AslBuild.Client
     , module AslBuild.Client.Types
     ) where
 
+import           System.Directory
+
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.Client.Types
 import           AslBuild.CommonActions
@@ -35,5 +38,8 @@ startClientsOn clientSetups =
 
 
 copyClientLogsBack :: [ClientSetup] -> Action ()
-copyClientLogsBack clientSetups = phPar clientSetups $ \ClientSetup{..} ->
-    rsyncFrom cRemoteLogin cRemoteLog cLocalLog
+copyClientLogsBack clientSetups = do
+    forP_ clientSetups $ \ClientSetup{..} ->
+        liftIO $ createDirectoryIfMissing True $ takeDirectory cLocalLog
+    phPar clientSetups $ \ClientSetup{..} ->
+        rsyncFrom cRemoteLogin cRemoteLog cLocalLog

@@ -5,6 +5,7 @@ import           Control.Monad
 import           Data.List
 import           Data.Maybe
 import           System.Directory
+import qualified System.Directory           as D
 import           System.Process
 
 import           Development.Shake
@@ -71,7 +72,11 @@ localLogTestRules :: Rules ()
 localLogTestRules = do
     let listDirAbs :: FilePath -> IO [FilePath]
         listDirAbs dir = map (dir </>) <$> listDirectory dir
-    testLogFiles <- liftIO $ listDirAbs "test_resources/memaslap-logs"
+    testLogFiles <- do
+        dde <- liftIO $ D.doesDirectoryExist "test_resources/memaslap-logs"
+        if dde
+        then liftIO $ listDirAbs "test_resources/memaslap-logs"
+        else return []
 
     forM_ testLogFiles $ \file ->
         regressionLogTestTarget file ~> do

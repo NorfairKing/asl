@@ -27,6 +27,10 @@ public abstract class Request {
     return this.render().equals(request.render());
   }
 
+  public int keyHash() {
+    return Arrays.hashCode(this.key);
+  }
+
   @Override
   public int hashCode() {
     return Arrays.hashCode(this.render().array());

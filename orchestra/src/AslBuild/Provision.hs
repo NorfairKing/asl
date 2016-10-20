@@ -2,6 +2,7 @@
 module AslBuild.Provision where
 
 import           Control.Monad
+import           Data.List
 import           System.FilePath
 import           System.Process
 
@@ -15,7 +16,6 @@ import           AslBuild.Orc
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm
-import           AslBuild.Vm.Types
 
 provisionRules :: Rules ()
 provisionRules = do
@@ -93,6 +93,9 @@ provisionVmsRules = do
     provisionVmsMemaslapRule ~> (getAllVmsToProvision >>= provisionVmsMemaslap)
     provisionVmsMiddlewareRule ~> (getAllVmsToProvision >>= provisionVmsMiddleware)
 
+provisionVmsFromData :: [VmData] -> Action ()
+provisionVmsFromData = provisionVms . nub . map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmPublicIp)
+
 provisionVms :: [RemoteLogin] -> Action ()
 provisionVms rls = do
     provisionVmsGlobalPackages rls
@@ -103,8 +106,10 @@ provisionVms rls = do
 
 provisionVmsGlobalPackages :: [RemoteLogin] -> Action ()
 provisionVmsGlobalPackages rls = do
-    phPar rls $ \rl -> overSsh rl "yes | sudo apt-get update"
-    phPar rls $ \rl -> overSsh rl "yes | sudo apt-get install build-essential htop libevent-dev"
+    phPar rls $ \rl -> overSsh rl "sudo add-apt-repository ppa:openjdk-r/ppa -y"
+    phPar rls $ \rl -> overSsh rl "sudo apt-get update -y"
+    phPar rls $ \rl -> overSsh rl "sudo apt-get install -y build-essential htop libevent-dev openjdk-8-jdk"
+    phPar rls $ \rl -> overSsh rl "sudo update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-amd64"
 
 provisionVmsOrc :: [RemoteLogin] -> Action ()
 provisionVmsOrc rls = do
@@ -119,7 +124,7 @@ provisionVmsMemaslap :: [RemoteLogin] -> Action ()
 provisionVmsMemaslap = (`phPar` (`orcRemotely` remoteMemaslap))
 
 provisionVmsMiddleware :: [RemoteLogin] -> Action ()
-provisionVmsMiddleware = (`phPar` (\rl -> rsyncTo rl outputJarFile remoteMiddleware))
+provisionVmsMiddleware rls = phPar rls (\rl -> rsyncTo rl outputJarFile remoteMiddleware)
 
 orcRemotely :: CmdResult r => RemoteLogin -> String -> Action r
 orcRemotely rl target = overSsh rl $ unwords [orcBin, "build", target]

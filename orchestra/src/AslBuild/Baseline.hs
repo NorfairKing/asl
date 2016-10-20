@@ -23,7 +23,6 @@ import           AslBuild.Server
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm
-import           AslBuild.Vm.Types
 
 baselineExperimentRules :: Rules ()
 baselineExperimentRules = do
@@ -121,14 +120,9 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                 Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
                 Right exps -> return exps
 
+        need [provisionLocalhostRule]
         startVms vmsNeeded
-        case baselineLocation of
-            BaselineLocal -> need [provisionLocalhostRule]
-            BaselineRemote -> do
-                -- TODO, only start the Vms we use.
-                provisionVms $ nub $ map cRemoteLogin $ concatMap clientSetups experiments
-                provisionVms $ nub $ map (sRemoteLogin . serverSetup) experiments
-
+        provisionVmsFromData vmsNeeded
 
         -- Intentionally no parallelism here.
         -- We need to do experiments one at a time.

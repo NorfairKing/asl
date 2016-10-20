@@ -12,6 +12,7 @@ data VmData
     , vmPrivateIp :: String
     , vmAdmin     :: String
     , vmFullUrl   :: String
+    , vmType      :: String
     } deriving (Show, Eq, Generic)
 
 instance ToJSON VmData
@@ -23,6 +24,8 @@ instance FromJSON VmDataInAzureFormat where
     parseJSON (Object o) = do
         name <- o .: "name"
         (Object osp) <- o .: "osProfile"
+        (Object hp) <- o .: "hardwareProfile"
+        tp <- hp .: "vmSize"
         admin <- osp .: "adminUsername"
         (Object np) <- o .: "networkProfile"
         [Object ni] <- np .: "networkInterfaces"
@@ -41,6 +44,7 @@ instance FromJSON VmDataInAzureFormat where
             , vmPrivateIp = privip
             , vmAdmin = admin
             , vmFullUrl = fullUrl
+            , vmType = tp
             }
 
     parseJSON _ = mempty

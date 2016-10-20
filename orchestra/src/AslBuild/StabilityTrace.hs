@@ -4,11 +4,12 @@ module AslBuild.StabilityTrace
     , module AslBuild.StabilityTrace.Types
     ) where
 
+import           Control.Arrow
 import           Control.Concurrent
 import           Control.Monad
 import qualified Data.Aeson.Encode.Pretty      as A
 import qualified Data.ByteString.Lazy          as LB
-import           Data.List
+import           System.Directory
 import           System.Process
 
 import           Development.Shake
@@ -35,6 +36,8 @@ stabilityTraceRules = do
     generateTargetFor smallLocalStabilityTrace
     generateTargetFor localStabilityTrace
     generateTargetFor bigLocalStabilityTrace
+    generateTargetFor smallRemoteStabilityTrace
+    generateTargetFor remoteStabilityTrace
 
 smallLocalStabilityTraceRule :: String
 smallLocalStabilityTraceRule = "small-local-stability-trace"
@@ -57,19 +60,19 @@ localStabilityTrace :: StabilityTraceCfg
 localStabilityTrace = StabilityTraceCfg
     { target = localStabilityTracelRule
     , csvOutFile = resultsDir </> "local-stability-trace-results.csv"
-    , nrServers = 3
-    , nrClients = 3
+    , nrServers = nrServers remoteStabilityTrace
+    , nrClients = nrClients remoteStabilityTrace
     , location = StabilityLocal
-    , runtime = Hours 1
+    , runtime = runtime remoteStabilityTrace
     , logLevel = LogOff
     }
 
-bigLocalStabilityTracelRule :: String
-bigLocalStabilityTracelRule = "big-local-stability-trace"
+bigLocalStabilityTraceRule :: String
+bigLocalStabilityTraceRule = "big-local-stability-trace"
 
 bigLocalStabilityTrace :: StabilityTraceCfg
 bigLocalStabilityTrace = StabilityTraceCfg
-    { target = bigLocalStabilityTracelRule
+    { target = bigLocalStabilityTraceRule
     , csvOutFile = resultsDir </> "big-local-stability-trace-results.csv"
     , nrServers = 8
     , nrClients = 32
@@ -78,12 +81,27 @@ bigLocalStabilityTrace = StabilityTraceCfg
     , logLevel = LogOff
     }
 
-remoteStabilityTracelRule :: String
-remoteStabilityTracelRule = "remote-stability-trace"
+smallRemoteStabilityTraceRule :: String
+smallRemoteStabilityTraceRule = "small-remote-stability-trace"
+
+smallRemoteStabilityTrace :: StabilityTraceCfg
+smallRemoteStabilityTrace = StabilityTraceCfg
+    { target = smallRemoteStabilityTraceRule
+    , csvOutFile = resultsDir </> "small-remote-stability-trace-results.csv"
+    , nrServers = 3
+    , nrClients = 3
+    , location = StabilityRemote
+    , runtime = Seconds 10
+    , logLevel = LogOff
+    }
+
+
+remoteStabilityTraceRule :: String
+remoteStabilityTraceRule = "remote-stability-trace"
 
 remoteStabilityTrace :: StabilityTraceCfg
 remoteStabilityTrace = StabilityTraceCfg
-    { target = remoteStabilityTracelRule
+    { target = remoteStabilityTraceRule
     , csvOutFile = resultsDir </> "remote-stability-trace-results.csv"
     , nrServers = 3
     , nrClients = 3
@@ -99,17 +117,11 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
 
     csvOutFile %> \_ -> do
         need [memcachedBin, memaslapBin, outputJarFile]
-        StabilityTraceSetup{..} <- getSetup stc
+        (StabilityTraceSetup{..}, vmsNeeded) <- getSetup stc
 
-        case location of
-            StabilityLocal -> need [provisionLocalhostRule]
-            StabilityRemote -> do
-                -- TODO, only start the Vms we use.
-                need [startVmsRule]
-                provisionVms $ nub $ map cRemoteLogin clientSetups
-                provisionVms [mRemoteLogin middleSetup]
-                provisionVms $ nub $ map sRemoteLogin serverSetups
-
+        need [provisionLocalhostRule]
+        -- startVms vmsNeeded
+        provisionVmsFromData vmsNeeded
 
         -- Get the clients configs set up
         setupClientConfigs clientSetups
@@ -118,13 +130,13 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
         startServersOn serverSetups
 
         -- Wait for the servers to get started
-        waitMs 250
+        wait 1
 
         -- Start the middleware
         middlePh <- startMiddleOn middleSetup
 
         -- Wait for the middleware to get started
-        waitMs 250
+        wait 1
 
         -- Start the clients
         startClientsOn clientSetups
@@ -145,6 +157,9 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
         -- Copy the client logs back
         copyClientLogsBack clientSetups
 
+        -- Stop the vms
+        -- stopVms vmsNeeded
+
         -- Prepare analysis files for the client logs.
         forP_ clientSetups $ \cSetup@ClientSetup{..} -> do
             mel <- parseLog cLocalLog
@@ -156,7 +171,9 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
                             , sterMemaslapLog = parsedLog
                             , sterClientIndex = cIndex
                             }
-                    liftIO $ LB.writeFile cResultsFile $ A.encodePretty results
+                    liftIO $ do
+                        createDirectoryIfMissing True $ takeDirectory cResultsFile
+                        LB.writeFile cResultsFile $ A.encodePretty results
 
 waitNicely :: Int -> Action ()
 waitNicely is = do
@@ -172,20 +189,27 @@ waitNicely is = do
             liftIO $ threadDelay $ period * 1000 * 1000
             go $ s - period
 
-getSetup :: StabilityTraceCfg -> Action StabilityTraceSetup
+getSetup :: StabilityTraceCfg -> Action (StabilityTraceSetup, [VmData])
 getSetup StabilityTraceCfg{..} = do
-    (cs, [m], ss) <- case location of
+    (cls, [mid], sers, vmsNeeded) <- case location of
         StabilityLocal -> do
-            let local = RemoteLogin Nothing localhostIp
-            let locals = repeat local
-            return (take nrClients locals, take 1 locals, take nrServers locals)
-        _ -> fail "failed to get vm setups"
+            let localLogin = RemoteLogin Nothing localhostIp
+            let localPrivate = localhostIp
+            let localTup = (localLogin, localPrivate)
+            let locals = repeat localTup
+            return (take nrClients locals, take 1 locals, take nrServers locals, [])
+        StabilityRemote -> do
+            (cs, ms, ss) <- getVms nrClients 1 nrServers
+            let login VmData{..} = RemoteLogin (Just vmAdmin) vmFullUrl
+            let private VmData{..} = vmPrivateIp
+            let tups = map (login &&& private)
+            return (tups cs, tups ms, tups ss, cs ++ ms ++ ss)
 
     let serverPort = 12345
     let middlePort = 23456
 
-    let servers = flip map (indexed ss) $ \(six, srl) -> ServerSetup
-            { sRemoteLogin = srl
+    let servers = flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSetup
+            { sRemoteLogin = sLogin
             , sIndex = six
             , sMemcachedFlags = MemcachedFlags
                 { memcachedPort = serverPort + six
@@ -193,22 +217,21 @@ getSetup StabilityTraceCfg{..} = do
                 }
             }
 
+    let (mLogin, mPrivate) = mid
     let middle = MiddleSetup
-            { mRemoteLogin = m
+            { mRemoteLogin = mLogin
             , mLocalTrace = csvOutFile
             , mMiddlewareFlags = MiddlewareFlags
-                -- TODO private Ip's of middleware
-                { mwIp = localhostIp
+                { mwIp = mPrivate
                 , mwPort = middlePort
                 , mwNrThreads = 1
                 , mwReplicationFactor = length servers
-                -- TODO private Ip's of servers
                 , mwServers = map
-                    (\ServerSetup{..} ->
+                    (\(ServerSetup{..}, (_, sPrivate)) ->
                         RemoteServerUrl
-                            (remoteHost sRemoteLogin)
+                            sPrivate
                             (memcachedPort sMemcachedFlags))
-                    servers
+                    (zip servers sers)
                 , mwTraceFile = "/tmp" </> target ++ "-trace" <.> csvExt
                 , mwVerbosity = logLevel
                 }
@@ -217,12 +240,12 @@ getSetup StabilityTraceCfg{..} = do
     let experimentTmpDir = tmpDir </> target
 
     let sign i f = target ++ "-" ++ f ++ "-" ++ show i
-    let clients = flip map (indexed cs) $ \(cix, crl) -> ClientSetup
-            { cRemoteLogin = crl
+    let clients = flip map (indexed cls) $ \(cix, (cLogin, _)) -> ClientSetup
+            { cRemoteLogin = cLogin
             , cIndex = cix
             , cLocalLog = experimentTmpDir </> sign cix "client-local-log"
             , cRemoteLog = "/tmp" </> sign cix "memaslap-log"
-            , cResultsFile = experimentTmpDir </> sign cix "stabilitytmpresults"
+            , cResultsFile = resultsDir </> target </> sign cix "stabilitytmpresults"
             , cLocalMemaslapConfigFile = experimentTmpDir </> sign cix "distribution"
             , cMemaslapSettings = MemaslapSettings
                 { msConfig = MemaslapConfig
@@ -232,8 +255,7 @@ getSetup StabilityTraceCfg{..} = do
                     , getProportion = 0.99
                     }
                 , msFlags = MemaslapFlags
-                    -- TODO private IP of middleware
-                    { msServers = [RemoteServerUrl localhostIp middlePort]
+                    { msServers = [RemoteServerUrl mPrivate middlePort]
                     , msThreads = 1
                     , msConcurrency = 64
                     , msOverwrite = 0.9
@@ -244,17 +266,11 @@ getSetup StabilityTraceCfg{..} = do
                 }
             }
 
-    return StabilityTraceSetup
-        { stsRuntime = runtime
-        , clientSetups = clients
-        , middleSetup = middle
-        , serverSetups = servers
-        }
+    let setup = StabilityTraceSetup
+            { stsRuntime = runtime
+            , clientSetups = clients
+            , middleSetup = middle
+            , serverSetups = servers
+            }
 
-
-
-
-
-
-
-
+    return (setup, vmsNeeded)

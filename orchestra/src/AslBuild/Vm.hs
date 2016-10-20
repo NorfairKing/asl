@@ -1,9 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
-module AslBuild.Vm where
+module AslBuild.Vm
+    ( module AslBuild.Vm
+    , module AslBuild.Vm.Types
+    ) where
 
+import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy       as LB
+import qualified Data.ByteString.Lazy.Char8 as LB8
+import           Data.List
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -29,6 +35,7 @@ vmRules = do
     azureVmJsonFile %> \_ ->
         cmd (FileStdout azureVmJsonFile)
             azureCmd "vm" "list-ip-address"
+            "--resource-group" resourceGroupName
             "--json"
 
     vmDataFile %> \_ -> do
@@ -48,10 +55,12 @@ startVms vms = phPar vms $ \VmData{..} ->
         "--name" vmName
 
 stopVms :: [VmData] -> Action ()
-stopVms vms = phPar vms $ \VmData{..} ->
-    cmd azureCmd "vm" "stop"
-        "--resource-group" resourceGroupName
-        "--name" vmName
+stopVms vms = do
+    phPar vms $ \VmData{..} ->
+        cmd azureCmd "vm" "deallocate"
+            "--resource-group" resourceGroupName
+            "--name" vmName
+    removeFilesAfter "" [azureVmJsonFile, vmDataFile]
 
 
 getRawVmData :: Action [VmData]
@@ -68,19 +77,21 @@ getVms
     -> Int -- Number of servers
     -> Action ([VmData], [VmData], [VmData])
 getVms nrc nrm nrs = do
-    rawVms <- reverse <$> getRawVmData
-    let total = nrc + nrm + nrs
-    let nrAvailable = length rawVms
-    if total > nrAvailable
-    then fail $ unwords
-        [ "Requested too many servers:"
-        , show total ++ ", only"
-        , show nrAvailable
-        , "available."
-        ]
-    else do
-        let clients = take nrc rawVms
-            middles = take nrm $ drop nrc rawVms
-            servers = take nrs $ drop (nrc + nrm) rawVms
-        return (clients, middles, servers)
+    rawVms <- getRawVmData
+    let middleElligibles = filter middleElligible rawVms
+    let clientOrServerElligibles = filter clientOrServerElligible rawVms
+    let clients = take nrc clientOrServerElligibles
+    let middles = take nrm middleElligibles
+    let servers = take nrs $ drop nrc clientOrServerElligibles
+    when (any (not . null) [clients `intersect` middles, middles `intersect` servers, clients `intersect` servers]) $
+        fail $ "Vms intersect:\n" ++ LB8.unpack (encodePretty (clients, middles, servers))
 
+    if any (\(a, b) -> a /= length b) [(nrc, clients), (nrm, middles), (nrs, servers)]
+    then fail "Something went wrong requesting servers."
+    else return (clients, middles, servers)
+
+middleElligible :: VmData -> Bool
+middleElligible VmData{..} = vmType == "Basic_A4"
+
+clientOrServerElligible :: VmData -> Bool
+clientOrServerElligible VmData{..} = vmType == "Basic_A2"
