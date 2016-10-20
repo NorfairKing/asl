@@ -78,7 +78,7 @@ report1Rules = do
         need $
             [commonTex, architecturePng, architectureGraphEps, milestone1ReporttexInBuildDir, milestone1ReportbibInBuildDir]
             ++ plotsForBaseline remoteBaselineAnalysis
-            ++ plotsForStabilityTrace localStabilityTraceAnalysis
+            ++ plotsForStabilityTrace remoteStabilityTraceAnalysis
         cmd (Cwd report1Dir)
             "latexmk"
             milestone1Reporttex

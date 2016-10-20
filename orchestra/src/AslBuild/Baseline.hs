@@ -38,7 +38,9 @@ smallLocalBaselineExperimentRule = "small-local-baseline-experiment"
 smallLocalBaselineExperiment :: BaselineExperimentRuleCfg
 smallLocalBaselineExperiment = BaselineExperimentRuleCfg
     { target = smallLocalBaselineExperimentRule
-    , csvOutFile = resultsDir </> "small-local-baseline-experiment-results.csv"
+    , csvOutFile = tmpDir
+        </> smallLocalBaselineExperimentRule </> "results"
+        </> "small-local-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "small-local-baseline_memaslaplog.txt"
     , maxNrClients = 2
     , baselineExperimentsCacheFile = tmpDir </> "small-local-baseline-experiments.json"

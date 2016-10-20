@@ -17,7 +17,7 @@ public class Instrumentor {
   private final Throttler readCounter;
   private final Throttler writeCounter;
   private static final int READ_SAMPLE_SIZE = 1000;
-  private static final int WRITE_SAMPLE_SIZE = READ_SAMPLE_SIZE / 100;
+  private static final int WRITE_SAMPLE_SIZE = READ_SAMPLE_SIZE;
   private final Lock writerLock;
 
   public Instrumentor(final String file) throws IOException {

@@ -10,7 +10,7 @@ resFile <- args[1]
 filePrefix <- args[2]
 outDir <- args[3]
 outFileTps <- paste(filePrefix, "tps", sep="-")
-outFileAvg <- paste(filePrefix, "avg", sep="-")
+outFileAvg <- paste(filePrefix, "resp", sep="-")
 
 res = read.csv(resFile, header=TRUE)
 
@@ -20,44 +20,27 @@ startPng <- function(file) {
   par(bg=base2)
 }
 
-for (kind in c("read", "write")) {
-  ofkinds = res[res$Kind == kind,]
-  firstInstant = min(ofkinds$ParsedTime)
-  reltime = ofkinds$ReceivedTime - firstInstant
-  seclen = 1000 * 1000 * 1000
-  reltimesecs = reltime / seclen
-  reltimemins = reltimesecs / 60
+nrClients = max(res$client) # Starting rom zero
 
-  responsetime = ofkinds$RespondedTime - ofkinds$ReceivedTime
-  responsetime = responsetime / 1000
+startPng(outFileTps)
+plot(
+    res$second
+  , res$tps
+  , main="Throughput"
+  , xlab="Time elapsed since start of experiment (seconds)"
+  , ylab="Throughput (transactions/second)"
+  , pch=4 # Point shape: Cross
+  , col=adjustcolor("black", alpha.f=(1/5))
+  )
 
-  startPng(paste(filePrefix, kind, "resp", sep="-"))
-  plot(
-      reltimemins
-      , responsetime
-      , main=paste("Response time (", kind, ")", sep="")
-      , xlab="Relative time since start (minutes)"
-      , ylab="Response time (ms)"
-      , log="y")
+startPng(outFileAvg)
+plot(
+    res$second
+  , res$avg
+  , main="Response time"
+  , xlab="Time elapsed since start of experiment (seconds)"
+  , ylab="Response time (microseconds)"
+  , pch=4
+  , col=adjustcolor("black", alpha.f=(1/5))
+  )
 
-  nrBucks = floor(max(reltimemins)-1)
-  respComb = matrix(0, nrow=nrBucks, ncol=5)
-  throughput = matrix(0, nrow=nrBucks, ncol=1)
-  for (i in 0:nrBucks) {
-    bucket = ofkinds[floor(reltimemins) == i,]
-    resptimebuck = bucket$RespondedTime - bucket$ReceivedTime
-    resptimebuck = resptimebuck / 1000
-    respComb[i, 1] = quantile(resptimebuck, probs = 0.05, names=FALSE, na.rm=TRUE)
-    respComb[i, 2] = quantile(resptimebuck, probs = 0.25, names=FALSE, na.rm=TRUE)
-    respComb[i, 3] = quantile(resptimebuck, probs = 0.5 , names=FALSE, na.rm=TRUE)
-    respComb[i, 4] = quantile(resptimebuck, probs = 0.75, names=FALSE, na.rm=TRUE)
-    respComb[i, 5] = quantile(resptimebuck, probs = 0.9 , names=FALSE, na.rm=TRUE)
-    throughput[i, 1] = length(resptimebuck / 60)
-  }
-  x = 1:nrBucks
-  lines(x,respComb[,1], lwd=2, col="red")
-  lines(x,respComb[,2], lwd=2, col="red")
-  lines(x,respComb[,3], lwd=2, col="red")
-  lines(x,respComb[,4], lwd=2, col="red")
-  lines(x,respComb[,5], lwd=2, col="red")
-}

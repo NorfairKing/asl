@@ -110,6 +110,9 @@ resultsDir = aslDir </> "results"
 analysisDir :: FilePath
 analysisDir = aslDir </> "analysis"
 
+analysisPlotsDir :: FilePath
+analysisPlotsDir = analysisDir </> "plots"
+
 reportsDir :: FilePath
 reportsDir = aslDir </> reports
 

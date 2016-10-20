@@ -55,7 +55,7 @@ startPng(paste(outFileTps, "png", sep="."))
 plot(
     tpsCombined$concurrency
   , tpsCombined$tps
-  , main=paste("Aggregated throughput")
+  , main=paste("Throughput")
   , xlab="Total number of virtual clients (no unit) (log)"
   , ylab="Throughput (transactions/second)"
   , log="x"
@@ -83,7 +83,7 @@ allConcurrencies = c(1, unique(res$concurrency * maxNrClients))
 startPng(paste(outFileAvg, "png", sep="."))
 plot(
     res$concurrency, res$avg
-  , main="Aggregated response time, combined"
+  , main="Response Time"
   , log="x"
   , xlab="Virtual clients (no unit)"
   , ylab="Average response time (us)"

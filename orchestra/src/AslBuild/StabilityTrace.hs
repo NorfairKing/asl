@@ -45,7 +45,9 @@ smallLocalStabilityTraceRule = "small-local-stability-trace"
 smallLocalStabilityTrace :: StabilityTraceCfg
 smallLocalStabilityTrace = StabilityTraceCfg
     { target = smallLocalStabilityTraceRule
-    , csvOutFile = resultsDir </> "small-local-stability-trace-results.csv"
+    , csvOutFile = tmpDir
+        </> smallLocalStabilityTraceRule </> "results"
+        </> "small-local-stability-trace-results.csv"
     , nrServers = 1
     , nrClients = 1
     , location = StabilityLocal

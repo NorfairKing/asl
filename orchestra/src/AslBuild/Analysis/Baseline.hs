@@ -35,21 +35,21 @@ smallLocalBaselineAnalysis :: BaselineAnalysisCfg
 smallLocalBaselineAnalysis = BaselineAnalysisCfg
     { experiment = smallLocalBaselineExperiment
     , filePrefix = "small-local-baseline-experiment"
-    , analysisOutDir = analysisDir
+    , analysisOutDir = analysisPlotsDir
     }
 
 localBaselineAnalysis :: BaselineAnalysisCfg
 localBaselineAnalysis = BaselineAnalysisCfg
     { experiment = localBaselineExperiment
     , filePrefix = "local-baseline-experiment"
-    , analysisOutDir = analysisDir
+    , analysisOutDir = analysisPlotsDir
     }
 
 bigLocalBaselineAnalysis :: BaselineAnalysisCfg
 bigLocalBaselineAnalysis = BaselineAnalysisCfg
     { experiment = bigLocalBaselineExperiment
     , filePrefix = "big-local-baseline-experiment"
-    , analysisOutDir = analysisDir
+    , analysisOutDir = analysisPlotsDir
     }
 
 remoteBaselineAnalysis :: BaselineAnalysisCfg
@@ -63,7 +63,7 @@ smallRemoteBaselineAnalysis :: BaselineAnalysisCfg
 smallRemoteBaselineAnalysis = BaselineAnalysisCfg
     { experiment = smallRemoteBaselineExperiment
     , filePrefix = "small-remote-baseline-experiment"
-    , analysisOutDir = analysisDir
+    , analysisOutDir = analysisPlotsDir
     }
 
 allBaselineAnalyses :: [BaselineAnalysisCfg]
