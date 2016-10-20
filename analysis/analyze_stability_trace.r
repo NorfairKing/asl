@@ -15,7 +15,7 @@ outFileAvg <- paste(filePrefix, "resp", sep="-")
 res = read.csv(resFile, header=TRUE)
 
 startPng <- function(file) {
-  png(filename=paste(paste(outDir, file, sep="/"), "png", sep="."), height=600, width=800, bg="white")
+  png(filename=paste(paste(outDir, file, sep="/"), "png", sep="."), height=450, width=900, bg="white")
   base2 = rgb(0xB5/256, 0x89/256, 0x00/256, 0.1)
   par(bg=base2)
 }
@@ -30,7 +30,7 @@ plot(
   , xlab="Time elapsed since start of experiment (seconds)"
   , ylab="Throughput (transactions/second)"
   , pch=4 # Point shape: Cross
-  , col=adjustcolor("black", alpha.f=(1/5))
+  , col=adjustcolor("black", alpha.f=(1/3))
   )
 
 startPng(outFileAvg)
@@ -41,6 +41,6 @@ plot(
   , xlab="Time elapsed since start of experiment (seconds)"
   , ylab="Response time (microseconds)"
   , pch=4
-  , col=adjustcolor("black", alpha.f=(1/5))
+  , col=adjustcolor("black", alpha.f=(1/3))
   )
 

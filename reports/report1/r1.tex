@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage[a4paper, portrait, margin=1in]{geometry}
+\PassOptionsToPackage{hyphens}{url}
 \usepackage{hyperref}
 \usepackage{caption}
 \usepackage{graphicx}
@@ -8,6 +9,7 @@
 \usepackage{float}
 \usepackage{tikz}
 \usepackage{cite}
+\usepackage{hyperref}
 
 % TODO interactive response time law
 
@@ -201,14 +203,19 @@ In the baseline experiment, the idea is to measure the performance of memcached 
 
 The setup is as follows.
 A single server runs memcached and either one or two clients connect to it to measure throughput and response time.
-This is repeated for different configurations in which each client uses $1$, $2$, $4$, $8$, $16$, $32$ or $64$ clients.
-The experiment is repeated 5 times for each of these configurations, for a total of $70$ runs.
+This is repeated for different configurations in which each client uses up to $64$ clients.
+The experiment is repeated 5 times for each of these configurations, for a total of $140$ runs.
 
 In each run, the throughput (transactions per second), the average repsonse time and the standard deviation of the response time are measured.
 
 % The log files should be identified by a short name, or number, which will be explicitly listed at the end of the document (see Logfile Listing at the end).  \textbf{If this table is missing or the logfiles listed can't be found in your repository the experiment could be considered invalid, and no points will be awarded!}
 
+% For baseline measurement of memcached provide \textbf{two} graphs (Section~\ref{sec:baseline:tput} and \ref{sec:baseline:rt}), one with aggregated throughput and one with average response time and standard deviation as a function of number of virtual clients. Increase these in steps from 1 to 128. Give a short explanation of memcache's behavior and find the number of virtual clients that saturate the server.
+% 
+% \footnotetext{As starting point use the workloads provided in \url{http://www.systems.ethz.ch/sites/default/files/file/asl2016/memaslap-workloads.tar}. Use by default the \emph{small} workload. In later experiments you can and should change read-write ratios and potentially use other value sizes.}
+
 Each run represents a single line in the combined results file: \logshort{baseline}.
+A summary of the setup information can be found in figure \ref{fig:baseline-setup}.
 
 \begin{figure}[H]
   \centering
@@ -216,62 +223,84 @@ Each run represents a single line in the combined results file: \logshort{baseli
     \hline Number of servers & 1 \\
     \hline Number of client machines & 1 to 2 \\
     \hline Virtual clients / machine & 1 to 64 \\
-    \hline Workload & Key 16B, Value 128B, Writes 1\% \footnotemark \\
+    \hline Workload & Key 16B, Value 128B, Writes 1\% \\
     \hline Middleware & Not present \\
     \hline Runtime x repetitions & 30s x 5 \\
     \hline Log files & \logshort{baseline} \\
     \hline
   \end{tabular}
+  \caption{Baseline experiment details}
+  \label{fig:baseline-setup}
 \end{figure}
-
-
-\subsection{Setup}
-
-% For baseline measurement of memcached provide \textbf{two} graphs (Section~\ref{sec:baseline:tput} and \ref{sec:baseline:rt}), one with aggregated throughput and one with average response time and standard deviation as a function of number of virtual clients. Increase these in steps from 1 to 128. Give a short explanation of memcache's behavior and find the number of virtual clients that saturate the server.
-% 
-% \footnotetext{As starting point use the workloads provided in \url{http://www.systems.ethz.ch/sites/default/files/file/asl2016/memaslap-workloads.tar}. Use by default the \emph{small} workload. In later experiments you can and should change read-write ratios and potentially use other value sizes.}
-
 
 \subsection{Throughput}\label{sec:baseline:tput}
 
-\begin{figure}[H]
+\begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-tps.png}}
+  \caption{Throughput in the baseline experiment}
+  \label{fig:baseline-tps}
 \end{figure}
 
 \subsection{Response time}\label{sec:baseline:rt}
 
-\begin{figure}[H]
+\begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-avg.png}}
+  \caption{Response time in the baseline experiment}
+  \label{fig:baseline-resp}
 \end{figure}
 
 \section{Stability Trace}\label{sec:trace}
 
+
+\subsection{Setup}
 % In this section you will have to show that the middleware is functional and it can handle a long-running workload without crashing or degrading in performance. For this you will run it with full replication for one hour connected to three memcache instances and three load generator machines.
+
+In the stability trace experiment, the goal is to show that the middleware is stable and to measure the overhead of using it.
+
+In order to do this, the middleware has run for one hour with full replication connected to three memcache servers and three load generator clients.
+
+The throughput and average response time are measured in each client every second.
+The results can be found in the logfiles \logshort{stability-client0} \logshort{stability-client1} and \logshort{stability-client2}. The middleware's log of the experiment can be found in \logshort{stability-middle}.
+
+
 % You will have to provide two graphs. The x-axis is time and the y-axis is either throughput or response time. Include standard deviation whenever applicable.
-% 
+
 \begin{figure}
   \centering
   \begin{tabular}{|c|c|}
     \hline Number of servers & 3 \\
     \hline Number of client machines & 3 \\
     \hline Virtual clients / machine &  64 (explain if chosen otherwise) \\
-    \hline Workload & Key 16B, Value 128B, Writes 1\% (see footnote) \\
+    \hline Workload & Key 16B, Value 128B, Writes 1\% \\
     \hline Middleware & Replicate to all (R=3) \\
     \hline Runtime x repetitions & 1h x 1 \\
-    \hline Log files & trace1, \ldots \\
+    \hline Log files & \logshort{stability-client0}, \logshort{stability-client1}, \logshort{stability-client2}, \logshort{stability-middle} \\
     \hline
   \end{tabular}
+  \caption{Stability trace experiment details}
+  \label{fig:baseline-setup}
 \end{figure}
 
 
-\includegraphics[width=0.5\textwidth]{\plot{remote-stability-trace-resp.png}}
-\includegraphics[width=0.5\textwidth]{\plot{remote-stability-trace-tps.png}}
-
 \subsection{Throughput}
 
-\subsection{Response time}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-stability-trace-tps.png}}
+  \caption{Throughput in the stability trace experiment}
+  \label{fig:stability-trace-tps}
+\end{figure}
+
+\subsection{Response time}\label{sec:baseline:rt}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-stability-trace-resp.png}}
+  \caption{Response time in the stability trace experiment}
+  \label{fig:stability-trace-resp}
+\end{figure}
 
 \subsection{Overhead of middleware}
 
@@ -282,12 +311,18 @@ Each run represents a single line in the combined results file: \logshort{baseli
 
 \section*{Logfile listing}
 
-\begin{tabular}{|c|l|}
-  \hline \textbf{Short name }& \textbf{Location} \\
-  \logfile{baseline}{remote-baseline-experiment-results.csv}
-  \hline
-  \label{tab:loglisting}
-\end{tabular}
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{c|p{12cm}}
+    \textbf{Short name }& \textbf{Location} \\
+    \logfile{baseline}{remote-baseline-experiment-results.csv}
+    \logfile{stability-client0}{remote-stability-trace/remote-stability-trace-stabilitytmpresults-0}
+    \logfile{stability-client1}{remote-stability-trace/remote-stability-trace-stabilitytmpresults-1}
+    \logfile{stability-client2}{remote-stability-trace/remote-stability-trace-stabilitytmpresults-2}
+    \logfile{stability-middle}{remote-stability-trace-results.csv}
+    \label{tab:loglisting}
+  \end{tabular}
+\end{figure}
 
 \bibliography{r1}{}
 \bibliographystyle{plain}
