@@ -13,6 +13,8 @@
 
 \input{../common.tex}
 
+\setlength{\parindent}{0pt}
+
 \begin{document}
 
 \title{Advanced Systems Lab (Fall'16) -- First
@@ -71,48 +73,49 @@ Whenever any data is available, it is split into the different responses and as 
 Each of the corresponding \java{RequestPacket}s has their replication counter decremented.
 If a replication counter reaches \java{0}, the response is forwarded to the appropriate client.
 
+An overview of the lifetime of a request can be found in figure \ref{fig:architecturegraph}
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=0.5\textwidth]{\graph{architecture_graph.eps}}
   \end{center}
-  \caption{Overall architecture}
+  \caption{Lifetime of a request}
+  \label{fig:architecturegraph}
 \end{figure}
 
 % Mark on the figure where are the points that you instrumented the architecture (see Section~2.3 of the Project Description) and give the different timestamps a name that you\textbf{ will use throughout the three milestones }whenever referencing measurements (e.g., $T_{requestreceived}$, $T_{responsesent}$).
-% 
-% Reference throughout the report all relevant java source files, result files, etc. by providing the gitlab link in a footnote, for instance\footnote{\url{https://gitlab.inf.ethz.ch/zistvan/asl-fall16-project/blob/master/src/ch/ethz/SomeClass.java}}. An exception to this rule is the referencing of log files belonging to experiments. These should be referenced by an ID, or short name, and there has to be a table at the end of the report mapping these to files in the git repository.
 
-\begin{figure}[H]
-  \begin{center}
-    \begin{tikzpicture}
-      \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[width=0.8\textwidth]{\asset{architecture.png}}};
-      \begin{scope}[x={(image.south east)},y={(image.north west)}]
-        \node[color=red] (recv) at (0.080, 0.550) {\textbf{(1)}};
-        \node[color=red] (recv) at (0.215, 0.250) {\textbf{(2)}};
-        \node[color=red] (recv) at (0.300, 0.250) {\textbf{(3)}};
-        \node[color=red] (recv) at (0.450, 0.250) {\textbf{(4)}};
-        \node[color=red] (recv) at (0.700, 0.357) {\textbf{(5)}};
-        \node[color=red] (recv) at (0.650, 0.257) {\textbf{(6)}};
-        \node[color=red] (recv) at (0.050, 0.257) {\textbf{(7)}};
-      \end{scope}
-    \end{tikzpicture}
-  \end{center}
+We define seven timestamps for each succesfully processed request as marked in figure \ref{ref:instrumentation}.
 
-  \captionsetup{singlelinecheck=off}
+\begin{enumerate}
+  \item $T_{received}$: The initital input has been received by the middleware.
+  \item $T_{parsed}$: The initial input is parsed into a \java{Request} object.
+  \item $T_{enqueud}$: The \java{RequestPacket} is added to the appropriate queue.
+  \item $T_{dequeued}$: The \java{RequestPacket} is dequeued for processing.
+  \item $T_{asked}$: The first request is sent to a server.
+  \item $T_{replied}$: The final response is received from a server.
+  \item $T_{responded}$: The final response is forwarded to the client.
+\end{enumerate}
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[width=0.8\textwidth]{\asset{architecture.png}}};
+    \begin{scope}[x={(image.south east)},y={(image.north west)}]
+      \node[color=red] (recv) at (0.080, 0.550) {\textbf{(1)}};
+      \node[color=red] (recv) at (0.215, 0.250) {\textbf{(2)}};
+      \node[color=red] (recv) at (0.300, 0.250) {\textbf{(3)}};
+      \node[color=red] (recv) at (0.450, 0.250) {\textbf{(4)}};
+      \node[color=red] (recv) at (0.700, 0.357) {\textbf{(5)}};
+      \node[color=red] (recv) at (0.650, 0.257) {\textbf{(6)}};
+      \node[color=red] (recv) at (0.050, 0.257) {\textbf{(7)}};
+    \end{scope}
+  \end{tikzpicture}
   \caption{Instrumentation}
+  \label{ref:instrumentation}
 \end{figure}
 
-\begin{multicols}{2}
-  \begin{enumerate}
-    \item Received
-    \item Parsed
-    \item Enqueued
-    \item Dequeued
-    \item Sent first request
-    \item Received last response
-    \item Sent response
-  \end{enumerate}
-\end{multicols}
+% Reference throughout the report all relevant java source files, result files, etc. by providing the gitlab link in a footnote, for instance\footnote{\url{https://gitlab.inf.ethz.ch/zistvan/asl-fall16-project/blob/master/src/ch/ethz/SomeClass.java}}. An exception to this rule is the referencing of log files belonging to experiments. These should be referenced by an ID, or short name, and there has to be a table at the end of the report mapping these to files in the git repository.
 
 
 \subsection{Load Balancing and Hashing}\label{sec:desc:hashing}
@@ -207,7 +210,8 @@ In each run, the throughput (transactions per second), the average repsonse time
 
 Each run represents a single line in the combined results file: \logshort{baseline}.
 
-\begin{center}[H]
+\begin{figure}[H]
+  \centering
   \begin{tabular}{|c|c|}
     \hline Number of servers & 1 \\
     \hline Number of client machines & 1 to 2 \\
@@ -218,7 +222,7 @@ Each run represents a single line in the combined results file: \logshort{baseli
     \hline Log files & \logshort{baseline} \\
     \hline
   \end{tabular}
-\end{center}
+\end{figure}
 
 
 \subsection{Setup}

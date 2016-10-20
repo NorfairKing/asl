@@ -4,13 +4,13 @@
         "config": [],
         "finalStats": {
             "finalRuntime": [],
-            "finalOps": 238702,
-            "finalTps": 47735,
-            "finalGets": 236270,
-            "finalReadBytes": 38993446,
-            "finalWrittenBytes": 5585652,
-            "finalSets": 2432,
-            "finalObjectBytes": 350208,
+            "finalOps": 185831,
+            "finalTps": 37162,
+            "finalGets": 183949,
+            "finalReadBytes": 30356081,
+            "finalWrittenBytes": 4347998,
+            "finalSets": 1882,
+            "finalObjectBytes": 271008,
             "finalGetMisses": 0,
             "finalNetRate": []
         },
@@ -18,431 +18,431 @@
             {
                 "setStats": {
                     "globalStats": {
+                        "ops": 320,
+                        "minUs": 171,
+                        "net": 0,
+                        "tps": 320,
+                        "geoDist": 1497.2,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 7934,
+                        "stdDev": 14504.87,
+                        "maxUs": 39815
+                    },
+                    "periodStats": {
+                        "ops": 320,
+                        "minUs": 171,
+                        "net": 0,
+                        "tps": 320,
+                        "geoDist": 1497.2,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 7934,
+                        "stdDev": 14504.87,
+                        "maxUs": 39815
+                    }
+                },
+                "getStats": {
+                    "globalStats": {
+                        "ops": 27668,
+                        "minUs": 166,
+                        "net": 3.8,
+                        "tps": 27668,
+                        "geoDist": 2079.37,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 2215,
+                        "stdDev": 835.61,
+                        "maxUs": 8329
+                    },
+                    "periodStats": {
+                        "ops": 27668,
+                        "minUs": 166,
+                        "net": 3.8,
+                        "tps": 27668,
+                        "geoDist": 2079.37,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 2215,
+                        "stdDev": 835.61,
+                        "maxUs": 8329
+                    }
+                },
+                "bothStats": {
+                    "globalStats": {
+                        "ops": 27988,
+                        "minUs": 166,
+                        "net": 3.8,
+                        "tps": 27988,
+                        "geoDist": 2071.58,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 2280,
+                        "stdDev": 1860.05,
+                        "maxUs": 39815
+                    },
+                    "periodStats": {
+                        "ops": 27988,
+                        "minUs": 166,
+                        "net": 3.8,
+                        "tps": 27988,
+                        "geoDist": 2071.58,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 2280,
+                        "stdDev": 1860.05,
+                        "maxUs": 39815
+                    }
+                }
+            },
+            {
+                "setStats": {
+                    "globalStats": {
+                        "ops": 704,
+                        "minUs": 131,
+                        "net": 0.1,
+                        "tps": 352,
+                        "geoDist": 556.68,
+                        "getMiss": 0,
+                        "time": 2,
+                        "avgUs": 3755,
+                        "stdDev": 10490.69,
+                        "maxUs": 39815
+                    },
+                    "periodStats": {
                         "ops": 384,
-                        "minUs": 133,
-                        "net": 0.1,
+                        "minUs": 131,
+                        "net": 0,
                         "tps": 384,
-                        "geoDist": 1116.82,
+                        "geoDist": 244.08,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 3819,
-                        "stdDev": 6376.01,
-                        "maxUs": 19685
+                        "avgUs": 272,
+                        "stdDev": 145.19,
+                        "maxUs": 846
+                    }
+                },
+                "getStats": {
+                    "globalStats": {
+                        "ops": 65575,
+                        "minUs": 166,
+                        "net": 5.2,
+                        "tps": 32787,
+                        "geoDist": 1832.3,
+                        "getMiss": 0,
+                        "time": 2,
+                        "avgUs": 1909,
+                        "stdDev": 633.93,
+                        "maxUs": 8329
+                    },
+                    "periodStats": {
+                        "ops": 37907,
+                        "minUs": 1199,
+                        "net": 4.5,
+                        "tps": 37907,
+                        "geoDist": 1670.7,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 1687,
+                        "stdDev": 250.58,
+                        "maxUs": 3710
+                    }
+                },
+                "bothStats": {
+                    "globalStats": {
+                        "ops": 66280,
+                        "minUs": 131,
+                        "net": 5.3,
+                        "tps": 33140,
+                        "geoDist": 1809.26,
+                        "getMiss": 0,
+                        "time": 2,
+                        "avgUs": 1929,
+                        "stdDev": 1264.59,
+                        "maxUs": 39815
+                    },
+                    "periodStats": {
+                        "ops": 38292,
+                        "minUs": 131,
+                        "net": 4.6,
+                        "tps": 38292,
+                        "geoDist": 1638.78,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 1672,
+                        "stdDev": 291.45,
+                        "maxUs": 3710
+                    }
+                }
+            },
+            {
+                "setStats": {
+                    "globalStats": {
+                        "ops": 1088,
+                        "minUs": 121,
+                        "net": 0.1,
+                        "tps": 362,
+                        "geoDist": 413.94,
+                        "getMiss": 0,
+                        "time": 3,
+                        "avgUs": 2532,
+                        "stdDev": 8599.02,
+                        "maxUs": 39815
                     },
                     "periodStats": {
                         "ops": 384,
-                        "minUs": 133,
-                        "net": 0.1,
+                        "minUs": 121,
+                        "net": 0,
                         "tps": 384,
-                        "geoDist": 1116.82,
+                        "geoDist": 240.47,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 3819,
-                        "stdDev": 6376.01,
-                        "maxUs": 19685
+                        "avgUs": 289,
+                        "stdDev": 253.4,
+                        "maxUs": 3418
                     }
                 },
                 "getStats": {
                     "globalStats": {
-                        "ops": 34204,
-                        "minUs": 43,
+                        "ops": 103747,
+                        "minUs": 166,
+                        "net": 5.2,
+                        "tps": 34582,
+                        "geoDist": 1766.26,
+                        "getMiss": 0,
+                        "time": 3,
+                        "avgUs": 1822,
+                        "stdDev": 539.56,
+                        "maxUs": 8329
+                    },
+                    "periodStats": {
+                        "ops": 38172,
+                        "minUs": 606,
                         "net": 4.7,
-                        "tps": 34204,
-                        "geoDist": 1663.47,
+                        "tps": 38172,
+                        "geoDist": 1658,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 1825,
-                        "stdDev": 1084.69,
-                        "maxUs": 12476
-                    },
-                    "periodStats": {
-                        "ops": 34204,
-                        "minUs": 43,
-                        "net": 4.7,
-                        "tps": 34204,
-                        "geoDist": 1663.47,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 1825,
-                        "stdDev": 1084.69,
-                        "maxUs": 12476
+                        "avgUs": 1672,
+                        "stdDev": 259.44,
+                        "maxUs": 5144
                     }
                 },
                 "bothStats": {
                     "globalStats": {
-                        "ops": 34590,
-                        "minUs": 43,
+                        "ops": 104836,
+                        "minUs": 121,
+                        "net": 5.3,
+                        "tps": 34945,
+                        "geoDist": 1739.86,
+                        "getMiss": 0,
+                        "time": 3,
+                        "avgUs": 1830,
+                        "stdDev": 1028.42,
+                        "maxUs": 39815
+                    },
+                    "periodStats": {
+                        "ops": 38556,
+                        "minUs": 121,
                         "net": 4.8,
-                        "tps": 34590,
-                        "geoDist": 1656.12,
+                        "tps": 38556,
+                        "geoDist": 1626.73,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 1847,
-                        "stdDev": 1287.5,
-                        "maxUs": 19685
-                    },
-                    "periodStats": {
-                        "ops": 34590,
-                        "minUs": 43,
-                        "net": 4.8,
-                        "tps": 34590,
-                        "geoDist": 1656.12,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 1847,
-                        "stdDev": 1287.5,
-                        "maxUs": 19685
+                        "avgUs": 1659,
+                        "stdDev": 289.19,
+                        "maxUs": 5144
                     }
                 }
             },
             {
                 "setStats": {
                     "globalStats": {
-                        "ops": 896,
-                        "minUs": 114,
+                        "ops": 1478,
+                        "minUs": 120,
                         "net": 0.1,
-                        "tps": 448,
-                        "geoDist": 541.69,
-                        "getMiss": 0,
-                        "time": 2,
-                        "avgUs": 1870,
-                        "stdDev": 4513.06,
-                        "maxUs": 19685
-                    },
-                    "periodStats": {
-                        "ops": 512,
-                        "minUs": 114,
-                        "net": 0.1,
-                        "tps": 512,
-                        "geoDist": 314.83,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 408,
-                        "stdDev": 456.09,
-                        "maxUs": 6297
-                    }
-                },
-                "getStats": {
-                    "globalStats": {
-                        "ops": 83777,
-                        "minUs": 43,
-                        "net": 6.8,
-                        "tps": 41888,
-                        "geoDist": 1403.71,
-                        "getMiss": 0,
-                        "time": 2,
-                        "avgUs": 1506,
-                        "stdDev": 829.93,
-                        "maxUs": 12476
-                    },
-                    "periodStats": {
-                        "ops": 49573,
-                        "minUs": 617,
-                        "net": 5.8,
-                        "tps": 49573,
-                        "geoDist": 1248.36,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 1286,
-                        "stdDev": 483.01,
-                        "maxUs": 8085
-                    }
-                },
-                "bothStats": {
-                    "globalStats": {
-                        "ops": 84674,
-                        "minUs": 43,
-                        "net": 6.9,
-                        "tps": 42337,
-                        "geoDist": 1389.64,
-                        "getMiss": 0,
-                        "time": 2,
-                        "avgUs": 1510,
-                        "stdDev": 947.48,
-                        "maxUs": 19685
-                    },
-                    "periodStats": {
-                        "ops": 50084,
-                        "minUs": 114,
-                        "net": 5.8,
-                        "tps": 50084,
-                        "geoDist": 1231.07,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 1277,
-                        "stdDev": 490.84,
-                        "maxUs": 8085
-                    }
-                }
-            },
-            {
-                "setStats": {
-                    "globalStats": {
-                        "ops": 1408,
-                        "minUs": 114,
-                        "net": 0.1,
-                        "tps": 469,
-                        "geoDist": 453.04,
-                        "getMiss": 0,
-                        "time": 3,
-                        "avgUs": 1348,
-                        "stdDev": 3672.79,
-                        "maxUs": 19685
-                    },
-                    "periodStats": {
-                        "ops": 512,
-                        "minUs": 116,
-                        "net": 0.1,
-                        "tps": 512,
-                        "geoDist": 331.38,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 435,
-                        "stdDev": 392.58,
-                        "maxUs": 2212
-                    }
-                },
-                "getStats": {
-                    "globalStats": {
-                        "ops": 134059,
-                        "minUs": 43,
-                        "net": 6.9,
-                        "tps": 44686,
-                        "geoDist": 1342.88,
-                        "getMiss": 0,
-                        "time": 3,
-                        "avgUs": 1416,
-                        "stdDev": 686.02,
-                        "maxUs": 12476
-                    },
-                    "periodStats": {
-                        "ops": 50282,
-                        "minUs": 295,
-                        "net": 6.1,
-                        "tps": 50282,
-                        "geoDist": 1247.13,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 1267,
-                        "stdDev": 262.14,
-                        "maxUs": 3799
-                    }
-                },
-                "bothStats": {
-                    "globalStats": {
-                        "ops": 135469,
-                        "minUs": 43,
-                        "net": 7,
-                        "tps": 45156,
-                        "geoDist": 1327.79,
-                        "getMiss": 0,
-                        "time": 3,
-                        "avgUs": 1415,
-                        "stdDev": 778.91,
-                        "maxUs": 19685
-                    },
-                    "periodStats": {
-                        "ops": 50795,
-                        "minUs": 116,
-                        "net": 6.2,
-                        "tps": 50795,
-                        "geoDist": 1230.76,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 1259,
-                        "stdDev": 274.84,
-                        "maxUs": 3799
-                    }
-                }
-            },
-            {
-                "setStats": {
-                    "globalStats": {
-                        "ops": 1920,
-                        "minUs": 113,
-                        "net": 0.1,
-                        "tps": 480,
-                        "geoDist": 404.57,
+                        "tps": 369,
+                        "geoDist": 337.25,
                         "getMiss": 0,
                         "time": 4,
-                        "avgUs": 1093,
-                        "stdDev": 3182.81,
-                        "maxUs": 19685
+                        "avgUs": 1918,
+                        "stdDev": 7448.2,
+                        "maxUs": 39815
                     },
                     "periodStats": {
-                        "ops": 512,
-                        "minUs": 113,
+                        "ops": 390,
+                        "minUs": 120,
                         "net": 0.1,
-                        "tps": 512,
-                        "geoDist": 296.37,
+                        "tps": 390,
+                        "geoDist": 190.41,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 392,
-                        "stdDev": 478.74,
-                        "maxUs": 5417
+                        "avgUs": 207,
+                        "stdDev": 130.12,
+                        "maxUs": 1638
                     }
                 },
                 "getStats": {
                     "globalStats": {
-                        "ops": 185428,
-                        "minUs": 43,
-                        "net": 7.1,
-                        "tps": 46357,
-                        "geoDist": 1309.24,
+                        "ops": 145043,
+                        "minUs": 166,
+                        "net": 5.7,
+                        "tps": 36260,
+                        "geoDist": 1695.92,
                         "getMiss": 0,
                         "time": 4,
-                        "avgUs": 1367,
-                        "stdDev": 600.73,
-                        "maxUs": 12476
+                        "avgUs": 1744,
+                        "stdDev": 489.73,
+                        "maxUs": 8329
                     },
                     "periodStats": {
-                        "ops": 51369,
-                        "minUs": 905,
-                        "net": 6.4,
-                        "tps": 51369,
-                        "geoDist": 1225.21,
+                        "ops": 41296,
+                        "minUs": 738,
+                        "net": 5,
+                        "tps": 41296,
+                        "geoDist": 1531.05,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 1240,
-                        "stdDev": 222.82,
-                        "maxUs": 3777
+                        "avgUs": 1546,
+                        "stdDev": 252.07,
+                        "maxUs": 3580
                     }
                 },
                 "bothStats": {
                     "globalStats": {
-                        "ops": 187349,
-                        "minUs": 43,
-                        "net": 7.1,
-                        "tps": 46837,
-                        "geoDist": 1293.58,
+                        "ops": 146522,
+                        "minUs": 120,
+                        "net": 5.7,
+                        "tps": 36630,
+                        "geoDist": 1668.51,
                         "getMiss": 0,
                         "time": 4,
-                        "avgUs": 1365,
-                        "stdDev": 677.87,
-                        "maxUs": 19685
+                        "avgUs": 1745,
+                        "stdDev": 894.19,
+                        "maxUs": 39815
                     },
                     "periodStats": {
-                        "ops": 51880,
-                        "minUs": 113,
-                        "net": 6.4,
-                        "tps": 51880,
-                        "geoDist": 1208.34,
+                        "ops": 41686,
+                        "minUs": 120,
+                        "net": 5,
+                        "tps": 41686,
+                        "geoDist": 1501.75,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 1232,
-                        "stdDev": 239.96,
-                        "maxUs": 5417
+                        "avgUs": 1534,
+                        "stdDev": 279.6,
+                        "maxUs": 3580
                     }
                 }
             },
             {
                 "setStats": {
                     "globalStats": {
-                        "ops": 2432,
-                        "minUs": 113,
+                        "ops": 1882,
+                        "minUs": 112,
                         "net": 0.1,
-                        "tps": 486,
-                        "geoDist": 372.35,
+                        "tps": 376,
+                        "geoDist": 298.18,
                         "getMiss": 0,
                         "time": 5,
-                        "avgUs": 931,
-                        "stdDev": 2847.22,
-                        "maxUs": 19685
+                        "avgUs": 1552,
+                        "stdDev": 6637.59,
+                        "maxUs": 39815
                     },
                     "periodStats": {
-                        "ops": 512,
-                        "minUs": 114,
+                        "ops": 404,
+                        "minUs": 112,
                         "net": 0.1,
-                        "tps": 512,
-                        "geoDist": 272.76,
+                        "tps": 404,
+                        "geoDist": 190.05,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 323,
-                        "stdDev": 234.34,
-                        "maxUs": 1468
+                        "avgUs": 211,
+                        "stdDev": 178.7,
+                        "maxUs": 2866
                     }
                 },
                 "getStats": {
                     "globalStats": {
-                        "ops": 236140,
-                        "minUs": 43,
-                        "net": 7,
-                        "tps": 47228,
-                        "geoDist": 1293.09,
+                        "ops": 183885,
+                        "minUs": 166,
+                        "net": 5.3,
+                        "tps": 36777,
+                        "geoDist": 1676.25,
                         "getMiss": 0,
                         "time": 5,
-                        "avgUs": 1344,
-                        "stdDev": 553.78,
-                        "maxUs": 12476
+                        "avgUs": 1718,
+                        "stdDev": 454.23,
+                        "maxUs": 8329
                     },
                     "periodStats": {
-                        "ops": 50712,
-                        "minUs": 148,
-                        "net": 6.5,
-                        "tps": 50712,
-                        "geoDist": 1235.54,
+                        "ops": 38842,
+                        "minUs": 1246,
+                        "net": 5.1,
+                        "tps": 38842,
+                        "geoDist": 1604.49,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 1258,
-                        "stdDev": 322.78,
-                        "maxUs": 6550
+                        "avgUs": 1620,
+                        "stdDev": 268.54,
+                        "maxUs": 4760
                     }
                 },
                 "bothStats": {
                     "globalStats": {
-                        "ops": 238573,
-                        "minUs": 43,
-                        "net": 7,
-                        "tps": 47714,
-                        "geoDist": 1276.79,
+                        "ops": 185767,
+                        "minUs": 112,
+                        "net": 5.4,
+                        "tps": 37153,
+                        "geoDist": 1647.19,
                         "getMiss": 0,
                         "time": 5,
-                        "avgUs": 1340,
-                        "stdDev": 622.34,
-                        "maxUs": 19685
+                        "avgUs": 1716,
+                        "stdDev": 807.29,
+                        "maxUs": 39815
                     },
                     "periodStats": {
-                        "ops": 51224,
-                        "minUs": 114,
-                        "net": 6.6,
-                        "tps": 51224,
-                        "geoDist": 1216.85,
+                        "ops": 39245,
+                        "minUs": 112,
+                        "net": 5.1,
+                        "tps": 39245,
+                        "geoDist": 1569.64,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 1248,
-                        "stdDev": 337.52,
-                        "maxUs": 6550
+                        "avgUs": 1606,
+                        "stdDev": 300.5,
+                        "maxUs": 4760
                     }
                 }
             }
         ],
         "totalStatsTrip": {
             "totalBothStats": {
-                "totalGeo": 1276.96,
-                "totalEvents": 238638,
-                "totalMin": 43,
-                "totalMax": 19685,
+                "totalGeo": 1647.19,
+                "totalEvents": 185767,
+                "totalMin": 112,
+                "totalMax": 39815,
                 "totalLog2Dist": [],
-                "totalStd": 622.91,
-                "totalAvg": 1340
+                "totalStd": 807.29,
+                "totalAvg": 1716
             },
             "totalGetStats": {
-                "totalGeo": 1293.27,
-                "totalEvents": 236206,
-                "totalMin": 43,
-                "totalMax": 12476,
+                "totalGeo": 1676.25,
+                "totalEvents": 183885,
+                "totalMin": 166,
+                "totalMax": 8329,
                 "totalLog2Dist": [],
-                "totalStd": 554.45,
-                "totalAvg": 1344
+                "totalStd": 454.23,
+                "totalAvg": 1718
             },
             "totalSetStats": {
-                "totalGeo": 372.35,
-                "totalEvents": 2432,
-                "totalMin": 113,
-                "totalMax": 19685,
+                "totalGeo": 298.18,
+                "totalEvents": 1882,
+                "totalMin": 112,
+                "totalMax": 39815,
                 "totalLog2Dist": [],
-                "totalStd": 2847.22,
-                "totalAvg": 931
+                "totalStd": 6637.59,
+                "totalAvg": 1552
             }
         }
     },

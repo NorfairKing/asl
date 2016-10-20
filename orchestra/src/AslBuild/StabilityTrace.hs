@@ -122,7 +122,6 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
         (StabilityTraceSetup{..}, vmsNeeded) <- getSetup stc
 
         need [provisionLocalhostRule]
-        -- startVms vmsNeeded
         provisionVmsFromData vmsNeeded
 
         -- Get the clients configs set up
@@ -156,11 +155,11 @@ generateTargetFor stc@StabilityTraceCfg{..} = do
         -- Copy the middleware logs back
         copyMiddleTraceBack middleSetup
 
+        -- Wait for memaslap to finish writing logs.
+        wait 1
+
         -- Copy the client logs back
         copyClientLogsBack clientSetups
-
-        -- Stop the vms
-        -- stopVms vmsNeeded
 
         -- Prepare analysis files for the client logs.
         forP_ clientSetups $ \cSetup@ClientSetup{..} -> do
