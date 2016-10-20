@@ -56,10 +56,8 @@ plot(
     tpsCombined$concurrency
   , tpsCombined$tps
   , main=paste("Throughput")
-  , xlab="Total number of virtual clients (no unit) (log)"
+  , xlab="Total number of virtual clients (no unit)"
   , ylab="Throughput (transactions/second)"
-  , log="x"
-  , bg="green"
   , type="n" # Don't plot just yet.
   , xlim=c(1, 128)
   , ylim=c(0, 40000)
@@ -79,31 +77,35 @@ legend( 40000
   , pch=c(19, 19) # Symbol type
   , col=colors) 
 
-allConcurrencies = c(1, unique(res$concurrency * maxNrClients))
 startPng(paste(outFileAvg, "png", sep="."))
 plot(
     res$concurrency, res$avg
   , main="Response Time"
-  , log="x"
-  , xlab="Virtual clients (no unit)"
+  , xlab="Total number of virtual clients (no unit)"
   , ylab="Average response time (us)"
-  , xlim=c(min(allConcurrencies), max(allConcurrencies))
+  , xlim=c(min(res$concurrency), max(res$concurrency))
   , ylim=c(min(res$avg-res$std), max(res$avg+res$std))
   , type="n" # Don't plot just yet.
   , xaxt="n" # Don't plot labels on the x axis
   )
-axis(1, at = allConcurrencies, las=2)
+axis(
+    1
+  , at = unique(res$concurrency)
+  , cex.axis=0.8
+  , las=2
+  )#, las=2)
+  
 legend( 8000
   , c("One client", "Two clients")
-  , pch=c(4, 4) # Symbol type
-  , col=colors) 
+  , pch=c('|', '|') # Symbol type
+  , col=colors
+  ) 
 
-side = -0.07
 for (curNrClients in 1:maxNrClients) {
   data = res[res$nrClients == curNrClients, ]
   concurrencies <- unique(data$concurrency)
 
-  data$concurrency = data$concurrency * curNrClients * (1 + side)
+  data$concurrency = data$concurrency * curNrClients
   # hack: we draw arrows but with very special "arrowheads"
   # No arrowheads with wide line: bars
   arrows(
@@ -112,14 +114,11 @@ for (curNrClients in 1:maxNrClients) {
     , data$concurrency
     , data$avg+data$std
     , length=0 # Length of arrow head
-    , lwd=20 # Line width
-    , col=adjustcolor(colors[3-curNrClients], alpha.f=(1/(maxNrRepetitions*1.5)))
+    , lwd=5 # Line width
+    , col=adjustcolor(colors[curNrClients], alpha.f=(1/(maxNrRepetitions*1.5)))
     )
   points(
       data$concurrency, data$avg
-    , col=colors[curNrClients]
     , pch=4 # Point shape: Cross
     )
-
-  side = - side
 }
