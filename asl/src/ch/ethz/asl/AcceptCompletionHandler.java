@@ -82,16 +82,16 @@ public class AcceptCompletionHandler
       long receivedAt = now();
       AsynchronousSocketChannel chan = initialInput.chan;
       ByteBuffer bbuf = initialInput.bbuf;
-      // log.finest("Input from client:");
-      //      log.finest(Integer.toString(bytesRead) + " bytes");
+      log.finest("Input from client:");
+      log.finest(Integer.toString(bytesRead) + " bytes");
       if (bytesRead >= 0) {
-        //        log.finest("\"" + new String(bbuf.array()) + "\"");
+        log.finest("\"" + new String(bbuf.array()) + "\"");
 
         Request req = null;
         Response preliminaryResponse = null;
         try {
           req = RequestParser.parseRequest(bbuf);
-          //          log.finest("Parsed request: " + req.toString());
+          log.finest("Parsed request: " + req.toString());
         } catch (NotEnoughDataException e) {
           log.fine("Not enough data to parse request.");
           preliminaryResponse = new ClientErrorResponse("Not enough data.");
@@ -159,10 +159,10 @@ public class AcceptCompletionHandler
 
   private static int pickServerIndex(final List<ServerHandler> servers, final Request req) {
     int hash = req.keyHash();
-    //    log.finest("hash of request: " + Integer.toString(req.hashCode()));
+    log.finest("hash of request: " + Integer.toString(req.hashCode()));
     int nrServers = servers.size();
     int serverIndex = mod(hash, nrServers);
-    //    log.finest("Chose server index: " + Integer.toString(serverIndex));
+    log.finest("Chose server index: " + Integer.toString(serverIndex));
     return serverIndex;
   }
 

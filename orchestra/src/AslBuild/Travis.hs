@@ -15,6 +15,7 @@ import           AslBuild.LocalMiddlewareReplicationTest
 import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.Orc
 import           AslBuild.Provision
+import           AslBuild.Reports
 import           AslBuild.StabilityTrace
 import           AslBuild.Test
 
@@ -46,3 +47,4 @@ travisRules = travisRule ~> do
     need [smallLocalBaselineExperimentRule]
     need [smallLocalStabilityTraceRule]
     need [analysisRule]
+    need [reportsRule]

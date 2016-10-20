@@ -24,7 +24,7 @@ setups = do
             , memcachedAsDaemon = False
             }
 
-    nrClients <- [2 .. 6]
+    nrClients <- [2, 6 .. 20]
     keySize <- [16]
     valueSize <- [128]
     threads <- [2]
