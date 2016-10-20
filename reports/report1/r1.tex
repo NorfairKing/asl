@@ -11,7 +11,6 @@
 \usepackage{cite}
 \usepackage{hyperref}
 
-% TODO interactive response time law
 
 \input{../common.tex}
 
@@ -286,6 +285,10 @@ The results can be found in the logfiles \logshort{stability-client0} \logshort{
 
 \subsection{Throughput}
 
+The graph in figure \ref{fig:stability-trace-tps} shows the throughput in each client for each second of the experiment's run time.
+It is clear from the graph that the middleware is very stable.
+It is however also very slow. It only handles about 330 transactions per client per second.
+
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{\plot{remote-stability-trace-tps.png}}
@@ -294,6 +297,13 @@ The results can be found in the logfiles \logshort{stability-client0} \logshort{
 \end{figure}
 
 \subsection{Response time}\label{sec:baseline:rt}
+
+In figure \ref{fig:stability-trace-resp}, the average response time for each client is plotted in the form of crosses.
+On top of that, wide, semi-transparent error bars are plotted that display the standard deviation of each average.
+This means that the graph gives a rough idea of the distribution of the actial response times.
+The graph clearly shows that the reponse time is very stable around $200$ milliseconds with occasional outliers.
+
+Note that these numbers for throughput and response time make sense according to the interactive response time law.
 
 \begin{figure}
   \centering
@@ -306,8 +316,24 @@ The results can be found in the logfiles \logshort{stability-client0} \logshort{
 
 % Compare the performance you expect based on the baselines and the one you observe in the trace and quantify the overheads introduced by the middleware (if any), Look at both response time and achievable throughput when making the comparison. Provide an overview of the overheads in a table form.
 
+Eventhough the middleware is very stable, it is also very expensive.
+Looking at the above graphs, using the middleware is $100$ times more expensive than not using the middleware in terms of throughput.
+In terms of response time, using the missleware is $80$ times more expensive than not using the middleware.
+These numbers are listed in greater detail in figure \ref{fig:overhead}
 
-\pagebreak
+\begin{figure}
+  \begin{tabular}{|r|c|c|}
+    \hline  & Average throughput (T/s) & Average Response time (us) \\
+    \hline Without middleware  & 35000 & 2500\\
+    \hline With middleware     & 330   & 200000 \\
+    \hline Overhead Factor     & 1\%   & 80x \\
+    \hline 
+  \end{tabular}
+  \caption{Overhead}
+  \label{fig:overhead}
+\end{figure}
+
+\newpage
 
 \section*{Logfile listing}
 

@@ -36,11 +36,22 @@ plot(
 startPng(outFileAvg)
 plot(
     res$second
-  , res$avg
+  , res$avg/1000
   , main="Response time"
   , xlab="Time elapsed since start of experiment (seconds)"
-  , ylab="Response time (microseconds)"
+  , ylab="Response time (milliseconds)"
+  , xlim=c(0,3600)
+  , ylim=c(150,500)
   , pch=4
-  , col=adjustcolor("black", alpha.f=(1/3))
+  , col=adjustcolor("black", alpha.f=(1/2))
+  )
+arrows(
+    res$second
+  , (res$avg-res$std)/1000
+  , res$second
+  , (res$avg+res$std)/1000
+  , length=0 # Length of arrow head
+  , lwd=5 # Line width
+  , col=adjustcolor("black", alpha.f=(1/20))
   )
 
