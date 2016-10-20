@@ -7,6 +7,7 @@
 \usepackage{multicol}
 \usepackage{float}
 \usepackage{tikz}
+\usepackage{cite}
 
 \input{../common.tex}
 
@@ -55,16 +56,9 @@ The \java{Request} and the \java{SocketChannel}\footnote{\tiny\url{https://docs.
 Next, the request's key is hashed to an \java{int}.
 The hash modulo the number of back-end servers is used as the index of the primary server for that key.
 The secondary servers are the subsequent servers, up to the replication factor.
-If the request is a write request, a so-called replication counter is set in the \java{RequestPacket}.
+If the request is a write request, a so-called replication counter is set to the replication factor in the \java{RequestPacket}.
 Then the \java{RequestPacket} passed on to the \java{ServerHandler}s\javafile{ServerHandler} corresponding to the chosen servers.
 Each \java{ServerHandler} contains a \java{ServerReadHandler}\javafile{ServerReadHandler} and a \java{ServerWriteHandler}\javafile{ServerWriteHandler}.
-
-\begin{figure}[H]
-  \begin{center}
-    \includegraphics[width=0.5\textwidth]{\graph{architecture_graph.eps}}
-  \end{center}
-  \caption{Overal architecture}
-\end{figure}
 
 In the case of a read request, the \java{RequestPacket} is added to a \java{BlockingQueue} in the \java{ServerReadHandler}.
 A pool of \java{ReadWorker}s\javafile{ServerReadHandler} dequeues the \java{RequestPacket}s one by one and synchronously queries the back-end server and simply passes on the response to the client.
@@ -74,6 +68,13 @@ A single \java{WriteWorker}\javafile{ServerWriteHandler} continuously sends all 
 Whenever any data is available, it is split into the different responses and as many \java{RequestPacket}s as there are responses are dequeued from the 'sent' queue in the same order.
 Each of the corresponding \java{RequestPacket}s has their replication counter decremented.
 If a replication counter reaches \java{0}, the response is forwarded to the appropriate client.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{\graph{architecture_graph.eps}}
+  \end{center}
+  \caption{Overal architecture}
+\end{figure}
 
 % Mark on the figure where are the points that you instrumented the architecture (see Section~2.3 of the Project Description) and give the different timestamps a name that you\textbf{ will use throughout the three milestones }whenever referencing measurements (e.g., $T_{requestreceived}$, $T_{responsesent}$).
 % 
@@ -117,14 +118,54 @@ If a replication counter reaches \java{0}, the response is forwarded to the appr
 % Length: at most 1 page
 % 
 % Explain what hash function you use for load balancing and how you implement the selection of servers. Give a short reasoning on why the chosen scheme should uniformly distribute load (assuming no skew on the client side).
+All incoming data from the client-side is first parsed into a \java{Request} object.
+Each \java{Request} object contains a byte array that holds the request's key.
+Java's built-in function \java{Arrays.hashcode} is then used to hash the contents of this byte array.
+
+Assuming that \java{Arrays.hashcode} distributes the results evenly among the integer domain, which is to be expected from a hashcode (but not specified in its documentation \cite{javaArrayHash}), the rest modulo the number of servers will be evenly distributed among the indexes of the servers.
+
+The primary server is selected by the using the rest modulo the number of servers of the hash of the key of the request.
+The secondary servers are then selected by taking the next $R-1$ servers (by index), where $R$ is the given replication factor.
+
 
 \subsection{Write Operations and Replication}\label{sec:desc:writes}
 
 % Length: at most 1 page
 % 
 % Provide a short description of how the writes are handled in the middleware. Explain how the replicated case differs from the simple ``write one'' scenario.
-% 
+
+When a request is parsed and the key is hashed, the first discrimination on the request kind happens.
+Each \java{RequestPacket} contains an integer called the replication counter.
+It represents the number of servers that this request still has to be written to.
+In the case of write requests, this counter is set to the replication factor.
+Next, the entire \java{RequestPacket} is handed to each of the chosen servers' \java{ServerHandler} and subsequently their \java{ServerWriteHandler} where it is put on a queue, waiting to be processed..
+
+A single thread per \java{ServerWriteHandler} continuously performs a simple routine:
+It takes one request off the queue, sends it to the server and puts the request on a so-called sent-queue.
+This queue holds all the requests that have been sent to the server, but for which no response has been received yet.
+
+Meanwhile, a so-called \java{ReadCompletionHandler} continuously reads input from the server connection and splits the received packets of data into individual responses.
+For each response, a \java{RequestPacket} is taken off the sent-queue.
+The \java{RequestPacket}'s replication counter is decremented.
+When the replication counter reaches zero, all writes have been performed at the server side.
+In that case, the response is forwarded to the client.
+
 % Give an estimate of the latencies the writing operation will incur, and generalize it to the replicated case. What do you expect will limit the rate at which writes can be carried out in the system (if anything)?
+
+When the middleware is configured to not replicate any write requests, the difference in latency between using a middleware and not using a middleware consists of 1. the time it takes for the middleware to process the request and 2. the extra network delay added by sending the request accross the network a second time.
+
+When writes are replicated, the time it takes to process a requests will most-likely increase because now it needs to wait on more than one queue to be sent to the server.
+The extra network delay will also increase because now the middleware has to wait for responses from all of the involved servers before it can respond to the client.
+
+The limiting factors for carrying out writes include the replication factor and the total input to the middleware.
+
+Because of the extra processing times and network delay, a higher replication factor should imply a lower write rate.
+This is assuming that threads cannot work perfectly in tandem, or that servers don't respond perfectly equally quickly.
+
+As the total number of requests in to middleware increases, it will take more time for the middleware to read and parse each request sequentially.
+Similarly, each request will spend more time in the respective queues, waiting to be handled.
+
+Network delay should not directly influence the rate at which writes can be carried out because of the asynchronous nature of handling the requests.
 
 \subsection{Read Operations and Thread Pool}\label{sec:desc:reads}
 
@@ -132,6 +173,17 @@ If a replication counter reaches \java{0}, the response is forwarded to the appr
 %
 % How are reads handled in the system? How does the middleware make sure that the queue between the ``main receiving'' thread and the read handlers is not accessed in unsafe concurrent manner? Explain what is the relation between threads in the thread pool and connections to servers.
 
+A single thread in the middleware accepts connections, reads and parses all incoming requests.
+After the request key has been hashed, and the \java{RequestPacket} has been passed to the appropriate \java{ServerReadHandler} through the appropriate \java{ServerHandler}, it is put onto the \java{ServerReadHandler}'s queue.
+This queue holds all requests that still have to be handled with respect to the \java{ServerReadHandler}'s corresponding server.
+The queue is a \java{LinkedBlockingQueue}, which is documented to be thread-safe.\cite{javaBlockingQueueSafe}.
+
+A pool of threads contains exactly the same amount of so-called \java{ReadWorker}s that are started at the startup of the middleware.
+Each \java{ReadWorker} connects to the server up front, and then starts looping through the following procedure.
+First it picks a single request off the \java{ServerReadHandler}'s queue.
+Then it sends this request to the server, and waits for a response.
+When the response arrives, it forwards the response to the appropriate client.
+All the input and output is done synchronously.
 
 
 \section{Memcached Baselines}\label{sec:baseline}
@@ -210,5 +262,6 @@ If a replication counter reaches \java{0}, the response is forwarded to the appr
 %   \hline
 % \end{tabular}
 
-
+\bibliography{r1}{}
+\bibliographystyle{plain}
 \end{document}

@@ -26,8 +26,7 @@ data StabilityTraceAnalysisCfg
 plotsForStabilityTrace :: StabilityTraceAnalysisCfg -> [FilePath]
 plotsForStabilityTrace StabilityTraceAnalysisCfg{..} = do
     kind <- ["read", "write"]
-    metric <- ["resp", "tps"]
-    return $ analysisOutDir </> intercalate "-" [filePrefix, kind, metric] <.> pngExt
+    return $ analysisOutDir </> intercalate "-" [filePrefix, kind, "resp"] <.> pngExt
 
 smallLocalStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
 smallLocalStabilityTraceAnalysis = StabilityTraceAnalysisCfg

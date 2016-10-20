@@ -35,7 +35,7 @@ milestone1Reportname :: String
 milestone1Reportname = "r1"
 
 milestone1ReportOut :: FilePath
-milestone1ReportOut = outDir </> "tom_sydney_kerckhove_asl_report_milestone1" <.> pdfExt
+milestone1ReportOut = aslDir </> "tomk-milestone1" <.> pdfExt
 
 milestone1ReportInBuildDir :: FilePath
 milestone1ReportInBuildDir = report1Dir </> milestone1Reportname <.> pdfExt
@@ -43,8 +43,14 @@ milestone1ReportInBuildDir = report1Dir </> milestone1Reportname <.> pdfExt
 milestone1Reporttex :: FilePath
 milestone1Reporttex = milestone1Reportname  <.> texExt
 
+milestone1Reportbib :: FilePath
+milestone1Reportbib = milestone1Reportname  <.> "bib"
+
 milestone1ReporttexInBuildDir :: FilePath
 milestone1ReporttexInBuildDir = report1Dir </> milestone1Reporttex
+
+milestone1ReportbibInBuildDir :: FilePath
+milestone1ReportbibInBuildDir = report1Dir </> milestone1Reportbib
 
 report1AssetsDir :: FilePath
 report1AssetsDir = report1Dir </> "assets"
@@ -70,7 +76,7 @@ report1Rules = do
 
     milestone1ReportInBuildDir %> \_ -> do
         need $
-            [commonTex, architecturePng, architectureGraphEps, milestone1ReporttexInBuildDir]
+            [commonTex, architecturePng, architectureGraphEps, milestone1ReporttexInBuildDir, milestone1ReportbibInBuildDir]
             ++ plotsForBaseline remoteBaselineAnalysis
             ++ plotsForStabilityTrace localStabilityTraceAnalysis
         cmd (Cwd report1Dir)
