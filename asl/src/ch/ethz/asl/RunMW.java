@@ -18,7 +18,7 @@ public class RunMW {
   static int numThreadsPTP = -1;
   static int writeToCount = -1;
   static Level verbosity = Level.INFO;
-  static String logfile = "/tmp/trace.csv";
+  static String logfile = "trace.csv";
 
   public static void main(String[] args) throws Exception {
 

@@ -38,10 +38,10 @@ public class ServerReadHandler {
   }
 
   public void handle(final RequestPacket req) throws InterruptedException {
-    log.finer(
-        "Putting on read queue for server" + serverAddress + " now sized " + readqueue.size());
+    //    log.finer(
+    //        "Putting on read queue for server" + serverAddress + " now sized " + readqueue.size());
     readqueue.put(req);
-    log.finer("Put on read queue for server " + serverAddress + " now sized " + readqueue.size());
+    //    log.finer("Put on read queue for server " + serverAddress + " now sized " + readqueue.size());
   }
 
   class ReadWorker implements Runnable {
@@ -90,30 +90,30 @@ public class ServerReadHandler {
 
     private void handleOneRequest() throws InterruptedException {
       RequestPacket packet;
-      log.finer(
-          readWorkerIndex
-              + " dequeuing from readqueue for server "
-              + serverAddress
-              + " now sized "
-              + readqueue.size());
+      //      log.finer(
+      //          readWorkerIndex
+      //              + " dequeuing from readqueue for server "
+      //              + serverAddress
+      //              + " now sized "
+      //              + readqueue.size());
       packet = readqueue.take();
-      log.finer(
-          readWorkerIndex
-              + " dequeud from readqueue for server "
-              + serverAddress
-              + " now sized "
-              + readqueue.size());
+      //      log.finer(
+      //          readWorkerIndex
+      //              + " dequeud from readqueue for server "
+      //              + serverAddress
+      //              + " now sized "
+      //              + readqueue.size());
       packet.setDequeued();
-      log.finer("Handling to get response.");
+      //      log.finer("Handling to get response.");
       Response resp = handleToGetResponse(packet);
-      log.finer("Got read response.");
+      //      log.finer("Got read response.");
       try {
         packet.respond(resp);
       } catch (ExecutionException | IOException e) {
         e.printStackTrace(); // FIXME handle this somehow
       }
-      log.finer(
-          "Readworker " + readWorkerIndex + " for server " + serverAddress + " done with request.");
+      //      log.finer(
+      //          "Readworker " + readWorkerIndex + " for server " + serverAddress + " done with request.");
     }
 
     private Response handleToGetResponse(final RequestPacket packet) {
@@ -128,12 +128,12 @@ public class ServerReadHandler {
         shutdown();
         return new ServerErrorResponse("Failed to write to server: " + serverAddress);
       }
-      log.finer("Wrote " + bytesWritten + " bytes to server " + serverAddress);
+      //      log.finer("Wrote " + bytesWritten + " bytes to server " + serverAddress);
       if (bytesWritten <= 0) {
         shutdown();
         return new ServerErrorResponse("Wrote " + bytesWritten + " bytes to server.");
       }
-      log.finest(new String(rbuf.array()));
+      //      log.finest(new String(rbuf.array()));
       packet.setAsked();
 
       ByteBuffer bbuf2 = ByteBuffer.allocate(BUFFER_SIZE);
@@ -145,12 +145,12 @@ public class ServerReadHandler {
         shutdown();
         return new ServerErrorResponse("Failed to receive from server: " + serverAddress);
       }
-      log.finer("Read " + bytesRead2 + " bytes from server " + serverAddress);
+      //      log.finer("Read " + bytesRead2 + " bytes from server " + serverAddress);
       if (bytesRead2 <= 0) {
         shutdown();
         return new ServerErrorResponse(bytesRead2 + " bytes read from server " + serverAddress);
       }
-      log.finest(new String(bbuf2.array()));
+      //      log.finest(new String(bbuf2.array()));
       return new SuccessfulResponse(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2));
     }
   }

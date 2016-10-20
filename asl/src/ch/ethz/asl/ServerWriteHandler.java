@@ -37,17 +37,17 @@ public class ServerWriteHandler {
   }
 
   public void handle(final RequestPacket req) throws InterruptedException {
-    log.finer(
-        "Putting request on write queue for server "
-            + serverAddress
-            + ", now sized "
-            + writequeue.size());
+    //    log.finer(
+    //        "Putting request on write queue for server "
+    //            + serverAddress
+    //            + ", now sized "
+    //            + writequeue.size());
     writequeue.put(req);
-    log.finer(
-        "Put request on write queue, for server "
-            + serverAddress
-            + ", now sized "
-            + writequeue.size());
+    //    log.finer(
+    //        "Put request on write queue, for server "
+    //            + serverAddress
+    //            + ", now sized "
+    //            + writequeue.size());
   }
 
   private void shutdown() {
@@ -94,17 +94,17 @@ public class ServerWriteHandler {
     private void handleOneRequest() {
       RequestPacket packet = null;
       try {
-        log.finer(
-            "Dequeuing request from writequeue for server "
-                + serverAddress
-                + ", now sized "
-                + writequeue.size());
+        //        log.finer(
+        //            "Dequeuing request from writequeue for server "
+        //                + serverAddress
+        //                + ", now sized "
+        //                + writequeue.size());
         packet = writequeue.take();
-        log.finer(
-            "Dequeud request from writequeue, for server "
-                + serverAddress
-                + ", now sized "
-                + writequeue.size());
+        //        log.finer(
+        //            "Dequeud request from writequeue, for server "
+        //                + serverAddress
+        //                + ", now sized "
+        //                + writequeue.size());
         packet.setDequeued();
       } catch (InterruptedException e) {
         e.printStackTrace();
@@ -140,7 +140,7 @@ public class ServerWriteHandler {
         shutdown();
         return;
       }
-      log.finer("Wrote " + bytesWritten + " bytes to server " + serverAddress);
+      //      log.finer("Wrote " + bytesWritten + " bytes to server " + serverAddress);
       if (bytesWritten <= 0) {
         log.severe("Wrote " + bytesWritten + " bytes to server " + serverAddress);
         shutdown();
@@ -166,9 +166,9 @@ public class ServerWriteHandler {
         return;
       }
 
-      log.finer("Read " + bytesRead + " bytes from server " + serverAddress);
+      //      log.finer("Read " + bytesRead + " bytes from server " + serverAddress);
       if (bytesRead <= 0) {
-        log.severe("Read " + bytesRead + " bytes from server " + serverAddress);
+        //        log.severe("Read " + bytesRead + " bytes from server " + serverAddress);
         shutdown();
         return;
       }
