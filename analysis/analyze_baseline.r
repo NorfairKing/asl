@@ -86,16 +86,16 @@ plot(
   , main="Aggregated response time, combined"
   , log="x"
   , xlab="Virtual clients (no unit)"
-  , ylab="Average response time"
+  , ylab="Average response time (us)"
   , xlim=c(min(allConcurrencies), max(allConcurrencies))
   , ylim=c(min(res$avg-res$std), max(res$avg+res$std))
   , type="n" # Don't plot just yet.
   , xaxt="n" # Don't plot labels on the x axis
   )
 axis(1, at = allConcurrencies, las=2)
-legend( 40000
+legend( 8000
   , c("One client", "Two clients")
-  , pch=c(19, 19) # Symbol type
+  , pch=c(4, 4) # Symbol type
   , col=colors) 
 
 side = -0.07
@@ -113,11 +113,11 @@ for (curNrClients in 1:maxNrClients) {
     , data$avg+data$std
     , length=0 # Length of arrow head
     , lwd=20 # Line width
-    , col=adjustcolor(colors[curNrClients], alpha.f=(1/maxNrRepetitions/2))
+    , col=adjustcolor(colors[3-curNrClients], alpha.f=(1/(maxNrRepetitions*1.5)))
     )
   points(
       data$concurrency, data$avg
-    , col=colors[3 - curNrClients]
+    , col=colors[curNrClients]
     , pch=4 # Point shape: Cross
     )
 

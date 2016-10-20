@@ -16,6 +16,7 @@ import           AslBuild.LocalMiddlewareParseTest
 import           AslBuild.LocalMiddlewareReplicationTest
 import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.Orc
+import           AslBuild.Reports
 import           AslBuild.StabilityTrace
 import           AslBuild.Test
 import           AslBuild.Utils
@@ -50,6 +51,7 @@ preCommitRules = do
         need [smallLocalStabilityTraceRule]
 
         need [analysisRule]
+        need [reportsRule]
 
         need [formatClientRule]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.

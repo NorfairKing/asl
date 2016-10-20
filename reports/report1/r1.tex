@@ -9,6 +9,8 @@
 \usepackage{tikz}
 \usepackage{cite}
 
+% TODO interactive response time law
+
 \input{../common.tex}
 
 \begin{document}
@@ -69,11 +71,11 @@ Whenever any data is available, it is split into the different responses and as 
 Each of the corresponding \java{RequestPacket}s has their replication counter decremented.
 If a replication counter reaches \java{0}, the response is forwarded to the appropriate client.
 
-\begin{figure}[H]
+\begin{figure}
   \begin{center}
     \includegraphics[width=0.5\textwidth]{\graph{architecture_graph.eps}}
   \end{center}
-  \caption{Overal architecture}
+  \caption{Overall architecture}
 \end{figure}
 
 % Mark on the figure where are the points that you instrumented the architecture (see Section~2.3 of the Project Description) and give the different timestamps a name that you\textbf{ will use throughout the three milestones }whenever referencing measurements (e.g., $T_{requestreceived}$, $T_{responsesent}$).
@@ -205,7 +207,7 @@ In each run, the throughput (transactions per second), the average repsonse time
 
 Each run represents a single line in the combined results file: \logshort{baseline}.
 
-\begin{center}
+\begin{center}[H]
   \begin{tabular}{|c|c|}
     \hline Number of servers & 1 \\
     \hline Number of client machines & 1 to 2 \\
@@ -229,17 +231,15 @@ Each run represents a single line in the combined results file: \logshort{baseli
 \subsection{Throughput}\label{sec:baseline:tput}
 
 \begin{figure}[H]
-  \begin{center}
-    \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-tps.png}}
-  \end{center}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-tps.png}}
 \end{figure}
 
 \subsection{Response time}\label{sec:baseline:rt}
 
 \begin{figure}[H]
-  \begin{center}
-    \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-avg.png}}
-  \end{center}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-avg.png}}
 \end{figure}
 
 \section{Stability Trace}\label{sec:trace}
@@ -247,18 +247,19 @@ Each run represents a single line in the combined results file: \logshort{baseli
 % In this section you will have to show that the middleware is functional and it can handle a long-running workload without crashing or degrading in performance. For this you will run it with full replication for one hour connected to three memcache instances and three load generator machines.
 % You will have to provide two graphs. The x-axis is time and the y-axis is either throughput or response time. Include standard deviation whenever applicable.
 % 
-% \small{
-%   \smallskip
-%   \begin{tabular}{|c|c|}
-%     \hline Number of servers & 3 \\
-%     \hline Number of client machines & 3 \\
-%     \hline Virtual clients / machine &  64 (explain if chosen otherwise) \\
-%     \hline Workload & Key 16B, Value 128B, Writes 1\% (see footnote) \\
-%     \hline Middleware & Replicate to all (R=3) \\
-%     \hline Runtime x repetitions & 1h x 1 \\
-%     \hline Log files & trace1, \ldots \\
-%     \hline
-%   \end{tabular} }
+\begin{figure}
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline Number of servers & 3 \\
+    \hline Number of client machines & 3 \\
+    \hline Virtual clients / machine &  64 (explain if chosen otherwise) \\
+    \hline Workload & Key 16B, Value 128B, Writes 1\% (see footnote) \\
+    \hline Middleware & Replicate to all (R=3) \\
+    \hline Runtime x repetitions & 1h x 1 \\
+    \hline Log files & trace1, \ldots \\
+    \hline
+  \end{tabular}
+\end{figure}
 
 
 \includegraphics[width=0.5\textwidth]{\plot{local-stability-trace-read-resp.png}}
