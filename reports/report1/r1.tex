@@ -1,0 +1,377 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper, portrait, margin=1in]{geometry}
+\PassOptionsToPackage{hyphens}{url}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{minted}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{cite}
+\usepackage{hyperref}
+
+
+\input{../common.tex}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\title{Advanced Systems Lab (Fall'16) -- First
+Milestone}
+
+\author{\textbf{Name: \emph{\myname}}\\\textbf{Legi number: \emph{\myleginr}}}
+
+\date{
+\vspace{4cm}
+\textbf{Grading} \\
+\begin{tabular}{|c|c|}
+\hline  \textbf{Section} & \textbf{Points} \\
+\hline  1.1 &  \\ 
+\hline  1.2 &  \\ 
+\hline  1.3 &  \\ 
+\hline  1.4 &  \\ 
+\hline  2.1 &  \\ 
+\hline  2.2 &  \\ 
+\hline  3.1 &  \\ 
+\hline  3.2 &  \\ 
+\hline  3.3 &  \\ 
+\hline \hline Total & \\
+\hline 
+\end{tabular} 
+}
+
+\maketitle
+\newpage
+
+\section{System Description}\label{sec:system-description}
+
+\subsection{Overall Architecture}\label{sec:desc:architecture}
+
+% Length: at most 1 page
+%
+% Explain how the abstract architecture we provided for you has been implemented in terms of classes and shortly outline the main design decisions.
+
+The main class \java{RunMW}\javafile{RunMW} creates a single object of class \java{Middleware}\javafile{Middleware}.
+It binds to a socket on the given \java{InetAddress}\footnote{\tiny\url{http://docs.oracle.com/javase/8/docs/api/java/net/InetAddress.html}} and readies to accept connections using a completionhandler of class \java{AcceptCompletionHandler}\javafile{AcceptCompletionHandler}.
+For every accepted connection, the initial read happens asynchronously and is completed with a shared completionhandler of class \java{InitialInputCompletionHandler}\javafile{AcceptCompletionHandler}.
+When the first piece of data is available, it is parsed into a \java{Request}\javafile{request/Request} by the \java{RequestParser}\javafile{request/request_parsing/RequestParser}.
+The \java{Request} and the \java{SocketChannel}\footnote{\tiny\url{https://docs.oracle.com/javase/8/docs/api/java/nio/channels/SocketChannel.html}} for the connecting client are bundled in a so-called \java{RequestPacket}\javafile{request/RequestPacket}.
+Next, the request's key is hashed to an \java{int}.
+The hash modulo the number of back-end servers is used as the index of the primary server for that key.
+The secondary servers are the subsequent servers, up to the replication factor.
+If the request is a write request, a so-called replication counter is set to the replication factor in the \java{RequestPacket}.
+Then the \java{RequestPacket} passed on to the \java{ServerHandler}s\javafile{ServerHandler} corresponding to the chosen servers.
+Each \java{ServerHandler} contains a \java{ServerReadHandler}\javafile{ServerReadHandler} and a \java{ServerWriteHandler}\javafile{ServerWriteHandler}.
+
+In the case of a read request, the \java{RequestPacket} is added to a \java{BlockingQueue} in the \java{ServerReadHandler}.
+A pool of \java{ReadWorker}s\javafile{ServerReadHandler} dequeues the \java{RequestPacket}s one by one and synchronously queries the back-end server and simply passes on the response to the client.
+
+In the case of a write request, the \java{RequestPacket} is added to a \java{BlockingQueue} in the \java{ServerWriteHandler}.
+A single \java{WriteWorker}\javafile{ServerWriteHandler} continuously sends all available requests to the server and adds the \java{RequestPacket}s to a queue of sent requests.
+Whenever any data is available, a \java{ReadCompletionHandler}\javafile{ServerWriteHandler} splits it into the different responses and as many \java{RequestPacket}s as there are responses are dequeued from the 'sent' queue in the same order.
+Each of the corresponding \java{RequestPacket}s has their replication counter decremented.
+If a replication counter reaches \java{0}, the response is forwarded to the appropriate client.
+
+An overview of the lifetime of a request can be found in figure \ref{fig:architecturegraph}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{\graph{architecture_graph.eps}}
+  \end{center}
+  \caption{Lifetime of a request}
+  \label{fig:architecturegraph}
+\end{figure}
+
+% Mark on the figure where are the points that you instrumented the architecture (see Section~2.3 of the Project Description) and give the different timestamps a name that you\textbf{ will use throughout the three milestones }whenever referencing measurements (e.g., $T_{requestreceived}$, $T_{responsesent}$).
+
+We define seven timestamps for each successfully processed request as marked in figure \ref{ref:instrumentation}.
+
+\begin{enumerate}
+  \item $T_{received}$: The initial input has been received by the middleware.
+  \item $T_{parsed}$: The initial input is parsed into a \java{Request} object.
+  \item $T_{enqueud}$: The \java{RequestPacket} is added to the appropriate queue.
+  \item $T_{dequeued}$: The \java{RequestPacket} is dequeued for processing.
+  \item $T_{asked}$: The first request is sent to a server.
+  \item $T_{replied}$: The final response is received from a server.
+  \item $T_{responded}$: The final response is forwarded to the client.
+\end{enumerate}
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[width=0.8\textwidth]{\asset{architecture.png}}};
+    \begin{scope}[x={(image.south east)},y={(image.north west)}]
+      \node[color=red] at (0.080, 0.550) {\textbf{(1)}};
+      \node[color=red] at (0.215, 0.250) {\textbf{(2)}};
+      \node[color=red] at (0.300, 0.250) {\textbf{(3)}};
+      \node[color=red] at (0.450, 0.250) {\textbf{(4)}};
+      \node[color=red] at (0.700, 0.357) {\textbf{(5)}};
+      \node[color=red] at (0.650, 0.257) {\textbf{(6)}};
+      \node[color=red] at (0.050, 0.257) {\textbf{(7)}};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Instrumentation}
+  \label{ref:instrumentation}
+\end{figure}
+
+% Reference throughout the report all relevant java source files, result files, etc. by providing the gitlab link in a footnote, for instance\footnote{\url{https://gitlab.inf.ethz.ch/zistvan/asl-fall16-project/blob/master/src/ch/ethz/SomeClass.java}}. An exception to this rule is the referencing of log files belonging to experiments. These should be referenced by an ID, or short name, and there has to be a table at the end of the report mapping these to files in the git repository.
+
+
+\subsection{Load Balancing and Hashing}\label{sec:desc:hashing}
+
+% Length: at most 1 page
+% 
+% Explain what hash function you use for load balancing and how you implement the selection of servers. Give a short reasoning on why the chosen scheme should uniformly distribute load (assuming no skew on the client side).
+All incoming data from the client-side is first parsed into a \java{Request} object.
+Each \java{Request} object contains a byte array that holds the request's key.
+Java's built-in function \java{Arrays.hashcode} is then used to hash the contents of this byte array.
+
+Assuming that \java{Arrays.hashcode} distributes the results evenly among the integer domain, which is to be expected from a hash function (but not specified in its documentation \cite{javaArrayHash}), the rest modulo the number of servers will be evenly distributed among the indexes of the servers.
+
+The primary server is selected by the using the rest modulo the number of servers of the hash of the key of the request.
+The secondary servers are then selected by taking the next $R-1$ servers (by index), where $R$ is the given replication factor.
+
+
+\subsection{Write Operations and Replication}\label{sec:desc:writes}
+
+% Length: at most 1 page
+% 
+% Provide a short description of how the writes are handled in the middleware. Explain how the replicated case differs from the simple ``write one'' scenario.
+
+When a request is parsed and the key is hashed, the first discrimination on the request kind happens.
+Each \java{RequestPacket} contains an integer called the replication counter.
+It represents the number of servers that this request still has to be written to.
+In the case of write requests, this counter is set to the replication factor.
+Next, the entire \java{RequestPacket} is handed to each of the chosen servers' \java{ServerHandler} and subsequently their \java{ServerWriteHandler} where it is put on a queue, waiting to be processed..
+
+A single thread per \java{ServerWriteHandler} continuously performs a simple routine:
+It takes one request off the queue, sends it to the server and puts the request on a so-called sent-queue.
+This queue holds all the requests that have been sent to the server, but for which no response has been received yet.
+
+Meanwhile, a so-called \java{ReadCompletionHandler} continuously reads input from the server connection and splits the received packets of data into individual responses.
+For each response, a \java{RequestPacket} is taken off the sent-queue.
+The \java{RequestPacket}'s replication counter is decremented.
+When the replication counter reaches zero, all writes have been performed at the server side.
+In that case, the response is forwarded to the client.
+
+% Give an estimate of the latencies the writing operation will incur, and generalize it to the replicated case. What do you expect will limit the rate at which writes can be carried out in the system (if anything)?
+
+When the middleware is configured to not replicate any write requests, the difference in latency between using a middleware and not using a middleware consists of 1. the time it takes for the middleware to process the request and 2. the extra network delay added by sending the request across the network a second time.
+
+When writes are replicated, the time it takes to process a requests will most-likely increase because now it needs to wait on more than one queue to be sent to the server.
+The extra network delay will also increase because now the middleware has to wait for responses from all of the involved servers before it can respond to the client.
+
+The limiting factors for carrying out writes include the replication factor and the total input to the middleware.
+
+Because of the extra processing times and network delay, a higher replication factor should imply a lower write rate.
+This is assuming that threads cannot work perfectly in tandem, or that servers don't respond perfectly equally quickly.
+
+As the total number of requests in to middleware increases, it will take more time for the middleware to read and parse each request sequentially.
+Similarly, each request will spend more time in the respective queues, waiting to be handled.
+
+Network delay should not directly influence the rate at which writes can be carried out because of the asynchronous nature of handling the requests.
+
+\subsection{Read Operations and Thread Pool}\label{sec:desc:reads}
+
+% Length: at most 1 page
+%
+% How are reads handled in the system? How does the middleware make sure that the queue between the ``main receiving'' thread and the read handlers is not accessed in unsafe concurrent manner? Explain what is the relation between threads in the thread pool and connections to servers.
+
+A single thread in the middleware accepts connections, reads and parses all incoming requests.
+After the request key has been hashed, and the \java{RequestPacket} has been passed to the appropriate \java{ServerReadHandler} through the appropriate \java{ServerHandler}, it is put onto the \java{ServerReadHandler}'s queue.
+This queue holds all requests that still have to be handled with respect to the \java{ServerReadHandler}'s corresponding server.
+The queue is a \java{LinkedBlockingQueue}, which is documented to be thread-safe.\cite{javaBlockingQueueSafe}.
+
+A pool of threads contains exactly the same amount of so-called \java{ReadWorker}s that are started at the startup of the middleware.
+Each \java{ReadWorker} connects to the server up front, and then starts looping through the following procedure.
+First it picks a single request off the \java{ServerReadHandler}'s queue.
+Then it sends this request to the server, and waits for a response.
+When the response arrives, it forwards the response to the appropriate client.
+All the input and output is done synchronously.
+
+
+\section{Memcached Baselines}\label{sec:baseline}
+
+\subsection{Setup}
+
+% This section will report experimental results. All such parts will start with a short description of the experimental setup.
+
+In the baseline experiment, the idea is to measure the performance of Memcache under a typical load generated by Memaslap.
+
+The setup is as follows.
+A single server runs Memcache and either one or two clients connect to it to measure throughput and response time.
+This is repeated for different configurations in which each client uses up to $64$ clients.
+Each run lasts 30 seconds and the experiment is repeated 5 times for each of these configurations, for a total of $140$ runs.
+
+In each run, the throughput (transactions per second), the average respsonse time and the standard deviation of the response time are measured.
+
+% The log files should be identified by a short name, or number, which will be explicitly listed at the end of the document (see Logfile Listing at the end).  \textbf{If this table is missing or the logfiles listed can't be found in your repository the experiment could be considered invalid, and no points will be awarded!}
+
+% For baseline measurement of memcached provide \textbf{two} graphs (Section~\ref{sec:baseline:tput} and \ref{sec:baseline:rt}), one with aggregated throughput and one with average response time and standard deviation as a function of number of virtual clients. Increase these in steps from 1 to 128. Give a short explanation of memcache's behavior and find the number of virtual clients that saturate the server.
+% 
+% \footnotetext{As starting point use the workloads provided in \url{http://www.systems.ethz.ch/sites/default/files/file/asl2016/memaslap-workloads.tar}. Use by default the \emph{small} workload. In later experiments you can and should change read-write ratios and potentially use other value sizes.}
+
+Each run represents a single line in the combined results file: \logshort{baseline}.
+A summary of the setup information can be found in figure \ref{fig:baseline-setup}.
+
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline Number of servers & 1 \\
+    \hline Number of client machines & 1 to 2 \\
+    \hline Virtual clients / machine & 1 to 64 \\
+    \hline Workload & Key 16B, Value 128B, Writes 1\% \\
+    \hline Middleware & Not present \\
+    \hline Runtime x repetitions & 30s x 5 \\
+    \hline Log files & \logshort{baseline} \\
+    \hline
+  \end{tabular}
+  \caption{Baseline experiment details}
+  \label{fig:baseline-setup}
+\end{figure}
+
+\subsection{Throughput}\label{sec:baseline:tput}
+
+The throughput in function of the total number of virtual clients is plotted in figure \ref{fig:baseline-tps}.
+Note first that the throughput is consistently higher when using two clients than when using a single client.
+This is because on a single machine, there will be more contention than when the virtual clients are divided amongst two machines.
+Secondly, throughput increases as the number of virtual clients increase.
+This makes sense as more virtual clients send more requests and ensure that queues less frequently empty.
+Thirdly, eventhough throughput increases, it does not increase indefinitely nor linearly.
+The graph clearly shows diminishing returns beyond 12 virtual clients.
+The throughput levels off at around $27000$ transactions per second in the case of one client machine and around $40000$ in the case of two client machines.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-tps.png}}
+  \caption{Throughput in the baseline experiment}
+  \label{fig:baseline-tps}
+\end{figure}
+
+\subsection{Response time}\label{sec:baseline:rt}
+
+On the graph of the average response time in figure \ref{fig:baseline-resp} we find related results.
+
+First, the response time is consistently higher when using two client machines than when using one client machine.
+This is to be expected for the same reason as the higher throughput for two clients: thread contention.
+
+Second, the average response time stays constant up to 12 virtual clients, and the standard deviation remains small as well.
+Under 12 virtual clients, the middleware is not saturated yet.
+Queues remain mostly empty as requests are processed faster than they arrive.
+Beyond 12 virtual clients, the average response time increases dramatically and linearly while the standard deviation is much higher but remains constant.
+The dramatic increase in response time occurs because requests arrive at the middleware quicker than the middleware can process them, so the queues rarely remain empty.
+Standard deviation is consistently higher beyond 12 virtual clients because the response time becomes unpredictible if requests need to spend time in a queue before they are processed.
+The fact that the average response time grows linearly in terms of the number of virtual clients is an immediate consequence of the design decision that queues are unbounded, that the system is closed (clients wait for a response before sending another request) and that the limit of capacity of the machines' main memory is not reached yet.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-avg.png}}
+  \caption{Response time in the baseline experiment}
+  \label{fig:baseline-resp}
+\end{figure}
+
+\section{Stability Trace}\label{sec:trace}
+
+
+\subsection{Setup}
+% In this section you will have to show that the middleware is functional and it can handle a long-running workload without crashing or degrading in performance. For this you will run it with full replication for one hour connected to three memcache instances and three load generator machines.
+
+In the stability trace experiment, the goal is to show that the middleware is stable and to measure the overhead of using it.
+
+In order to do this, the middleware has run for one hour with full replication connected to three Memcache servers and three load generator clients.
+
+The throughput and average response time are measured in each client every second.
+The results can be found in the logfiles \logshort{stability-client0} \logshort{stability-client1} and \logshort{stability-client2}. The middleware's log of the experiment can be found in \logshort{stability-middle}.
+
+
+% You will have to provide two graphs. The x-axis is time and the y-axis is either throughput or response time. Include standard deviation whenever applicable.
+
+\begin{figure}
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline Number of servers & 3 \\
+    \hline Number of client machines & 3 \\
+    \hline Virtual clients / machine &  64 (explain if chosen otherwise) \\
+    \hline Workload & Key 16B, Value 128B, Writes 1\% \\
+    \hline Middleware & Replicate to all (R=3) \\
+    \hline Runtime x repetitions & 1h x 1 \\
+    \hline Log files & \logshort{stability-client0}, \logshort{stability-client1}, \logshort{stability-client2}, \logshort{stability-middle} \\
+    \hline
+  \end{tabular}
+  \caption{Stability trace experiment details}
+  \label{fig:baseline-setup}
+\end{figure}
+
+
+\subsection{Throughput}
+
+The graph in figure \ref{fig:stability-trace-tps} shows the throughput in each client for each second of the experiment's run time.
+It is clear from the graph that the middleware is very stable.
+It is however also very slow. It only handles about 330 transactions per client per second.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-stability-trace-tps.png}}
+  \caption{Throughput in the stability trace experiment}
+  \label{fig:stability-trace-tps}
+\end{figure}
+
+\subsection{Response time}\label{sec:baseline:rt}
+
+In figure \ref{fig:stability-trace-resp}, the average response time for each client is plotted in the form of crosses.
+On top of that, wide, semi-transparent error bars are plotted that display the standard deviation of each average.
+This means that the graph gives a rough idea of the distribution of the actual response times.
+The graph clearly shows that the response time is very stable around $200$ milliseconds with occasional outliers.
+
+Note that these numbers for throughput and response time make sense according to the interactive response time law.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{\plot{remote-stability-trace-resp.png}}
+  \caption{Response time in the stability trace experiment}
+  \label{fig:stability-trace-resp}
+\end{figure}
+
+\subsection{Overhead of middleware}
+
+% Compare the performance you expect based on the baselines and the one you observe in the trace and quantify the overheads introduced by the middleware (if any), Look at both response time and achievable throughput when making the comparison. Provide an overview of the overheads in a table form.
+
+Even though the middleware is very stable, it is also very expensive.
+Looking at the above graphs, using the middleware is $100$ times more expensive than not using the middleware in terms of throughput.
+In terms of response time, using the middleware is $80$ times more expensive than not using the middleware.
+These numbers are listed in greater detail in figure \ref{fig:overhead}
+
+\begin{figure}
+  \begin{tabular}{|r|c|c|}
+    \hline  & Average throughput (T/s) & Average Response time (us) \\
+    \hline Without middleware  & 35000 & 2500\\
+    \hline With middleware     & 330   & 200000 \\
+    \hline Overhead Factor     & 1\%   & 80x \\
+    \hline 
+  \end{tabular}
+  \caption{Overhead}
+  \label{fig:overhead}
+\end{figure}
+
+\newpage
+
+\section*{Logfile listing}
+
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{c|p{12cm}}
+    \textbf{Short name }& \textbf{Location} \\
+    \logfile{baseline}{remote-baseline-experiment-results.csv}
+    \logfile{stability-client0}{remote-stability-trace/remote-stability-trace-stabilitytmpresults-0}
+    \logfile{stability-client1}{remote-stability-trace/remote-stability-trace-stabilitytmpresults-1}
+    \logfile{stability-client2}{remote-stability-trace/remote-stability-trace-stabilitytmpresults-2}
+    \logfile{stability-middle}{remote-stability-trace-results.csv}
+    \label{tab:loglisting}
+  \end{tabular}
+\end{figure}
+
+\bibliography{r1}{}
+\bibliographystyle{plain}
+\end{document}
