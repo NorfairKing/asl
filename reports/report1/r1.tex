@@ -203,7 +203,7 @@ In the baseline experiment, the idea is to measure the performance of Memcache u
 The setup is as follows.
 A single server runs Memcache and either one or two clients connect to it to measure throughput and response time.
 This is repeated for different configurations in which each client uses up to $64$ clients.
-The experiment is repeated 5 times for each of these configurations, for a total of $140$ runs.
+Each run lasts 30 seconds and the experiment is repeated 5 times for each of these configurations, for a total of $140$ runs.
 
 In each run, the throughput (transactions per second), the average respsonse time and the standard deviation of the response time are measured.
 
@@ -234,6 +234,15 @@ A summary of the setup information can be found in figure \ref{fig:baseline-setu
 
 \subsection{Throughput}\label{sec:baseline:tput}
 
+The throughput in function of the total number of virtual clients is plotted in figure \ref{fig:baseline-tps}.
+Note first that the throughput is consistently higher when using two clients than when using a single client.
+This is because on a single machine, there will be more contention than when the virtual clients are divided amongst two machines.
+Secondly, throughput increases as the number of virtual clients increase.
+This makes sense as more virtual clients send more requests and ensure that queues less frequently empty.
+Thirdly, eventhough throughput increases, it does not increase indefinitely nor linearly.
+The graph clearly shows diminishing returns beyond 12 virtual clients.
+The throughput levels off at around $27000$ transactions per second in the case of one client machine and around $40000$ in the case of two client machines.
+
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{\plot{remote-baseline-experiment-tps.png}}
@@ -242,6 +251,19 @@ A summary of the setup information can be found in figure \ref{fig:baseline-setu
 \end{figure}
 
 \subsection{Response time}\label{sec:baseline:rt}
+
+On the graph of the average response time in figure \ref{fig:baseline-resp} we find related results.
+
+First, the response time is consistently higher when using two client machines than when using one client machine.
+This is to be expected for the same reason as the higher throughput for two clients: thread contention.
+
+Second, the average response time stays constant up to 12 virtual clients, and the standard deviation remains small as well.
+Under 12 virtual clients, the middleware is not saturated yet.
+Queues remain mostly empty as requests are processed faster than they arrive.
+Beyond 12 virtual clients, the average response time increases dramatically and linearly while the standard deviation is much higher but remains constant.
+The dramatic increase in response time occurs because requests arrive at the middleware quicker than the middleware can process them, so the queues rarely remain empty.
+Standard deviation is consistently higher beyond 12 virtual clients because the response time becomes unpredictible if requests need to spend time in a queue before they are processed.
+The fact that the average response time grows linearly in terms of the number of virtual clients is an immediate consequence of the design decision that queues are unbounded, that the system is closed (clients wait for a response before sending another request) and that the limit of capacity of the machines' main memory is not reached yet.
 
 \begin{figure}
   \centering
