@@ -46,7 +46,7 @@ smallLocalBaselineExperiment = BaselineExperimentRuleCfg
     , baselineExperimentsCacheFile = tmpDir </> "small-local-baseline-experiments.json"
     , baselineLocation = BaselineLocal
     , baselineSetup = BaseLineSetup
-        { repetitions = 2
+        { repetitions = 1
         , runtime = 2
         , maxNrVirtualClients = 2
         }
@@ -116,7 +116,7 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
     , baselineSetup = BaseLineSetup
         { repetitions = 5
         , runtime = 30
-        , maxNrVirtualClients = 64
+        , maxNrVirtualClients = 128
         }
     }
 
@@ -241,12 +241,13 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
         let BaseLineSetup{..} = baselineSetup
 
         let servers = [memcachedServer]
-        let threads = length servers
-
-        concurrents <- takeWhile (<= maxNrVirtualClients) $ iterate (* 2) threads
-        rep <- [1 .. repetitions]
 
         nrClients <- [1 .. length clientLogins]
+
+        let steps = max (maxNrVirtualClients `div` (12 * nrClients)) 1
+        concurrents <- (++ [maxNrVirtualClients `div` nrClients]) $ takeWhile (< (maxNrVirtualClients `div` nrClients)) $ iterate (+ steps) 1
+        rep <- [1 .. repetitions]
+
 
         let signature = intercalate "-"
                 [ show nrClients
@@ -275,7 +276,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                         }
                     , msFlags = MemaslapFlags
                         { msServers = servers
-                        , msThreads = threads
+                        , msThreads = 1
                         , msConcurrency = concurrents
                         , msOverwrite = 0.9
                         , msStatFreq = Just $ Seconds runtime
