@@ -45,23 +45,34 @@ vmRules = do
             Left err -> fail $ "Aeson vm data file failed to decode: " ++ err
             Right vms -> liftIO $ LB.writeFile vmDataFile $ encodePretty $ map azureUnpack vms
 
-    startVmsRule ~> (getRawVmData >>= startVms)
-    stopVmsRule ~> (getRawVmData >>= stopVms)
+    startVmsRule ~> (getVmNames >>= startVmsByName)
+    stopVmsRule ~> (getVmNames >>= stopVmsByName)
+
+-- FIXME Quick and hacky
+getVmNames :: Action [String]
+getVmNames = return $ do
+    suffix <- [1..11] :: [Int]
+    return $ "foraslvms" ++ show suffix
 
 startVms :: [VmData] -> Action ()
-startVms vms = phPar vms $ \VmData{..} ->
+startVms = startVmsByName . map vmName
+
+startVmsByName :: [String] -> Action ()
+startVmsByName ls = phPar ls $ \vmName ->
     cmd azureCmd "vm" "start"
         "--resource-group" resourceGroupName
         "--name" vmName
 
 stopVms :: [VmData] -> Action ()
-stopVms vms = do
-    phPar vms $ \VmData{..} ->
+stopVms = stopVmsByName . map vmName
+
+stopVmsByName :: [String] -> Action ()
+stopVmsByName ls = do
+    phPar ls $ \vmName ->
         cmd azureCmd "vm" "deallocate"
             "--resource-group" resourceGroupName
             "--name" vmName
     removeFilesAfter "" [azureVmJsonFile, vmDataFile]
-
 
 getRawVmData :: Action [VmData]
 getRawVmData = do

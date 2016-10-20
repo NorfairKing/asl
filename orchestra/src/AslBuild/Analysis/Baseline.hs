@@ -25,10 +25,11 @@ data BaselineAnalysisCfg
     }
 
 plotsForBaseline :: BaselineAnalysisCfg -> [FilePath]
-plotsForBaseline BaselineAnalysisCfg{..} = do
-    prefix <- ["avg", "tps"]
-    nrclients <- [1 .. maxNrClients experiment]
-    return $ analysisOutDir </> intercalate "-" [filePrefix, prefix, show nrclients] <.> pngExt
+plotsForBaseline BaselineAnalysisCfg{..} = map
+    (\f -> analysisOutDir </> intercalate "-" [filePrefix, f] <.> pngExt)
+    [ "avg"
+    , "tps"
+    ]
 
 smallLocalBaselineAnalysis :: BaselineAnalysisCfg
 smallLocalBaselineAnalysis = BaselineAnalysisCfg
@@ -58,12 +59,20 @@ remoteBaselineAnalysis = BaselineAnalysisCfg
     , analysisOutDir = report1PlotsDir
     }
 
+smallRemoteBaselineAnalysis :: BaselineAnalysisCfg
+smallRemoteBaselineAnalysis = BaselineAnalysisCfg
+    { experiment = smallRemoteBaselineExperiment
+    , filePrefix = "small-remote-baseline-experiment"
+    , analysisOutDir = analysisDir
+    }
+
 allBaselineAnalyses :: [BaselineAnalysisCfg]
 allBaselineAnalyses =
     [ smallLocalBaselineAnalysis
     , localBaselineAnalysis
     , bigLocalBaselineAnalysis
     , remoteBaselineAnalysis
+    , smallRemoteBaselineAnalysis
     ]
 
 allBaselinePlots :: [FilePath]

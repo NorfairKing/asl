@@ -29,6 +29,7 @@ baselineExperimentRules = do
     rulesForGivenBaselineExperiment smallLocalBaselineExperiment
     rulesForGivenBaselineExperiment localBaselineExperiment
     rulesForGivenBaselineExperiment bigLocalBaselineExperiment
+    rulesForGivenBaselineExperiment smallRemoteBaselineExperiment
     rulesForGivenBaselineExperiment remoteBaselineExperiment
 
 smallLocalBaselineExperimentRule :: String
@@ -81,6 +82,24 @@ bigLocalBaselineExperiment = BaselineExperimentRuleCfg
         }
     }
 
+smallRemoteBaselineExperimentRule :: String
+smallRemoteBaselineExperimentRule = "small-remote-baseline-experiment"
+
+smallRemoteBaselineExperiment :: BaselineExperimentRuleCfg
+smallRemoteBaselineExperiment = BaselineExperimentRuleCfg
+    { target = smallRemoteBaselineExperimentRule
+    , csvOutFile = resultsDir </> "small-remote-baseline-experiment-results.csv"
+    , localLogfile = tmpDir </> "small-remote-baseline_memaslaplog.txt"
+    , maxNrClients = 2
+    , baselineExperimentsCacheFile = tmpDir </> "small-remote-baseline-experiments.json"
+    , baselineLocation = BaselineRemote
+    , baselineSetup = BaseLineSetup
+        { repetitions = 1
+        , runtime = 5
+        , maxNrVirtualClients = 4
+        }
+    }
+
 remoteBaselineExperimentRule :: String
 remoteBaselineExperimentRule = "remote-baseline-experiment"
 
@@ -121,7 +140,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
                 Right exps -> return exps
 
         need [provisionLocalhostRule]
-        startVms vmsNeeded
+        -- startVms vmsNeeded
         provisionVmsFromData vmsNeeded
 
         -- Intentionally no parallelism here.
@@ -176,7 +195,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             -- Make sure no memcached servers are running anymore
             shutdownServers [serverSetup]
 
-        stopVms vmsNeeded
+        -- stopVms vmsNeeded
 
         let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles
