@@ -255,9 +255,9 @@ The throughput levels off at around $27000$ transactions per second in the case 
 On the graph of the average response time in figure \ref{fig:baseline-resp} we find related results.
 
 First, the response time is consistently higher when using two client machines than when using one client machine.
-This is to be expected for the same reason as the higher throughput for two clients: thread contention.
+This is to be expected for the same reason as the higher throughput for two clients: contention.
 
-Second, the average response time stays constant up to 12 virtual clients, and the standard deviation remains small as well.
+Second, the average response time stays almost constant up to 12 virtual clients, and the standard deviation remains small as well.
 Under 12 virtual clients, the middleware is not saturated yet.
 Queues remain mostly empty as requests are processed faster than they arrive.
 Beyond 12 virtual clients, the average response time increases dramatically and linearly while the standard deviation is much higher but remains constant.
@@ -284,6 +284,7 @@ In order to do this, the middleware has run for one hour with full replication c
 
 The throughput and average response time are measured in each client every second.
 The results can be found in the logfiles \logshort{stability-client0} \logshort{stability-client1} and \logshort{stability-client2}. The middleware's log of the experiment can be found in \logshort{stability-middle}.
+A summary of this information can be found in figure \ref{fig:stability-trace-setup}
 
 
 % You will have to provide two graphs. The x-axis is time and the y-axis is either throughput or response time. Include standard deviation whenever applicable.
@@ -301,7 +302,7 @@ The results can be found in the logfiles \logshort{stability-client0} \logshort{
     \hline
   \end{tabular}
   \caption{Stability trace experiment details}
-  \label{fig:baseline-setup}
+  \label{fig:stability-trace-setup}
 \end{figure}
 
 
@@ -325,8 +326,6 @@ On top of that, wide, semi-transparent error bars are plotted that display the s
 This means that the graph gives a rough idea of the distribution of the actual response times.
 The graph clearly shows that the response time is very stable around $200$ milliseconds with occasional outliers.
 
-Note that these numbers for throughput and response time make sense according to the interactive response time law.
-
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{\plot{remote-stability-trace-resp.png}}
@@ -344,6 +343,7 @@ In terms of response time, using the middleware is $80$ times more expensive tha
 These numbers are listed in greater detail in figure \ref{fig:overhead}
 
 \begin{figure}
+  \centering
   \begin{tabular}{|r|c|c|}
     \hline  & Average throughput (T/s) & Average Response time (us) \\
     \hline Without middleware  & 35000 & 2500\\
