@@ -1,7 +1,6 @@
 module AslBuild.Build where
 
 import           Development.Shake
-import           Development.Shake.Config
 
 import           AslBuild.Analysis
 import           AslBuild.BuildMemcached
@@ -39,8 +38,6 @@ doTheShake = shakeArgs args theShake
 
 theShake :: Rules ()
 theShake  = do
-    usingConfigFile "config.cfg"
-
     commitHashRules
     orcRules
     jarRules
