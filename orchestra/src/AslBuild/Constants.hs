@@ -176,6 +176,9 @@ propertiesExt = properties
 tarGzExt :: Extension
 tarGzExt = "tar.gz"
 
+jsonExt :: Extension
+jsonExt = "json"
+
 -- Rules
 cleanTarget :: String
 cleanTarget = "clean"

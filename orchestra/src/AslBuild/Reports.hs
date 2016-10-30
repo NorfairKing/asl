@@ -75,10 +75,15 @@ report1Rules = do
     report1Rule ~> need [milestone1ReportOut]
 
     milestone1ReportInBuildDir %> \_ -> do
-        need $
-            [commonTex, architecturePng, architectureGraphEps, milestone1ReporttexInBuildDir, milestone1ReportbibInBuildDir]
-            ++ plotsForBaseline remoteBaselineAnalysis
-            ++ plotsForStabilityTrace remoteStabilityTraceAnalysis
+        need
+            [ commonTex
+            , architecturePng
+            , architectureGraphEps
+            , milestone1ReporttexInBuildDir
+            , milestone1ReportbibInBuildDir
+            , baselineAnalysisRuleFor remoteBaselineAnalysis
+            , stabilityTraceAnalysisRuleFor remoteStabilityTraceAnalysis
+            ]
         cmd (Cwd report1Dir)
             "latexmk"
             milestone1Reporttex

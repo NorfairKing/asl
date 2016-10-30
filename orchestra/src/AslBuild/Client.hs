@@ -22,9 +22,15 @@ setupClientConfigs clientSetups = do
     forP_ clientSetups $ \ClientSetup{..} ->
         writeMemaslapConfig cLocalMemaslapConfigFile $ msConfig cMemaslapSettings
 
+    let remoteConfigFile c = msConfigFile $ msFlags $ cMemaslapSettings c
+
+    -- Create the directory that the log will be in
+    phPar clientSetups $ \c@ClientSetup{..} ->
+        overSsh cRemoteLogin $ "mkdir -p " ++ takeDirectory (remoteConfigFile c)
+
     -- Copy the memaslap config to the client
-    phPar clientSetups $ \ClientSetup{..} ->
-        rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ msConfigFile $ msFlags cMemaslapSettings
+    phPar clientSetups $ \c@ClientSetup{..} ->
+        rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ remoteConfigFile c
 
 startClientsOn :: [ClientSetup] -> Action ()
 startClientsOn clientSetups =
@@ -43,3 +49,7 @@ copyClientLogsBack clientSetups = do
         liftIO $ createDirectoryIfMissing True $ takeDirectory cLocalLog
     phPar clientSetups $ \ClientSetup{..} ->
         rsyncFrom cRemoteLogin cRemoteLog cLocalLog
+
+shutdownClients :: [ClientSetup] -> Action ()
+shutdownClients cs = phPar cs $ \ClientSetup{..} ->
+    overSsh cRemoteLogin $ unwords ["killall", "memaslap", "||", "true"]

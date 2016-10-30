@@ -14,7 +14,7 @@ import           AslBuild.Types
 
 startMiddleOn :: CmdResult r => MiddleSetup -> Action r
 startMiddleOn MiddleSetup{..} = scriptAt mRemoteLogin $ script
-    [ "shopt -s huponexit" -- Terminate process when this script dies.
+    [ "shopt -s huponexit" -- Detach process when this script dies.
     , unwords $
         [javaCmd, "-jar", remoteMiddleware]
         ++ middlewareArgs mMiddlewareFlags

@@ -81,16 +81,25 @@ allBaselinePlots = concatMap plotsForBaseline allBaselineAnalyses
 baselineAnalysisRules :: Rules ()
 baselineAnalysisRules = do
     baselineAnalysisRule ~> need allBaselinePlots
-    mapM_ baselineAnalysisRuleFor allBaselineAnalyses
+    mapM_ baselineAnalysisRulesFor allBaselineAnalyses
 
-baselineAnalysisRuleFor :: BaselineAnalysisCfg -> Rules ()
-baselineAnalysisRuleFor bac@BaselineAnalysisCfg{..} = plotsForBaseline bac &%> \_ -> do
-    let results = csvOutFile experiment
-    resultsExist <- doesFileExist results
+baselineAnalysisRuleFor :: BaselineAnalysisCfg -> String
+baselineAnalysisRuleFor BaselineAnalysisCfg{..}
+    = target experiment ++ "-analysis"
 
-    need $ baselineAnalysisScript : [results | not resultsExist] -- Do not depend on results if they exist already.
+baselineAnalysisRulesFor :: BaselineAnalysisCfg -> Rules ()
+baselineAnalysisRulesFor bac@BaselineAnalysisCfg{..} = do
+    let plotsForThisBaseline = plotsForBaseline bac
 
-    need [rBin]
-    needRLibs ["pkgmaker"]
-    needRLibs ["igraph"]
-    unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir
+    baselineAnalysisRuleFor bac ~> need plotsForThisBaseline
+
+    plotsForThisBaseline &%> \_ -> do
+        let results = csvOutFile experiment
+        resultsExist <- doesFileExist results
+
+        need $ baselineAnalysisScript : [results | not resultsExist] -- Do not depend on results if they exist already.
+
+        need [rBin]
+        needRLibs ["pkgmaker"]
+        needRLibs ["igraph"]
+        unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir

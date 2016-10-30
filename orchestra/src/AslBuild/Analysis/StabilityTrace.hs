@@ -2,8 +2,6 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.StabilityTrace where
 
-import           Control.Monad
-import qualified Data.Aeson                 as A
 import qualified Data.ByteString.Lazy       as LB
 import           Data.Csv
 import           Data.List
@@ -13,6 +11,7 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
 import           AslBuild.Constants
+import           AslBuild.Experiment
 import           AslBuild.Memaslap
 import           AslBuild.StabilityTrace
 import           AslBuild.Utils
@@ -25,7 +24,7 @@ stabilityTraceAnalysisRule = "stability-trace-analysis"
 
 data StabilityTraceAnalysisCfg
     = StabilityTraceAnalysisCfg
-    { experiment     :: StabilityTraceCfg
+    { experiment     :: ExperimentCfg
     , filePrefix     :: FilePath
     , analysisOutDir :: FilePath
     }
@@ -74,7 +73,7 @@ allStabilityTraceAnalyses :: [StabilityTraceAnalysisCfg]
 allStabilityTraceAnalyses =
     [ smallLocalStabilityTraceAnalysis
     , localStabilityTraceAnalysis
-    -- , bigLocalStabilityTraceAnalysis
+    , bigLocalStabilityTraceAnalysis
     , smallRemoteStabilityTraceAnalysis
     , remoteStabilityTraceAnalysis
     ]
@@ -85,36 +84,42 @@ allStabilityTracePlots = concatMap plotsForStabilityTrace allStabilityTraceAnaly
 stabilityTraceAnalysisRules :: Rules ()
 stabilityTraceAnalysisRules = do
     stabilityTraceAnalysisRule ~> need allStabilityTracePlots
-    mapM_ stabilityTraceAnalysisRuleFor allStabilityTraceAnalyses
+    mapM_ stabilityTraceAnalysisRulesFor allStabilityTraceAnalyses
 
-stabilityTraceAnalysisRuleFor :: StabilityTraceAnalysisCfg -> Rules ()
-stabilityTraceAnalysisRuleFor bac@StabilityTraceAnalysisCfg{..} = do
+readResultsSummary :: FilePath -> Action ExperimentResultSummary
+readResultsSummary = readJSON
+
+stabilityTraceAnalysisRuleFor :: StabilityTraceAnalysisCfg -> String
+stabilityTraceAnalysisRuleFor StabilityTraceAnalysisCfg{..} =
+    target experiment ++ "-analysis"
+
+stabilityTraceAnalysisRulesFor :: StabilityTraceAnalysisCfg -> Rules ()
+stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
+    let plotsForThisTrace = plotsForStabilityTrace bac
+
+    stabilityTraceAnalysisRuleFor bac ~> need plotsForThisTrace
+
     let t = target experiment
     let adir = tmpDir </> target experiment
 
-    let readLogs :: Action [StabilityTraceExperimentResults]
+    let summaryFile = resultsFile experiment
+
+    let readLogs :: Action [ClientResults]
         readLogs = do
             files <- absFilesInDir (resultsDir </> t) ["*"]
             need files
-            forM files $ \file -> do
-                contents <- liftIO $ LB.readFile file
-                putLoud $ unlines $ "Reading logfiles:" : files
-                case A.eitherDecode contents of
-                    Left err -> fail $ unwords
-                        [ "Failed to decode contents of"
-                        , file
-                        , ", error:"
-                        , err
-                        ]
-                    Right res -> return res
+            putLoud $ unlines $ "Reading logfiles:" : files
+            forP files readJSON
 
     let simpleCsvFile = adir </> "simple.csv"
     simpleCsvFile %> \_ -> do
+        need [summaryFile]
+        ExperimentResultSummary{..} <- readResultsSummary summaryFile
         logs <- readLogs
         putLoud "Converting logfiles to a simple CSV file."
-        let statistics :: StabilityTraceExperimentResults -> [Statistics]
-            statistics = map (periodStats . bothStats) . triples . sterMemaslapLog
-        let tpsTuples :: StabilityTraceExperimentResults -> [(Int, Statistics)]
+        let statistics :: ClientResults -> [Statistics]
+            statistics = map (periodStats . bothStats) . triples . crLog
+        let tpsTuples :: ClientResults -> [(Int, Statistics)]
             tpsTuples = zip [1..] . statistics
         let tupsList :: [(Int, [(Int, Statistics)])]
             tupsList = zip [1..] $ map tpsTuples logs
@@ -123,11 +128,11 @@ stabilityTraceAnalysisRuleFor bac@StabilityTraceAnalysisCfg{..} = do
         let enc = simpleCsv withClientSimplePoints
         liftIO $ LB.writeFile simpleCsvFile enc
 
-    plotsForStabilityTrace bac &%> \_ -> do
-        let results = csvOutFile experiment
-        resultsExist <- doesFileExist results
+    plotsForThisTrace &%> \_ -> do
+        need [summaryFile]
+        ExperimentResultSummary{..} <- readResultsSummary summaryFile
 
-        need $ stabilityTraceAnalysisScript : [results | not resultsExist] -- Do not depend on results if they exist already.
+        need [erMiddleResults, stabilityTraceAnalysisScript] -- Do not depend on results if they exist already.
 
         need [rBin]
         needRLibs ["pkgmaker"]
@@ -135,6 +140,7 @@ stabilityTraceAnalysisRuleFor bac@StabilityTraceAnalysisCfg{..} = do
 
         need [simpleCsvFile]
         unit $ rScript stabilityTraceAnalysisScript simpleCsvFile filePrefix analysisOutDir
+
 
 simpleCsv :: [SimplifiedPoint] -> LB.ByteString
 simpleCsv sps = encodeByName (header ["client", "second", "tps", "avg", "std"]) sps

@@ -19,7 +19,8 @@ setups :: [LocalMiddlewareTestSetup]
 setups = do
     let rtime = 1
 
-    nrServers <- [2, 8]
+    (nrClients, nrServers) <- [(1, 1), (2, 3), (3, 7), (4, 14)]
+
     let serverFlags = do
             port <- take nrServers [11211 ..]
             return MemcachedFlags
@@ -40,15 +41,14 @@ setups = do
             , mwTraceFile = tmpDir </> localMiddlewareThoroughTestRule ++ "-trace" <.> csvExt
             }
 
-    nrClients <- [2, 8]
-    keySize <- [16, 16]
-    valueSize <- [128, 1024]
-    threads <- [1, 2]
+    (keySize, valueSize) <- [(16, 128), (64, 1024)]
+
+    threads <- [1]
     -- Concurrency must be a multiple of thread count.
-    concurrency <- (* threads) <$> [16, 64]
+    concurrency <- (* threads) <$> [64]
 
     setProp <- [0.1]
-    nrRequests <- [256, 512]
+    nrRequests <- [256]
 
     let signature = intercalate "-"
             [ show nrClients
