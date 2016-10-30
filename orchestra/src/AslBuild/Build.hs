@@ -31,7 +31,11 @@ import           AslBuild.Vm
 
 doTheShake :: IO ()
 doTheShake = shakeArgs args theShake
-  where args = shakeOptions {shakeVerbosity = Loud}
+  where
+    args = shakeOptions
+        { shakeVerbosity = Loud
+        , shakeThreads = 0 -- Use as many threads as processors
+        }
 
 theShake :: Rules ()
 theShake  = do
