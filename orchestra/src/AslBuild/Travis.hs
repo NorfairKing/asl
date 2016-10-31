@@ -5,6 +5,7 @@ import           Development.Shake
 import           AslBuild.Analysis
 import           AslBuild.BuildMemcached
 import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
@@ -44,7 +45,10 @@ travisRules = travisRule ~> do
     need [localMiddlewareMultipleClientsTestRule]
 
     need [provisionLocalhostRule]
+
     need [smallLocalBaselineExperimentRule]
     need [smallLocalStabilityTraceRule]
+    need [smallLocalReplicationEffectRule]
+
     need [analysisRule]
     need [reportsRule]
