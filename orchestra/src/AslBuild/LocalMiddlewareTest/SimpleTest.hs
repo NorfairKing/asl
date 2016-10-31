@@ -54,7 +54,6 @@ setups = do
                 { keysizeDistributions = [Distribution keySize keySize 1]
                 , valueDistributions = [Distribution valueSize valueSize 1]
                 , setProportion = 0.1
-                , getProportion = 0.9
                 }
             , msFlags = MemaslapFlags
                 { msServers = [RemoteServerUrl (mwIp mwFlags) (mwPort mwFlags)]

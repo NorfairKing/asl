@@ -58,7 +58,6 @@ setups = do
             { keysizeDistributions = [Distribution keySize keySize 1]
             , valueDistributions = [Distribution valueSize valueSize 1]
             , setProportion = setProp
-            , getProportion = 1 - setProp
             }
 
     let flags = MemaslapFlags

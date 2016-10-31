@@ -41,7 +41,7 @@ renderMemaslapConfig MemaslapConfig{..} =
     ] ++ map renderDistribution valueDistributions ++
     [ "cmd"
     , unwords ["0", show setProportion]
-    , unwords ["1", show getProportion]
+    , unwords ["1", show $ 1 - setProportion]
     ]
 
 renderDistribution :: Distribution -> String

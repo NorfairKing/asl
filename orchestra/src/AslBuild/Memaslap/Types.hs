@@ -21,7 +21,6 @@ data MemaslapConfig
     { keysizeDistributions :: [Distribution]
     , valueDistributions   :: [Distribution]
     , setProportion        :: Double
-    , getProportion        :: Double
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MemaslapConfig

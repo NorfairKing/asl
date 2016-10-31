@@ -275,7 +275,6 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                         { keysizeDistributions = [Distribution 16 16 1]
                         , valueDistributions = [Distribution 128 128 1]
                         , setProportion = 0.01
-                        , getProportion = 0.99
                         }
                     , msFlags = MemaslapFlags
                         { msServers = servers

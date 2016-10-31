@@ -90,7 +90,6 @@ instance ExperimentConfig ReplicationEffectCfg where
                                     { keysizeDistributions = [Distribution 16 16 1]
                                     , valueDistributions = [Distribution 128 128 1]
                                     , setProportion = 0.05
-                                    , getProportion = 0.95
                                     }
                                 , msFlags = MemaslapFlags
                                     { msServers = [RemoteServerUrl mPrivate middlePort]
