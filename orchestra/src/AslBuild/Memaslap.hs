@@ -48,20 +48,9 @@ renderDistribution :: Distribution -> String
 renderDistribution Distribution{..} = unwords
     [ show distrMin, show distrMax, show distrProp ]
 
-    --     -- Required because there are also set statistics.
-    -- let skippedFirsts = dropWhile (\l -> not $ "Total Statistics" `isPrefixOf` l) $ lines s
-    --     avgPrefix = "   Avg:"
-    --     stdPrefix = "   Std:"
-    -- let getDoubleFromPrefix prefix
-    --         = (read . drop (length prefix)) <$> find (\l -> prefix `isPrefixOf` l) skippedFirsts
-    -- expavg <- getDoubleFromPrefix avgPrefix
-    -- expstd <- getDoubleFromPrefix stdPrefix
-    -- let getTps = (read . (!! 6) . words) <$> find (\l -> "Run time" `isPrefixOf` l) skippedFirsts
-    -- exptps <- getTps
-    -- return MemaslapLog
-    --     { avg = expavg
-    --     , std = expstd
-    --     , tps = exptps
-    --     }
-
-
+defaultMemaslapConfig :: MemaslapConfig
+defaultMemaslapConfig = MemaslapConfig
+    { keysizeDistributions = [Distribution 16 16 1]
+    , valueDistributions = [Distribution 128 128 1]
+    , setProportion = 0.01
+    }

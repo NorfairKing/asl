@@ -35,7 +35,6 @@ instance ExperimentConfig ReplicationEffectCfg where
         let runtime = Seconds 5
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
-        let serverPort = 12345
         let middlePort = 23456
 
         let experimentResultsDir = resultsDir </> target
@@ -47,14 +46,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                 replicationFactor <- replicationFactors
                 let signGlobally f = intercalate "-" [f, show curNrServers, show replicationFactor]
 
-                let servers = take curNrServers $ flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSetup
-                        { sRemoteLogin = sLogin
-                        , sIndex = six
-                        , sMemcachedFlags = MemcachedFlags
-                            { memcachedPort = serverPort + six
-                            , memcachedAsDaemon = True
-                            }
-                        }
+                let servers = take curNrServers $ genServerSetups sers
 
                 let (mLogin, mPrivate) = mid
                 let traceFileName = signGlobally (target ++ "-trace")
@@ -86,10 +78,8 @@ instance ExperimentConfig ReplicationEffectCfg where
                             , cResultsFile = experimentResultsDir </> sign "client-results"
                             , cLocalMemaslapConfigFile = experimentLocalTmpDir </> sign "memaslap-config"
                             , cMemaslapSettings = MemaslapSettings
-                                { msConfig = MemaslapConfig
-                                    { keysizeDistributions = [Distribution 16 16 1]
-                                    , valueDistributions = [Distribution 128 128 1]
-                                    , setProportion = 0.05
+                                { msConfig = defaultMemaslapConfig
+                                    { setProportion = 0.05
                                     }
                                 , msFlags = MemaslapFlags
                                     { msServers = [RemoteServerUrl mPrivate middlePort]

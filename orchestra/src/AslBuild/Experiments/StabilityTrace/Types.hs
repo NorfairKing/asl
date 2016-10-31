@@ -33,21 +33,13 @@ instance ExperimentConfig StabilityTraceCfg where
     genExperimentSetups stc@StabilityTraceCfg{..} = do
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
-        let serverPort = 12345
         let middlePort = 23456
 
         let experimentResultsDir = resultsDir </> target
         let experimentLocalTmpDir = tmpDir </> target
         let experimentRemoteTmpDir = "/tmp" </> target
 
-        let servers = flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSetup
-                { sRemoteLogin = sLogin
-                , sIndex = six
-                , sMemcachedFlags = MemcachedFlags
-                    { memcachedPort = serverPort + six
-                    , memcachedAsDaemon = True
-                    }
-                }
+        let servers = genServerSetups sers
 
         let (mLogin, mPrivate) = mid
         let middle = MiddleSetup
@@ -77,10 +69,8 @@ instance ExperimentConfig StabilityTraceCfg where
                 , cResultsFile = experimentResultsDir </> sign cix "client-results"
                 , cLocalMemaslapConfigFile = experimentLocalTmpDir </> sign cix "memaslap-config"
                 , cMemaslapSettings = MemaslapSettings
-                    { msConfig = MemaslapConfig
-                        { keysizeDistributions = [Distribution 16 16 1]
-                        , valueDistributions = [Distribution 128 128 1]
-                        , setProportion = 0.01
+                    { msConfig = defaultMemaslapConfig
+                        { setProportion = 0.01
                         }
                     , msFlags = MemaslapFlags
                         { msServers = [RemoteServerUrl mPrivate middlePort]
