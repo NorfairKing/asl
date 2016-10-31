@@ -31,15 +31,16 @@ generateTargetFor
     => a
     -> Rules ()
 generateTargetFor ecf = do
-    let rFile = resultsFile ecf
+    let rFile = resultSummariesLocationFile ecf
 
     experimentTarget ecf ~> need [rFile]
 
     rFile %> \_ -> do
-        need [provisionLocalhostRule, memcachedBin, memaslapBin, outputJarFile]
+        need [memcachedBin, memaslapBin, outputJarFile]
+        need [provisionLocalhostRule]
+
         (eSetups, vmsNeeded) <- genExperimentSetups ecf
 
-        -- Provision the vms with everything they need
         provisionVmsFromData vmsNeeded
 
         forM_ eSetups $ \ExperimentSetup{..} -> do
@@ -91,15 +92,15 @@ generateTargetFor ecf = do
                     { erClientResults = map cResultsFile clientSetups
                     , erMiddleResults = mLocalTrace middleSetup
                     }
-            -- Write the result record to file
-            writeJSON rFile results
 
-resultsFile
-    :: ExperimentConfig a
-    => a
-    -> FilePath
-resultsFile ecf
-    = resultsDir </> experimentTarget ecf ++ "-results" <.> jsonExt
+            -- Write the result record to file
+            writeJSON esResultsSummaryFile results
+
+        writeJSON rFile $ map esResultsSummaryFile eSetups
+
+resultSummariesLocationFile :: ExperimentConfig a => a -> FilePath
+resultSummariesLocationFile cfg
+    = resultsDir </> experimentTarget cfg ++ "-summary-locations" <.> jsonExt
 
 makeClientResultFiles :: [ClientSetup] -> Action ()
 makeClientResultFiles = (`forP_` makeClientResultFile)

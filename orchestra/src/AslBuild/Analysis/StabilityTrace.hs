@@ -10,6 +10,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
+import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.StabilityTrace
@@ -86,6 +87,9 @@ stabilityTraceAnalysisRules = do
     stabilityTraceAnalysisRule ~> need allStabilityTracePlots
     mapM_ stabilityTraceAnalysisRulesFor allStabilityTraceAnalyses
 
+readResultsSummaryLocations :: FilePath -> Action [FilePath]
+readResultsSummaryLocations = readJSON
+
 readResultsSummary :: FilePath -> Action ExperimentResultSummary
 readResultsSummary = readJSON
 
@@ -99,23 +103,20 @@ stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
 
     stabilityTraceAnalysisRuleFor bac ~> need plotsForThisTrace
 
-    let t = experimentTarget experiment
-    let adir = tmpDir </> t
+    let summaryLocationsFile = resultSummariesLocationFile experiment
 
-    let summaryFile = resultsFile experiment
+    let simpleCsvFile = tmpDir </> experimentTarget experiment </> "simple.csv"
 
-    let readLogs :: Action [ClientResults]
-        readLogs = do
-            files <- absFilesInDir (resultsDir </> t) ["*"]
-            need files
-            putLoud $ unlines $ "Reading logfiles:" : files
-            forP files readJSON
-
-    let simpleCsvFile = adir </> "simple.csv"
     simpleCsvFile %> \_ -> do
-        need [summaryFile]
+        -- Don't depend on the summary locations file if it exists
+        needsToExist summaryLocationsFile
+
+        [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
         ExperimentResultSummary{..} <- readResultsSummary summaryFile
-        logs <- readLogs
+
+        putLoud $ init $ unlines $ "Reading logfiles:" : erClientResults
+        logs <- forP erClientResults readJSON
+
         putLoud "Converting logfiles to a simple CSV file."
         let statistics :: ClientResults -> [Statistics]
             statistics = map (periodStats . bothStats) . triples . crLog
@@ -129,18 +130,13 @@ stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
         liftIO $ LB.writeFile simpleCsvFile enc
 
     plotsForThisTrace &%> \_ -> do
-        need [summaryFile]
-        ExperimentResultSummary{..} <- readResultsSummary summaryFile
-
-        need [erMiddleResults, stabilityTraceAnalysisScript] -- Do not depend on results if they exist already.
+        need [simpleCsvFile, stabilityTraceAnalysisScript]
 
         need [rBin]
         needRLibs ["pkgmaker"]
         needRLibs ["caTools"]
 
-        need [simpleCsvFile]
         unit $ rScript stabilityTraceAnalysisScript simpleCsvFile filePrefix analysisOutDir
-
 
 simpleCsv :: [SimplifiedPoint] -> LB.ByteString
 simpleCsv sps = encodeByName (header ["client", "second", "tps", "avg", "std"]) sps

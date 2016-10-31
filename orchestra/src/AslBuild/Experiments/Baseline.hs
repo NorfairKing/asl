@@ -31,7 +31,7 @@ baselineExperimentRules :: Rules ()
 baselineExperimentRules = do
     rulesForGivenBaselineExperiment smallLocalBaselineExperiment
     rulesForGivenBaselineExperiment localBaselineExperiment
-    rulesForGivenBaselineExperiment bigLocalBaselineExperiment
+    -- rulesForGivenBaselineExperiment bigLocalBaselineExperiment
     rulesForGivenBaselineExperiment smallRemoteBaselineExperiment
     rulesForGivenBaselineExperiment remoteBaselineExperiment
 
@@ -97,11 +97,11 @@ smallRemoteBaselineExperiment = BaselineExperimentRuleCfg
     , localLogfile = tmpDir </> "small-remote-baseline_memaslaplog.txt"
     , maxNrClients = 2
     , baselineExperimentsCacheFile = tmpDir </> "small-remote-baseline-experiments.json"
-    , baselineLocation = BaselineRemote
+    , baselineLocation = BaselineLocal -- BaselineRemote
     , baselineSetup = BaseLineSetup
         { repetitions = 1
         , runtime = 5
-        , maxNrVirtualClients = 4
+        , maxNrVirtualClients = 2 -- 4
         }
     }
 
@@ -115,11 +115,11 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
     , localLogfile = tmpDir </> "remote-baseline_memaslaplog.txt"
     , maxNrClients = 2
     , baselineExperimentsCacheFile = tmpDir </> "remote-baseline-experiments.json"
-    , baselineLocation = BaselineRemote
+    , baselineLocation = BaselineLocal -- BaselineRemote
     , baselineSetup = BaseLineSetup
-        { repetitions = 5
-        , runtime = 30
-        , maxNrVirtualClients = 128
+        { repetitions = 1 -- 5
+        , runtime = 5 -- 30
+        , maxNrVirtualClients = 2 -- 128
         }
     }
 

@@ -3,7 +3,7 @@ module AslBuild.CommonActions where
 
 import           Control.Concurrent
 import           Control.Monad
-import           System.Directory
+import           System.Directory           hiding (doesFileExist)
 import           System.Exit
 import           System.Process
 
@@ -13,6 +13,13 @@ import           Development.Shake.FilePath
 import           AslBuild.Memaslap
 import           AslBuild.Ssh
 import           AslBuild.Types
+
+
+-- Depend on a file, but don't rebuild it evern once it exists.
+needsToExist :: FilePath -> Action ()
+needsToExist file = do
+    exists <- doesFileExist file
+    need [file | not exists]
 
 phPar :: [a] -> (a -> Action ProcessHandle) -> Action ()
 phPar ls func = do
@@ -97,6 +104,10 @@ rsyncTo rl localThing remoteThing = do
 rsyncFrom :: CmdResult r => RemoteLogin -> FilePath -> FilePath -> Action r
 rsyncFrom rl remoteThing localThing = do
     need [customSshKeyFile, customSshConfigFile]
+
+    -- Ensure that the local directory exists
+    unit $ cmd "mkdir" "--parents" $ takeDirectory localThing
+
     cmd "rsync"
         "--compress"
         "--progress"

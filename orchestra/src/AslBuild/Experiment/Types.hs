@@ -33,11 +33,11 @@ instance FromJSON HighLevelConfig
 
 data ExperimentSetup
     = ExperimentSetup
-    { esRuntime    :: TimeUnit
-    -- TODO resultsfile on this level
-    , clientSetups :: [ClientSetup]
-    , middleSetup  :: MiddleSetup
-    , serverSetups :: [ServerSetup]
+    { esRuntime            :: TimeUnit
+    , esResultsSummaryFile :: FilePath
+    , clientSetups         :: [ClientSetup]
+    , middleSetup          :: MiddleSetup
+    , serverSetups         :: [ServerSetup]
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ExperimentSetup

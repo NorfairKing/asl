@@ -69,7 +69,7 @@ allBaselineAnalyses :: [BaselineAnalysisCfg]
 allBaselineAnalyses =
     [ smallLocalBaselineAnalysis
     , localBaselineAnalysis
-    , bigLocalBaselineAnalysis
+    -- , bigLocalBaselineAnalysis
     , remoteBaselineAnalysis
     , smallRemoteBaselineAnalysis
     ]

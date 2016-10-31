@@ -52,7 +52,7 @@ instance ExperimentConfig StabilityTraceCfg where
         let (mLogin, mPrivate) = mid
         let middle = MiddleSetup
                 { mRemoteLogin = mLogin
-                , mLocalTrace = experimentResultsDir ++ "-trace" <.> csvExt
+                , mLocalTrace = experimentResultsDir </> target ++ "-trace" <.> csvExt
                 , mMiddlewareFlags = MiddlewareFlags
                     { mwIp = mPrivate
                     , mwPort = middlePort
@@ -97,6 +97,7 @@ instance ExperimentConfig StabilityTraceCfg where
 
         let setup = ExperimentSetup
                 { esRuntime = runtime
+                , esResultsSummaryFile = experimentResultsDir </> "summary.json"
                 , clientSetups = clients
                 , middleSetup = middle
                 , serverSetups = servers
