@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-module AslBuild.Baseline.Types where
+module AslBuild.Experiments.Baseline.Types where
 
 import           Data.Aeson            (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy  as LB

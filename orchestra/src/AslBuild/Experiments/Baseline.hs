@@ -1,21 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-module AslBuild.Baseline where
+module AslBuild.Experiments.Baseline
+    ( module AslBuild.Experiments.Baseline
+    , module AslBuild.Experiments.Baseline.Types
+    ) where
 
 import           Development.Shake
 import           Development.Shake.FilePath
 
 import           Control.Monad
-import qualified Data.Aeson                 as A
-import qualified Data.Aeson.Encode.Pretty   as A
-import qualified Data.ByteString.Lazy       as LB
+import qualified Data.Aeson                          as A
+import qualified Data.Aeson.Encode.Pretty            as A
+import qualified Data.ByteString.Lazy                as LB
 import           Data.List
 
-import           AslBuild.Baseline.Types
 import           AslBuild.BuildMemcached
 import           AslBuild.Client
 import           AslBuild.CommonActions
 import           AslBuild.Constants
+import           AslBuild.Experiments.Baseline.Types
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.Provision

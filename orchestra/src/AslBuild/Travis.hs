@@ -3,8 +3,9 @@ module AslBuild.Travis where
 import           Development.Shake
 
 import           AslBuild.Analysis
-import           AslBuild.Baseline
 import           AslBuild.BuildMemcached
+import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareMultiClientTest
@@ -16,7 +17,6 @@ import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.Orc
 import           AslBuild.Provision
 import           AslBuild.Reports
-import           AslBuild.StabilityTrace
 import           AslBuild.Test
 
 travisRule :: String

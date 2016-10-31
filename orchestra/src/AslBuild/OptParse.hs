@@ -18,8 +18,6 @@ getArguments args = do
 type Arguments = (Command, Flags)
 data Command
     = CommandBuild String -- Target
-    | CommandRun Experiment
-    | CommandTest
     | CommandClean
     | CommandTravis
     deriving (Show, Eq)
@@ -58,8 +56,6 @@ parseCommand :: Parser Command
 parseCommand = hsubparser $ mconcat
     [ command "build"       parseBuild
     , command "clean"       parseClean
-    , command "test"        parseTest
-    , command "run"         parseRun
     , command "travis"      parseTravis
     ]
 
@@ -85,61 +81,11 @@ parseTravis = info parser modifier
     modifier = fullDesc
             <> progDesc "Run continuous integration"
 
-parseTest :: ParserInfo Command
-parseTest = info parser modifier
-  where
-    parser = pure CommandTest
-    modifier = fullDesc
-            <> progDesc "Run the local tests"
-
-parseRun :: ParserInfo Command
-parseRun = info parser modifier
-  where
-    parser = CommandRun <$> subp
-    subp = hsubparser $ mconcat
-        [ command "local-experiment"    parseRunLocalLogTestExperiment
-        , command "local-baseline"      parseRunLocalBaseline
-        , command "big-local-baseline"  parseRunBigLocalBaseline
-        , command "remote-baseline"     parseRunRemoteBaseline
-        ]
-    modifier = fullDesc
-            <> progDesc "Run the system"
-
-parseRunLocalLogTestExperiment :: ParserInfo Experiment
-parseRunLocalLogTestExperiment = info parser modifier
-  where
-    parser = pure LocalLogTestExperiment
-    modifier = fullDesc
-            <> progDesc "Run a local experiment to test log processing."
-
-parseRunLocalBaseline :: ParserInfo Experiment
-parseRunLocalBaseline = info parser modifier
-  where
-    parser = pure LocalBaselineExperiment
-    modifier = fullDesc
-            <> progDesc "Run the baseline experiment locally"
-
-parseRunBigLocalBaseline :: ParserInfo Experiment
-parseRunBigLocalBaseline = info parser modifier
-  where
-    parser = pure BigLocalBaselineExperiment
-    modifier = fullDesc
-            <> progDesc "Run the big baseline experiment locally"
-
-parseRunRemoteBaseline :: ParserInfo Experiment
-parseRunRemoteBaseline = info parser modifier
-  where
-    parser = pure RemoteBaselineExperiment
-    modifier = fullDesc
-            <> progDesc "Run the baseline experiment remotely (on azure)"
-
 type Instructions = (Dispatch, Settings)
 
 data Dispatch
     = DispatchBuild String
     | DispatchClean
-    | DispatchTest
-    | DispatchRun Experiment
     | DispatchTravis
     deriving (Show, Eq)
 
@@ -175,8 +121,6 @@ combineToInstructions c _ _ = do
     let d = case c of
             CommandBuild targ -> DispatchBuild targ
             CommandClean      -> DispatchClean
-            CommandTest       -> DispatchTest
-            CommandRun ex     -> DispatchRun ex
             CommandTravis     -> DispatchTravis
     return (d, sets)
 

@@ -4,9 +4,10 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis
-import           AslBuild.Baseline
 import           AslBuild.BuildMemcached
 import           AslBuild.Constants
+import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareMultiClientTest
@@ -17,7 +18,6 @@ import           AslBuild.LocalMiddlewareReplicationTest
 import           AslBuild.LocalMiddlewareSimpleTest
 import           AslBuild.Orc
 import           AslBuild.Reports
-import           AslBuild.StabilityTrace
 import           AslBuild.Test
 import           AslBuild.Utils
 

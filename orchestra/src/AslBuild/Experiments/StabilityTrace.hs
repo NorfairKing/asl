@@ -1,4 +1,4 @@
-module AslBuild.StabilityTrace where
+module AslBuild.Experiments.StabilityTrace where
 
 import           Development.Shake
 

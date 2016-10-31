@@ -26,7 +26,7 @@ setupClientConfigs clientSetups = do
 
     -- Create the directory that the log will be in
     phPar clientSetups $ \c@ClientSetup{..} ->
-        overSsh cRemoteLogin $ "mkdir -p " ++ takeDirectory (remoteConfigFile c)
+        overSsh cRemoteLogin $ "mkdir --parents " ++ takeDirectory (remoteConfigFile c)
 
     -- Copy the memaslap config to the client
     phPar clientSetups $ \c@ClientSetup{..} ->

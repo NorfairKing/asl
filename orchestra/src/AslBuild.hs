@@ -3,14 +3,11 @@ module AslBuild
     ) where
 
 import           Data.List.Split
-import           System.Environment    (getArgs, withArgs)
+import           System.Environment (getArgs, withArgs)
 
-import           AslBuild.Baseline
 import           AslBuild.Build
 import           AslBuild.Clean
-import           AslBuild.LocalLogTest
 import           AslBuild.OptParse
-import           AslBuild.Test
 import           AslBuild.Travis
 
 aslBuild :: IO ()
@@ -27,10 +24,4 @@ aslBuild = do
             case command of
                 DispatchBuild target -> buildTarget target
                 DispatchClean -> buildTarget cleanRule
-                DispatchTest -> buildTarget testRule
                 DispatchTravis -> buildTarget travisRule
-                DispatchRun experiment -> buildTarget $ case experiment of
-                    LocalLogTestExperiment -> localLogTestRule
-                    LocalBaselineExperiment -> localBaselineExperimentRule
-                    BigLocalBaselineExperiment -> bigLocalBaselineExperimentRule
-                    RemoteBaselineExperiment -> remoteBaselineExperimentRule

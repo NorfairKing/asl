@@ -2,8 +2,8 @@ module AslBuild.Experiments where
 
 import           Development.Shake
 
-import           AslBuild.Baseline
-import           AslBuild.StabilityTrace
+import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.StabilityTrace
 
 experimentRules :: Rules ()
 experimentRules = do

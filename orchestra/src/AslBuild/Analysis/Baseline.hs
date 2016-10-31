@@ -7,9 +7,8 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
-import           AslBuild.Baseline
-import           AslBuild.Baseline.Types
 import           AslBuild.Constants
+import           AslBuild.Experiments.Baseline
 
 baselineAnalysisScript :: FilePath
 baselineAnalysisScript = analysisDir </> "analyze_baseline.r"

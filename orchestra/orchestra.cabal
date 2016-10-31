@@ -20,8 +20,6 @@ library
     , AslBuild.Analysis.Baseline
     , AslBuild.Analysis.BuildR
     , AslBuild.Analysis.StabilityTrace
-    , AslBuild.Baseline
-    , AslBuild.Baseline.Types
     , AslBuild.Build
     , AslBuild.BuildMemcached
     , AslBuild.Clean
@@ -31,9 +29,12 @@ library
     , AslBuild.CommonActions
     , AslBuild.Constants
     , AslBuild.Create
-    , AslBuild.Experiments
     , AslBuild.Experiment
     , AslBuild.Experiment.Types
+    , AslBuild.Experiments
+    , AslBuild.Experiments.Baseline
+    , AslBuild.Experiments.Baseline.Types
+    , AslBuild.Experiments.StabilityTrace
     , AslBuild.Jar
     , AslBuild.LocalLogTest
     , AslBuild.LocalMiddlewareMultiClientTest
@@ -46,8 +47,8 @@ library
     , AslBuild.LocalMiddlewareTest.Types
     , AslBuild.LocalMiddlewareThoroughTest
     , AslBuild.Memaslap
-    , AslBuild.Memaslap.Types
     , AslBuild.Memaslap.LogParser
+    , AslBuild.Memaslap.Types
     , AslBuild.Memcached
     , AslBuild.Memcached.Types
     , AslBuild.Middle
@@ -63,7 +64,6 @@ library
     , AslBuild.Server
     , AslBuild.Server.Types
     , AslBuild.Ssh
-    , AslBuild.StabilityTrace
     , AslBuild.Test
     , AslBuild.Travis
     , AslBuild.Types

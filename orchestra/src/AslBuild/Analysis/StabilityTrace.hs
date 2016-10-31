@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.StabilityTrace where
 
-import qualified Data.ByteString.Lazy       as LB
+import qualified Data.ByteString.Lazy                as LB
 import           Data.Csv
 import           Data.List
 
@@ -12,8 +12,8 @@ import           Development.Shake.FilePath
 import           AslBuild.Analysis.BuildR
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Memaslap
-import           AslBuild.StabilityTrace
 import           AslBuild.Utils
 
 stabilityTraceAnalysisScript :: FilePath
