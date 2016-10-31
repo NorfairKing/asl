@@ -7,6 +7,14 @@ import           Data.Csv
 import           Data.Hashable
 import           GHC.Generics
 
+data Location
+    = Local
+    | Remote
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   Location
+instance FromJSON Location
+
 data Script
     = Script
     { scriptName    :: FilePath

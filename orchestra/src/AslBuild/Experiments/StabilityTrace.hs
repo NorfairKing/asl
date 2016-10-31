@@ -1,8 +1,12 @@
-module AslBuild.Experiments.StabilityTrace where
+module AslBuild.Experiments.StabilityTrace
+    ( module AslBuild.Experiments.StabilityTrace
+    , module AslBuild.Experiments.StabilityTrace.Types
+    ) where
 
 import           Development.Shake
 
 import           AslBuild.Experiment
+import           AslBuild.Experiments.StabilityTrace.Types
 import           AslBuild.Middleware
 import           AslBuild.Types
 
@@ -17,12 +21,14 @@ stabilityTraceRules = do
 smallLocalStabilityTraceRule :: String
 smallLocalStabilityTraceRule = "small-local-stability-trace"
 
-smallLocalStabilityTrace :: ExperimentCfg
-smallLocalStabilityTrace = ExperimentCfg
+smallLocalStabilityTrace :: StabilityTraceCfg
+smallLocalStabilityTrace = StabilityTraceCfg
     { target = smallLocalStabilityTraceRule
-    , nrServers = 1
-    , nrClients = 1
-    , location = Local
+    , hlConfig = HighLevelConfig
+        { nrServers = 1
+        , nrClients = 1
+        , location = Local
+        }
     , runtime = Seconds 5
     , logLevel = LogFiner
     }
@@ -30,12 +36,10 @@ smallLocalStabilityTrace = ExperimentCfg
 localStabilityTracelRule :: String
 localStabilityTracelRule = "local-stability-trace"
 
-localStabilityTrace :: ExperimentCfg
-localStabilityTrace = ExperimentCfg
+localStabilityTrace :: StabilityTraceCfg
+localStabilityTrace = StabilityTraceCfg
     { target = localStabilityTracelRule
-    , nrServers = nrServers remoteStabilityTrace
-    , nrClients = nrClients remoteStabilityTrace
-    , location = Local
+    , hlConfig = (hlConfig remoteStabilityTrace) { location = Local }
     , runtime = runtime remoteStabilityTrace
     , logLevel = LogOff
     }
@@ -43,12 +47,14 @@ localStabilityTrace = ExperimentCfg
 bigLocalStabilityTraceRule :: String
 bigLocalStabilityTraceRule = "big-local-stability-trace"
 
-bigLocalStabilityTrace :: ExperimentCfg
-bigLocalStabilityTrace = ExperimentCfg
+bigLocalStabilityTrace :: StabilityTraceCfg
+bigLocalStabilityTrace = StabilityTraceCfg
     { target = bigLocalStabilityTraceRule
-    , nrServers = 8
-    , nrClients = 32
-    , location = Local
+    , hlConfig = HighLevelConfig
+        { nrServers = 8
+        , nrClients = 32
+        , location = Local
+        }
     , runtime = Hours 1
     , logLevel = LogOff
     }
@@ -56,12 +62,14 @@ bigLocalStabilityTrace = ExperimentCfg
 smallRemoteStabilityTraceRule :: String
 smallRemoteStabilityTraceRule = "small-remote-stability-trace"
 
-smallRemoteStabilityTrace :: ExperimentCfg
-smallRemoteStabilityTrace = ExperimentCfg
+smallRemoteStabilityTrace :: StabilityTraceCfg
+smallRemoteStabilityTrace = StabilityTraceCfg
     { target = smallRemoteStabilityTraceRule
-    , nrServers = 3
-    , nrClients = 3
-    , location = Remote
+    , hlConfig = HighLevelConfig
+        { nrServers = 3
+        , nrClients = 3
+        , location = Remote
+        }
     , runtime = Seconds 10
     , logLevel = LogOff
     }
@@ -70,12 +78,14 @@ smallRemoteStabilityTrace = ExperimentCfg
 remoteStabilityTraceRule :: String
 remoteStabilityTraceRule = "remote-stability-trace"
 
-remoteStabilityTrace :: ExperimentCfg
-remoteStabilityTrace = ExperimentCfg
+remoteStabilityTrace :: StabilityTraceCfg
+remoteStabilityTrace = StabilityTraceCfg
     { target = remoteStabilityTraceRule
-    , nrServers = 3
-    , nrClients = 3
-    , location = Remote
+    , hlConfig = HighLevelConfig
+        { nrServers = 3
+        , nrClients = 3
+        , location = Remote
+        }
     , runtime = Hours 1
     , logLevel = LogOff
     }

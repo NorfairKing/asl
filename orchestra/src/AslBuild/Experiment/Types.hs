@@ -4,37 +4,34 @@ module AslBuild.Experiment.Types where
 import           Data.Aeson
 import           GHC.Generics
 
+import           Development.Shake
+
 import           AslBuild.Client.Types
 import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
-import           AslBuild.Middleware.Types
 import           AslBuild.Server.Types
 import           AslBuild.Types
+import           AslBuild.Vm.Types
 
-data ExperimentCfg
-    = ExperimentCfg
-    { target    :: String
-    , nrClients :: Int
+class ExperimentConfig a where
+    experimentTarget :: a -> String
+    highLevelConfig :: a -> HighLevelConfig
+    genExperimentSetups :: a -> Action ([ExperimentSetup], [VmData])
+
+data HighLevelConfig
+    = HighLevelConfig
+    { nrClients :: Int
     , nrServers :: Int
     , location  :: Location
-    , runtime   :: TimeUnit
-    , logLevel  :: LogLevel
     } deriving (Show, Eq, Generic)
 
-instance ToJSON   ExperimentCfg
-instance FromJSON ExperimentCfg
-
-data Location
-    = Local
-    | Remote
-    deriving (Show, Eq, Generic)
-
-instance ToJSON   Location
-instance FromJSON Location
+instance ToJSON   HighLevelConfig
+instance FromJSON HighLevelConfig
 
 data ExperimentSetup
     = ExperimentSetup
     { esRuntime    :: TimeUnit
+    -- TODO resultsfile on this level
     , clientSetups :: [ClientSetup]
     , middleSetup  :: MiddleSetup
     , serverSetups :: [ServerSetup]

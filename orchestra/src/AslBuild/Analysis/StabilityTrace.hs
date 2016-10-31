@@ -24,7 +24,7 @@ stabilityTraceAnalysisRule = "stability-trace-analysis"
 
 data StabilityTraceAnalysisCfg
     = StabilityTraceAnalysisCfg
-    { experiment     :: ExperimentCfg
+    { experiment     :: StabilityTraceCfg
     , filePrefix     :: FilePath
     , analysisOutDir :: FilePath
     }
