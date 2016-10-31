@@ -1,4 +1,4 @@
-module AslBuild.LocalMiddlewareMultipleClientsTest where
+module AslBuild.LocalMiddlewareTest.ThoroughTest where
 
 import           Data.List                    (intercalate)
 
@@ -12,47 +12,56 @@ import           AslBuild.Memcached
 import           AslBuild.Middleware
 import           AslBuild.Types
 
-localMiddlewareMultipleClientsTestRule :: String
-localMiddlewareMultipleClientsTestRule = "local-middleware-multiple-clients-test"
+localMiddlewareThoroughTestRule :: String
+localMiddlewareThoroughTestRule = "local-middleware-thorough-test"
 
 setups :: [LocalMiddlewareTestSetup]
 setups = do
     let rtime = 1
 
-    let serverFlags = MemcachedFlags
-            { memcachedPort = defaultMemcachedPort
-            , memcachedAsDaemon = False
+    (nrClients, nrServers) <- [(1, 1), (2, 3), (3, 7), (4, 14)]
+
+    let serverFlags = do
+            port <- take nrServers [11211 ..]
+            return MemcachedFlags
+                { memcachedPort = port
+                , memcachedAsDaemon = False
+                }
+
+    nrThreads <- [1, 2]
+    replicationFactor <- takeWhile (<= nrServers) $ iterate (*2) 1
+
+    let mwFlags = MiddlewareFlags
+            { mwIp = localhostIp
+            , mwPort = 11210
+            , mwNrThreads = nrThreads
+            , mwReplicationFactor = replicationFactor
+            , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) serverFlags
+            , mwVerbosity = LogFine
+            , mwTraceFile = tmpDir </> localMiddlewareThoroughTestRule ++ "-trace" <.> csvExt
             }
 
-    nrClients <- [2, 6 .. 20]
-    keySize <- [16]
-    valueSize <- [128]
-    threads <- [2]
+    (keySize, valueSize) <- [(16, 128), (64, 1024)]
+
+    threads <- [1]
     -- Concurrency must be a multiple of thread count.
-    concurrency <- (* threads) <$> [2]
+    concurrency <- (* threads) <$> [64]
 
     setProp <- [0.1]
+    nrRequests <- [256]
 
     let signature = intercalate "-"
             [ show nrClients
+            , show nrServers
+            , show nrThreads
+            , show replicationFactor
             , show keySize
             , show valueSize
             , show threads
             , show concurrency
             , show setProp
+            , show nrRequests
             ]
-
-    let mwFlags = MiddlewareFlags
-            { mwIp = localhostIp
-            , mwPort = 11210
-            , mwNrThreads = 1
-            , mwReplicationFactor = 1
-            , mwServers = [RemoteServerUrl localhostIp $ memcachedPort serverFlags]
-            , mwVerbosity = LogFine
-            , mwTraceFile = tmpDir
-                </> localMiddlewareMultipleClientsTestRule
-                </> localMiddlewareMultipleClientsTestRule ++ "-trace-" ++ signature <.> csvExt
-            }
 
     let mconfig = MemaslapConfig
             { keysizeDistributions = [Distribution keySize keySize 1]
@@ -66,11 +75,11 @@ setups = do
             , msThreads = threads
             , msConcurrency = concurrency
             , msOverwrite = 0.5
-            , msWorkload = NrRequests 256
+            , msWorkload = NrRequests nrRequests
             , msStatFreq = Nothing
             , msConfigFile = tmpDir
-                </> "local-middleware-multiple-clients-test"
-                </> "local-middleware-multiple-clients-test-memaslap-cfg-" ++ signature
+                </> "local-middleware-thorough-test"
+                </> "local-middleware-thorough-test-memaslap-cfg-" ++ signature
             }
 
     let msSets = MemaslapSettings
@@ -82,9 +91,9 @@ setups = do
         { runtime = rtime
         , clientSetups = replicate nrClients msSets
         , middlewareSetup = mwFlags
-        , serverSetups = [serverFlags]
+        , serverSetups = serverFlags
         }
 
-localMiddlewareMultipleClientsTestRules :: Rules ()
-localMiddlewareMultipleClientsTestRules =
-    localMiddlewareMultipleClientsTestRule ~> runLocalMiddlewareTests setups
+localMiddlewareThoroughTestRules :: Rules ()
+localMiddlewareThoroughTestRules =
+    localMiddlewareThoroughTestRule ~> runLocalMiddlewareTests setups

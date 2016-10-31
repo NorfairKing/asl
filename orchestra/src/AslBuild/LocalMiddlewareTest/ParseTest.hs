@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module AslBuild.LocalMiddlewareParseTest where
+module AslBuild.LocalMiddlewareTest.ParseTest where
 
 import           Control.Monad
 import           Data.ByteString            (ByteString)

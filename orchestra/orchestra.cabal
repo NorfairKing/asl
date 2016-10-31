@@ -37,15 +37,15 @@ library
     , AslBuild.Experiments.StabilityTrace
     , AslBuild.Jar
     , AslBuild.LocalLogTest
-    , AslBuild.LocalMiddlewareMultiClientTest
-    , AslBuild.LocalMiddlewareMultipleClientsTest
-    , AslBuild.LocalMiddlewareMultipleServersTest
-    , AslBuild.LocalMiddlewareParseTest
-    , AslBuild.LocalMiddlewareReplicationTest
-    , AslBuild.LocalMiddlewareSimpleTest
     , AslBuild.LocalMiddlewareTest
+    , AslBuild.LocalMiddlewareTest.MultiClientTest
+    , AslBuild.LocalMiddlewareTest.MultipleClientsTest
+    , AslBuild.LocalMiddlewareTest.MultipleServersTest
+    , AslBuild.LocalMiddlewareTest.ParseTest
+    , AslBuild.LocalMiddlewareTest.ReplicationTest
+    , AslBuild.LocalMiddlewareTest.SimpleTest
+    , AslBuild.LocalMiddlewareTest.ThoroughTest
     , AslBuild.LocalMiddlewareTest.Types
-    , AslBuild.LocalMiddlewareThoroughTest
     , AslBuild.Memaslap
     , AslBuild.Memaslap.LogParser
     , AslBuild.Memaslap.Types

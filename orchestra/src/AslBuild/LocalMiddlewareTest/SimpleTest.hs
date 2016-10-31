@@ -1,4 +1,4 @@
-module AslBuild.LocalMiddlewareMultipleServersTest where
+module AslBuild.LocalMiddlewareTest.SimpleTest where
 
 import           Data.List                    (intercalate)
 
@@ -12,65 +12,60 @@ import           AslBuild.Memcached
 import           AslBuild.Middleware
 import           AslBuild.Types
 
-localMiddlewareMultipleServersTestRule :: String
-localMiddlewareMultipleServersTestRule = "local-middleware-multiple-servers-test"
+localMiddlewareSimpleTestRule :: String
+localMiddlewareSimpleTestRule = "local-middleware-simple-test"
 
 setups :: [LocalMiddlewareTestSetup]
 setups = do
     let rtime = 1
 
-    nrServers <- [2, 3, 5, 10]
-    let serverFlags = do
-            port <- take nrServers [11211 ..]
-            return MemcachedFlags
-                { memcachedPort = port
-                , memcachedAsDaemon = False
-                }
+    let sPort = defaultMemcachedPort
+    let mcFlags = MemcachedFlags
+            { memcachedPort = sPort
+            , memcachedAsDaemon = False
+            }
 
     let mwFlags = MiddlewareFlags
             { mwIp = localhostIp
-            , mwPort = 11210
+            , mwPort = defaultMemcachedPort + 1
             , mwNrThreads = 1
             , mwReplicationFactor = 1
-            , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) serverFlags
+            , mwServers = [RemoteServerUrl localhostIp sPort]
             , mwVerbosity = LogFine
-            , mwTraceFile = tmpDir </> localMiddlewareMultipleServersTestRule ++ "-trace" <.> csvExt
+            , mwTraceFile = tmpDir </> localMiddlewareSimpleTestRule ++ "-trace" <.> csvExt
             }
 
-    keySize <- [128]
-    valueSize <- [1024]
+    keySize <- [16, 32]
+    valueSize <- [16, 128]
     threads <- [2]
     -- Concurrency must be a multiple of thread count.
     concurrency <- (* threads) <$> [2]
 
-    setProp <- [0.1]
 
     let signature = intercalate "-"
-            [ show nrServers
-            , show keySize
+            [ show keySize
             , show valueSize
             , show threads
             , show concurrency
-            , show setProp
             ]
 
     let msSets = MemaslapSettings
             { msConfig = MemaslapConfig
                 { keysizeDistributions = [Distribution keySize keySize 1]
                 , valueDistributions = [Distribution valueSize valueSize 1]
-                , setProportion = setProp
-                , getProportion = 1 - setProp
+                , setProportion = 0.1
+                , getProportion = 0.9
                 }
             , msFlags = MemaslapFlags
                 { msServers = [RemoteServerUrl (mwIp mwFlags) (mwPort mwFlags)]
                 , msThreads = threads
                 , msConcurrency = concurrency
-                , msOverwrite = 0.9
+                , msOverwrite = 0.5
                 , msWorkload = NrRequests 256
                 , msStatFreq = Nothing
                 , msConfigFile = tmpDir
-                    </> "local-middleware-multiple-servers-test"
-                    </> "local-middleware-multiple-servers-test-memaslap-cfg-" ++ signature
+                    </> "local-middleware-simple-test"
+                    </> "local-middleware-simple-test-memaslap-cfg-" ++ signature
                 }
             }
 
@@ -78,9 +73,8 @@ setups = do
         { runtime = rtime
         , clientSetups = [msSets]
         , middlewareSetup = mwFlags
-        , serverSetups = serverFlags
+        , serverSetups = [mcFlags]
         }
 
-localMiddlewareMultipleServersTestRules :: Rules ()
-localMiddlewareMultipleServersTestRules =
-    localMiddlewareMultipleServersTestRule ~> runLocalMiddlewareTests setups
+localMiddlewareSimpleTestRules :: Rules ()
+localMiddlewareSimpleTestRules = localMiddlewareSimpleTestRule ~> runLocalMiddlewareTests setups

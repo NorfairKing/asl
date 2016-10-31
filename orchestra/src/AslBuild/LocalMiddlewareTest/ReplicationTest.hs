@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-module AslBuild.LocalMiddlewareReplicationTest where
+module AslBuild.LocalMiddlewareTest.ReplicationTest where
 
 import           Control.Monad
 import           Data.ByteString            (ByteString)
