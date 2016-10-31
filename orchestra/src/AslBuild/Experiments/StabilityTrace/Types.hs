@@ -3,6 +3,7 @@
 module AslBuild.Experiments.StabilityTrace.Types where
 
 import           Data.Aeson
+import           Data.List                  (intercalate)
 import           GHC.Generics
 
 import           Development.Shake.FilePath
@@ -35,16 +36,12 @@ instance ExperimentConfig StabilityTraceCfg where
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
         let middlePort = 23456
 
-        let experimentResultsDir = resultsDir </> target
-        let experimentLocalTmpDir = tmpDir </> target
-        let experimentRemoteTmpDir = "/tmp" </> target
-
         let servers = genServerSetups sers
 
         let (mLogin, mPrivate) = mid
         let middle = MiddleSetup
                 { mRemoteLogin = mLogin
-                , mLocalTrace = experimentResultsDir </> target ++ "-trace" <.> csvExt
+                , mLocalTrace = experimentResultsDir stc </> target ++ "-trace" <.> csvExt
                 , mMiddlewareFlags = MiddlewareFlags
                     { mwIp = mPrivate
                     , mwPort = middlePort
@@ -56,37 +53,38 @@ instance ExperimentConfig StabilityTraceCfg where
                                 sPrivate
                                 (memcachedPort sMemcachedFlags))
                         (zip servers sers)
-                    , mwTraceFile = experimentRemoteTmpDir </> target ++ "-trace" <.> csvExt
+                    , mwTraceFile = experimentRemoteTmpDir stc </> target ++ "-trace" <.> csvExt
                     , mwVerbosity = logLevel
                     }
                 }
-        let sign i f = target ++ "-" ++ f ++ "-" ++ show i
-        let clients = flip map (indexed cls) $ \(cix, (cLogin, _)) -> ClientSetup
-                { cRemoteLogin = cLogin
-                , cIndex = cix
-                , cLocalLog = experimentLocalTmpDir </> sign cix "client-local-log"
-                , cRemoteLog = experimentRemoteTmpDir </> sign cix "memaslap-remote-log"
-                , cResultsFile = experimentResultsDir </> sign cix "client-results"
-                , cLocalMemaslapConfigFile = experimentLocalTmpDir </> sign cix "memaslap-config"
-                , cMemaslapSettings = MemaslapSettings
-                    { msConfig = defaultMemaslapConfig
-                        { setProportion = 0.01
-                        }
-                    , msFlags = MemaslapFlags
-                        { msServers = [RemoteServerUrl mPrivate middlePort]
-                        , msThreads = 1
-                        , msConcurrency = 64
-                        , msOverwrite = 0.9
-                        , msStatFreq = Just $ Seconds 1
-                        , msWorkload = WorkFor runtime
-                        , msConfigFile = experimentRemoteTmpDir </> sign cix "memaslapcfg"
+        let clients = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
+                let sign f = intercalate "-" [target, f, show cix]
+                in ClientSetup
+                    { cRemoteLogin = cLogin
+                    , cIndex = cix
+                    , cLocalLog = experimentLocalTmpDir stc </> sign "client-local-log"
+                    , cRemoteLog = experimentRemoteTmpDir stc </> sign "memaslap-remote-log"
+                    , cResultsFile = experimentResultsDir stc </> sign "client-results"
+                    , cLocalMemaslapConfigFile = experimentLocalTmpDir stc </> sign "memaslap-config"
+                    , cMemaslapSettings = MemaslapSettings
+                        { msConfig = defaultMemaslapConfig
+                            { setProportion = 0.01
+                            }
+                        , msFlags = MemaslapFlags
+                            { msServers = [RemoteServerUrl mPrivate middlePort]
+                            , msThreads = 1
+                            , msConcurrency = 64
+                            , msOverwrite = 0.9
+                            , msStatFreq = Just $ Seconds 1
+                            , msWorkload = WorkFor runtime
+                            , msConfigFile = experimentRemoteTmpDir stc </> sign "memaslapcfg"
+                            }
                         }
                     }
-                }
 
         let setup = ExperimentSetup
                 { esRuntime = runtime
-                , esResultsSummaryFile = experimentResultsDir </> "summary.json"
+                , esResultsSummaryFile = experimentResultsDir stc </> "summary.json"
                 , clientSetups = clients
                 , middleSetup = middle
                 , serverSetups = servers

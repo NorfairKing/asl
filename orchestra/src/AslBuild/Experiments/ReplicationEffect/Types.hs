@@ -37,10 +37,6 @@ instance ExperimentConfig ReplicationEffectCfg where
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
         let middlePort = 23456
 
-        let experimentResultsDir = resultsDir </> target
-        let experimentLocalTmpDir = tmpDir </> target
-        let experimentRemoteTmpDir = "/tmp" </> target
-
         let setups = do
                 curNrServers <- serverCounts
                 replicationFactor <- replicationFactors
@@ -52,7 +48,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                 let traceFileName = signGlobally (target ++ "-trace")
                 let middle = MiddleSetup
                         { mRemoteLogin = mLogin
-                        , mLocalTrace = experimentResultsDir </> traceFileName <.> csvExt
+                        , mLocalTrace = experimentResultsDir stc </> traceFileName <.> csvExt
                         , mMiddlewareFlags = MiddlewareFlags
                             { mwIp = mPrivate
                             , mwPort = middlePort
@@ -64,7 +60,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                                         sPrivate
                                         (memcachedPort sMemcachedFlags))
                                 (zip servers sers)
-                            , mwTraceFile = experimentRemoteTmpDir </> traceFileName <.> csvExt
+                            , mwTraceFile = experimentRemoteTmpDir stc </> traceFileName <.> csvExt
                             , mwVerbosity = LogOff
                             }
                         }
@@ -73,10 +69,10 @@ instance ExperimentConfig ReplicationEffectCfg where
                         in ClientSetup
                             { cRemoteLogin = cLogin
                             , cIndex = cix
-                            , cLocalLog = experimentLocalTmpDir </> sign "client-local-log"
-                            , cRemoteLog = experimentRemoteTmpDir </> sign "memaslap-remote-log"
-                            , cResultsFile = experimentResultsDir </> sign "client-results"
-                            , cLocalMemaslapConfigFile = experimentLocalTmpDir </> sign "memaslap-config"
+                            , cLocalLog = experimentLocalTmpDir stc </> sign "client-local-log"
+                            , cRemoteLog = experimentRemoteTmpDir stc </> sign "memaslap-remote-log"
+                            , cResultsFile = experimentResultsDir stc </> sign "client-results"
+                            , cLocalMemaslapConfigFile = experimentLocalTmpDir stc </> sign "memaslap-config"
                             , cMemaslapSettings = MemaslapSettings
                                 { msConfig = defaultMemaslapConfig
                                     { setProportion = 0.05
@@ -88,7 +84,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                                     , msOverwrite = 0.9
                                     , msStatFreq = Just $ Seconds 1
                                     , msWorkload = WorkFor runtime
-                                    , msConfigFile = experimentRemoteTmpDir </> sign "memaslapcfg"
+                                    , msConfigFile = experimentRemoteTmpDir stc </> sign "memaslapcfg"
                                     }
                                 }
                             }
@@ -96,7 +92,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                 let summaryFileName = signGlobally "summary"
                 return ExperimentSetup
                     { esRuntime = runtime
-                    , esResultsSummaryFile = experimentResultsDir </> summaryFileName <.> jsonExt
+                    , esResultsSummaryFile = experimentResultsDir stc </> summaryFileName <.> jsonExt
                     , clientSetups = clients
                     , middleSetup = middle
                     , serverSetups = servers

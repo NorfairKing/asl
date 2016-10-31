@@ -98,6 +98,21 @@ generateTargetFor ecf = do
 
         writeJSON rFile $ map esResultsSummaryFile eSetups
 
+experimentResultsDir
+    :: ExperimentConfig a
+    => a -> FilePath
+experimentResultsDir a = resultsDir </> experimentTarget a
+
+experimentLocalTmpDir
+    :: ExperimentConfig a
+    => a -> FilePath
+experimentLocalTmpDir a = tmpDir </> experimentTarget a
+
+experimentRemoteTmpDir
+    :: ExperimentConfig a
+    => a -> FilePath
+experimentRemoteTmpDir a = "/tmp" </> experimentTarget a
+
 resultSummariesLocationFile :: ExperimentConfig a => a -> FilePath
 resultSummariesLocationFile cfg
     = resultsDir </> experimentTarget cfg ++ "-summary-locations" <.> jsonExt
