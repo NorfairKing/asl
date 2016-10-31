@@ -91,7 +91,7 @@ readResultsSummary = readJSON
 
 stabilityTraceAnalysisRuleFor :: StabilityTraceAnalysisCfg -> String
 stabilityTraceAnalysisRuleFor StabilityTraceAnalysisCfg{..} =
-    target experiment ++ "-analysis"
+    experimentTarget experiment ++ "-analysis"
 
 stabilityTraceAnalysisRulesFor :: StabilityTraceAnalysisCfg -> Rules ()
 stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
@@ -99,8 +99,8 @@ stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
 
     stabilityTraceAnalysisRuleFor bac ~> need plotsForThisTrace
 
-    let t = target experiment
-    let adir = tmpDir </> target experiment
+    let t = experimentTarget experiment
+    let adir = tmpDir </> t
 
     let summaryFile = resultsFile experiment
 
@@ -173,4 +173,4 @@ instance ToNamedRecord SimplifiedPoint where
             ]
 
 clientResultsDir :: StabilityTraceAnalysisCfg -> FilePath
-clientResultsDir StabilityTraceAnalysisCfg{..} = target experiment
+clientResultsDir StabilityTraceAnalysisCfg{..} = experimentTarget experiment

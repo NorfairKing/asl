@@ -23,10 +23,8 @@ smallLocalStabilityTraceRule = "small-local-stability-trace"
 
 smallLocalStabilityTrace :: StabilityTraceCfg
 smallLocalStabilityTrace = StabilityTraceCfg
-    { target = smallLocalStabilityTraceRule
-    , hlConfig = HighLevelConfig
-        { nrServers = 1
-        , nrClients = 1
+    { hlConfig = (hlConfig smallRemoteStabilityTrace)
+        { target = smallLocalStabilityTraceRule
         , location = Local
         }
     , runtime = Seconds 5
@@ -38,8 +36,10 @@ localStabilityTracelRule = "local-stability-trace"
 
 localStabilityTrace :: StabilityTraceCfg
 localStabilityTrace = StabilityTraceCfg
-    { target = localStabilityTracelRule
-    , hlConfig = (hlConfig remoteStabilityTrace) { location = Local }
+    { hlConfig = (hlConfig remoteStabilityTrace)
+        { target = localStabilityTracelRule
+        , location = Local
+        }
     , runtime = runtime remoteStabilityTrace
     , logLevel = LogOff
     }
@@ -49,9 +49,9 @@ bigLocalStabilityTraceRule = "big-local-stability-trace"
 
 bigLocalStabilityTrace :: StabilityTraceCfg
 bigLocalStabilityTrace = StabilityTraceCfg
-    { target = bigLocalStabilityTraceRule
-    , hlConfig = HighLevelConfig
-        { nrServers = 8
+    { hlConfig = HighLevelConfig
+        { target = bigLocalStabilityTraceRule
+        , nrServers = 8
         , nrClients = 32
         , location = Local
         }
@@ -64,9 +64,9 @@ smallRemoteStabilityTraceRule = "small-remote-stability-trace"
 
 smallRemoteStabilityTrace :: StabilityTraceCfg
 smallRemoteStabilityTrace = StabilityTraceCfg
-    { target = smallRemoteStabilityTraceRule
-    , hlConfig = HighLevelConfig
-        { nrServers = 3
+    { hlConfig = HighLevelConfig
+        { target = smallRemoteStabilityTraceRule
+        , nrServers = 3
         , nrClients = 3
         , location = Remote
         }
@@ -80,9 +80,9 @@ remoteStabilityTraceRule = "remote-stability-trace"
 
 remoteStabilityTrace :: StabilityTraceCfg
 remoteStabilityTrace = StabilityTraceCfg
-    { target = remoteStabilityTraceRule
-    , hlConfig = HighLevelConfig
-        { nrServers = 3
+    { hlConfig = HighLevelConfig
+        { target = remoteStabilityTraceRule
+        , nrServers = 3
         , nrClients = 3
         , location = Remote
         }

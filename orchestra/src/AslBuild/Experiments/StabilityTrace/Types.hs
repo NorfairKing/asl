@@ -20,8 +20,7 @@ import           AslBuild.Utils
 
 data StabilityTraceCfg
     = StabilityTraceCfg
-    { target   :: String
-    , hlConfig :: HighLevelConfig
+    { hlConfig :: HighLevelConfig
     , runtime  :: TimeUnit
     , logLevel :: LogLevel
     } deriving (Show, Eq, Generic)
@@ -30,9 +29,9 @@ instance ToJSON   StabilityTraceCfg
 instance FromJSON StabilityTraceCfg
 
 instance ExperimentConfig StabilityTraceCfg where
-    experimentTarget = target
     highLevelConfig = hlConfig
     genExperimentSetups stc@StabilityTraceCfg{..} = do
+        let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
         let serverPort = 12345
         let middlePort = 23456

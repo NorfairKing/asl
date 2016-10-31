@@ -14,13 +14,16 @@ import           AslBuild.Types
 import           AslBuild.Vm.Types
 
 class ExperimentConfig a where
-    experimentTarget :: a -> String
     highLevelConfig :: a -> HighLevelConfig
     genExperimentSetups :: a -> Action ([ExperimentSetup], [VmData])
 
+experimentTarget :: ExperimentConfig a => a -> String
+experimentTarget = target . highLevelConfig
+
 data HighLevelConfig
     = HighLevelConfig
-    { nrClients :: Int
+    { target    :: String
+    , nrClients :: Int
     , nrServers :: Int
     , location  :: Location
     } deriving (Show, Eq, Generic)
