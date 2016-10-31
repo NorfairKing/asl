@@ -5,9 +5,11 @@ import           Development.Shake
 import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.WriteEffect
 
 experimentRules :: Rules ()
 experimentRules = do
     baselineExperimentRules
-    stabilityTraceRules
     replicationEffectRules
+    stabilityTraceRules
+    writeEffectRules
