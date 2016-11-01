@@ -12,7 +12,6 @@ import           AslBuild.Client
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Memaslap
-import           AslBuild.Memcached
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Server
@@ -35,7 +34,6 @@ instance ExperimentConfig ReplicationEffectCfg where
         let runtime = Seconds 5
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
-        let middlePort = 23456
 
         let setups = do
                 curNrServers <- serverCounts
@@ -44,26 +42,16 @@ instance ExperimentConfig ReplicationEffectCfg where
 
                 let servers = take curNrServers $ genServerSetups sers
 
-                let (mLogin, mPrivate) = mid
                 let traceFileName = signGlobally (target ++ "-trace")
-                let middle = MiddleSetup
-                        { mRemoteLogin = mLogin
-                        , mLocalTrace = experimentResultsDir stc </> traceFileName <.> csvExt
-                        , mMiddlewareFlags = MiddlewareFlags
-                            { mwIp = mPrivate
-                            , mwPort = middlePort
-                            , mwNrThreads = 1
-                            , mwReplicationFactor = max 1 $ floor $ fromIntegral (length servers) * replicationFactor
-                            , mwServers = map
-                                (\(ServerSetup{..}, (_, sPrivate)) ->
-                                    RemoteServerUrl
-                                        sPrivate
-                                        (memcachedPort sMemcachedFlags))
-                                (zip servers sers)
+                let defaultMiddle = genMiddleSetup stc mid servers sers
+                let middle = defaultMiddle
+                        { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
+                            { mwReplicationFactor = max 1 $ floor $ fromIntegral (length servers) * replicationFactor
                             , mwTraceFile = experimentRemoteTmpDir stc </> traceFileName <.> csvExt
-                            , mwVerbosity = LogOff
                             }
+                        , mLocalTrace = experimentResultsDir stc </> traceFileName <.> csvExt
                         }
+
                 let clients = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
                         let sign f = signGlobally $ intercalate "-" [target, show cix, f]
                         in ClientSetup
@@ -78,7 +66,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                                     { setProportion = 0.05
                                     }
                                 , msFlags = MemaslapFlags
-                                    { msServers = [RemoteServerUrl mPrivate middlePort]
+                                    { msServers = [middleRemoteServer middle]
                                     , msThreads = 1
                                     , msConcurrency = 64
                                     , msOverwrite = 0.9

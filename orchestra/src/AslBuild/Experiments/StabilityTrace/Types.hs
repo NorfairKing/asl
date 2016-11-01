@@ -9,10 +9,8 @@ import           GHC.Generics
 import           Development.Shake.FilePath
 
 import           AslBuild.Client
-import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Memaslap
-import           AslBuild.Memcached
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Server
@@ -37,7 +35,6 @@ instance ExperimentConfig StabilityTraceCfg where
 
         let servers = genServerSetups sers
 
-        let (mLogin, mPrivate) = mid
         let defaultMiddle = genMiddleSetup stc mid servers sers
         let middle = defaultMiddle
                 { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
