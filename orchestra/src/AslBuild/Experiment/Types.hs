@@ -35,6 +35,7 @@ data ExperimentSetup
     = ExperimentSetup
     { esRuntime            :: TimeUnit
     , esResultsSummaryFile :: FilePath
+    , esSetupFile          :: FilePath
     , clientSetups         :: [ClientSetup]
     , middleSetup          :: MiddleSetup
     , serverSetups         :: [ServerSetup]
@@ -45,8 +46,9 @@ instance FromJSON ExperimentSetup
 
 data ExperimentResultSummary
     = ExperimentResultSummary
-    { erClientResults :: [FilePath]
-    , erMiddleResults :: FilePath
+    { erClientResultsFiles :: [FilePath]
+    , erMiddleResultsFile  :: FilePath
+    , erSetupFile          :: FilePath
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ExperimentResultSummary

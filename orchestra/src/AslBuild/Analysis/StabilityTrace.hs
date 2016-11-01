@@ -114,8 +114,8 @@ stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
         [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
         ExperimentResultSummary{..} <- readResultsSummary summaryFile
 
-        putLoud $ init $ unlines $ "Reading logfiles:" : erClientResults
-        logs <- forP erClientResults readJSON
+        putLoud $ init $ unlines $ "Reading logfiles:" : erClientResultsFiles
+        logs <- forP erClientResultsFiles readJSON
 
         putLoud "Converting logfiles to a simple CSV file."
         let statistics :: ClientResults -> [Statistics]

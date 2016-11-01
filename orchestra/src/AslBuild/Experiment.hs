@@ -46,7 +46,8 @@ generateTargetFor ecf = do
 
         provisionVmsFromData vmsNeeded
 
-        forM_ eSetups $ \ExperimentSetup{..} -> do
+        -- Intentionally no parallelism here.
+        forM_ eSetups $ \es@ExperimentSetup{..} -> do
             -- Get the clients configs set up
             setupClientConfigs clientSetups
 
@@ -90,10 +91,14 @@ generateTargetFor ecf = do
             -- Prepare analysis files for the client logs.
             makeClientResultFiles clientSetups
 
+            -- Write the setup file
+            writeJSON esSetupFile es
+
             -- Make the result record
             let results = ExperimentResultSummary
-                    { erClientResults = map cResultsFile clientSetups
-                    , erMiddleResults = mLocalTrace middleSetup
+                    { erClientResultsFiles = map cResultsFile clientSetups
+                    , erMiddleResultsFile = mLocalTrace middleSetup
+                    , erSetupFile = esSetupFile
                     }
 
             -- Write the result record to file
@@ -257,6 +262,7 @@ genExperimentSetup
 genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentSetup
     { esRuntime = runtime
     , esResultsSummaryFile = experimentResultsDir ecf </> signGlobally "summary" <.> jsonExt
+    , esSetupFile = experimentResultsDir ecf </> signGlobally "setup" <.> jsonExt
     , clientSetups = clients
     , middleSetup = middle
     , serverSetups = servers
