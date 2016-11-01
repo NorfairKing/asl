@@ -46,8 +46,27 @@ generateTargetFor ecf = do
 
         provisionVmsFromData vmsNeeded
 
+        let startTime = 1
+        let serverStartTime = startTime
+        let middleStartTime = startTime
+        let shutdownTime = 1
+        let guessedOverheadTime = 2
+        let totalRuntimeRemaining ix = sum
+                $ map (\ExperimentSetup{..} -> toSeconds esRuntime + serverStartTime + middleStartTime + shutdownTime + guessedOverheadTime)
+                $ drop ix eSetups
+
         -- Intentionally no parallelism here.
-        forM_ eSetups $ \es@ExperimentSetup{..} -> do
+        forM_ (indexed eSetups) $ \(ix, es@ExperimentSetup{..}) -> do
+            let nrOfExperiments = length eSetups
+            putLoud $ unwords
+                [ "[=============["
+                , "Running experiment:"
+                , concat ["[", show (ix + 1), "/", show nrOfExperiments, "]"]
+                , "]=============]"
+                ]
+
+            putLoud $ "Approximately " ++ toClockString (totalRuntimeRemaining ix) ++ " remaining."
+
             -- Get the clients configs set up
             setupClientConfigs clientSetups
 
@@ -55,13 +74,13 @@ generateTargetFor ecf = do
             startServersOn serverSetups
 
             -- Wait for the servers to get started
-            wait 1
+            wait serverStartTime
 
             -- Start the middleware
             middlePh <- startMiddleOn middleSetup
 
             -- Wait for the middleware to get started
-            wait 1
+            wait middleStartTime
 
             -- Start the clients
             startClientsOn clientSetups
@@ -80,7 +99,7 @@ generateTargetFor ecf = do
             copyMiddleTraceBack middleSetup
 
             -- Wait for memaslap to finish writing logs.
-            wait 1
+            wait shutdownTime
 
             -- Shut down the memaslap instances
             shutdownClients clientSetups
@@ -249,6 +268,7 @@ genClientSetup ecf cls middle signGlobally runtime = flip map (indexed cls) $ \(
                 }
             }
         }
+
 
 genExperimentSetup
     :: ExperimentConfig a

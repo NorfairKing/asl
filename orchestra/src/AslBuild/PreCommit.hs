@@ -7,8 +7,10 @@ import           AslBuild.Analysis
 import           AslBuild.BuildMemcached
 import           AslBuild.Constants
 import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareTest.MultiClientTest
@@ -50,7 +52,9 @@ preCommitRules = do
 
         need [smallLocalBaselineExperimentRule]
         need [smallLocalStabilityTraceRule]
+        need [smallLocalMaximumThroughputRule]
         need [smallLocalReplicationEffectRule]
+        need [smallLocalWriteEffectRule]
 
         need [analysisRule]
         need [reportsRule]

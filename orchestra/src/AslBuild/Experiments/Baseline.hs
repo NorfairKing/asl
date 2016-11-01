@@ -133,19 +133,14 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
 
     baselineExperimentsCacheFile %> \_ -> do
         experiments <- mkBaselineExperiments berc
-        liftIO $ LB.writeFile baselineExperimentsCacheFile $ A.encodePretty experiments
+        writeJSON baselineExperimentsCacheFile experiments
 
     csvOutFile %> \_ -> do
         need [memcachedBin, memaslapBin, baselineExperimentsCacheFile]
-
-        (experiments, vmsNeeded) <- do
-            contents <- liftIO $ LB.readFile baselineExperimentsCacheFile
-            case A.eitherDecode contents of
-                Left err -> fail $ "Failed to decode contents of baselineExperimentsCacheFile: " ++ err
-                Right exps -> return exps
-
         need [provisionLocalhostRule]
-        -- startVms vmsNeeded
+
+        (experiments, vmsNeeded) <- readJSON baselineExperimentsCacheFile
+
         provisionVmsFromData vmsNeeded
 
         -- Intentionally no parallelism here.
