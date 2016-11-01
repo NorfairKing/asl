@@ -3,13 +3,10 @@
 module AslBuild.Experiments.WriteEffect.Types where
 
 import           Data.Aeson
-import           Data.List                  (intercalate, nub)
+import           Data.List           (intercalate, nub)
 import           GHC.Generics
 
-import           Development.Shake.FilePath
-
 import           AslBuild.Client
-import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Memaslap
 import           AslBuild.Middle
@@ -56,16 +53,5 @@ instance ExperimentConfig WriteEffectCfg where
                             }
                         }
 
-                let summaryFileName = signGlobally "summary"
-                return ExperimentSetup
-                    { esRuntime = runtime
-                    , esResultsSummaryFile = experimentResultsDir stc </> summaryFileName <.> jsonExt
-                    , clientSetups = clients
-                    , middleSetup = middle
-                    , serverSetups = servers
-                    }
-
+                return $ genExperimentSetup stc runtime clients middle servers signGlobally
         return (setups, vmsNeeded)
-
-
-

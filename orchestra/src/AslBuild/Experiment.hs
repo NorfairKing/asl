@@ -244,3 +244,20 @@ genClientSetup ecf cls middle signGlobally runtime = flip map (indexed cls) $ \(
                 }
             }
         }
+
+genExperimentSetup
+    :: ExperimentConfig a
+    => a
+    -> TimeUnit
+    -> [ClientSetup]
+    -> MiddleSetup
+    -> [ServerSetup]
+    -> (String -> FilePath)
+    -> ExperimentSetup
+genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentSetup
+    { esRuntime = runtime
+    , esResultsSummaryFile = experimentResultsDir ecf </> signGlobally "summary" <.> jsonExt
+    , clientSetups = clients
+    , middleSetup = middle
+    , serverSetups = servers
+    }

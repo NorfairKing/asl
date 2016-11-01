@@ -5,8 +5,6 @@ module AslBuild.Experiments.StabilityTrace.Types where
 import           Data.Aeson
 import           GHC.Generics
 
-import           Development.Shake.FilePath
-
 import           AslBuild.Client
 import           AslBuild.Experiment
 import           AslBuild.Memaslap
@@ -50,14 +48,6 @@ instance ExperimentConfig StabilityTraceCfg where
                     }
                 }
 
-        let setup = ExperimentSetup
-                { esRuntime = runtime
-                , esResultsSummaryFile = experimentResultsDir stc </> "summary.json"
-                , clientSetups = clients
-                , middleSetup = middle
-                , serverSetups = servers
-                }
-
+        let setup = genExperimentSetup stc runtime clients middle servers signGlobally
         return ([setup], vmsNeeded)
-
 

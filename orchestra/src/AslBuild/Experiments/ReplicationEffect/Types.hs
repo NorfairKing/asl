@@ -3,13 +3,10 @@
 module AslBuild.Experiments.ReplicationEffect.Types where
 
 import           Data.Aeson
-import           Data.List                  (intercalate)
+import           Data.List           (intercalate)
 import           GHC.Generics
 
-import           Development.Shake.FilePath
-
 import           AslBuild.Client
-import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Memaslap
 import           AslBuild.Middle
@@ -43,7 +40,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
                 let middle = defaultMiddle
                         { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
-                            { mwReplicationFactor = max 1 $ floor $ fromIntegral (length servers) * replicationFactor
+                            { mwReplicationFactor = max 1 $ ceiling $ fromIntegral (length servers) * replicationFactor
                             }
                         }
 
@@ -56,16 +53,5 @@ instance ExperimentConfig ReplicationEffectCfg where
                             }
                         }
 
-                let summaryFileName = signGlobally "summary"
-                return ExperimentSetup
-                    { esRuntime = runtime
-                    , esResultsSummaryFile = experimentResultsDir stc </> summaryFileName <.> jsonExt
-                    , clientSetups = clients
-                    , middleSetup = middle
-                    , serverSetups = servers
-                    }
-
+                return $ genExperimentSetup stc runtime clients middle servers signGlobally
         return (setups, vmsNeeded)
-
-
-
