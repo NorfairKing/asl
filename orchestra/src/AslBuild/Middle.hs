@@ -5,11 +5,14 @@ module AslBuild.Middle
     ) where
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.CommonActions
 import           AslBuild.Constants
+import           AslBuild.Experiment.Types
 import           AslBuild.Middle.Types
 import           AslBuild.Middleware
+import           AslBuild.Server.Types
 import           AslBuild.Types
 
 startMiddleOn :: CmdResult r => MiddleSetup -> Action r
@@ -28,3 +31,8 @@ shutdownMiddle MiddleSetup{..} =
 copyMiddleTraceBack :: MiddleSetup -> Action ()
 copyMiddleTraceBack MiddleSetup{..} =
     rsyncFrom mRemoteLogin (mwTraceFile mMiddlewareFlags) mLocalTrace
+
+middleRemoteServer :: MiddleSetup -> RemoteServerUrl
+middleRemoteServer MiddleSetup{..} = RemoteServerUrl
+    (mwIp mMiddlewareFlags)
+    (mwPort mMiddlewareFlags)

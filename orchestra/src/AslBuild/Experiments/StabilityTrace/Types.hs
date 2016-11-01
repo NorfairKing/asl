@@ -34,29 +34,18 @@ instance ExperimentConfig StabilityTraceCfg where
     genExperimentSetups stc@StabilityTraceCfg{..} = do
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
-        let middlePort = 23456
 
         let servers = genServerSetups sers
 
         let (mLogin, mPrivate) = mid
-        let middle = MiddleSetup
-                { mRemoteLogin = mLogin
-                , mLocalTrace = experimentResultsDir stc </> target ++ "-trace" <.> csvExt
-                , mMiddlewareFlags = MiddlewareFlags
-                    { mwIp = mPrivate
-                    , mwPort = middlePort
-                    , mwNrThreads = 1
-                    , mwReplicationFactor = length servers
-                    , mwServers = map
-                        (\(ServerSetup{..}, (_, sPrivate)) ->
-                            RemoteServerUrl
-                                sPrivate
-                                (memcachedPort sMemcachedFlags))
-                        (zip servers sers)
-                    , mwTraceFile = experimentRemoteTmpDir stc </> target ++ "-trace" <.> csvExt
+        let defaultMiddle = genMiddleSetup stc mid servers sers
+        let middle = defaultMiddle
+                { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
+                    { mwReplicationFactor = length servers
                     , mwVerbosity = logLevel
                     }
                 }
+
         let clients = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
                 let sign f = intercalate "-" [target, f, show cix]
                 in ClientSetup
@@ -71,7 +60,7 @@ instance ExperimentConfig StabilityTraceCfg where
                             { setProportion = 0.01
                             }
                         , msFlags = MemaslapFlags
-                            { msServers = [RemoteServerUrl mPrivate middlePort]
+                            { msServers = [middleRemoteServer middle]
                             , msThreads = 1
                             , msConcurrency = 64
                             , msOverwrite = 0.9

@@ -19,7 +19,9 @@ import           AslBuild.Constants
 import           AslBuild.Experiment.Types
 import           AslBuild.Jar
 import           AslBuild.Memaslap
+import           AslBuild.Memcached
 import           AslBuild.Middle
+import           AslBuild.Middleware
 import           AslBuild.Provision
 import           AslBuild.Server
 import           AslBuild.Types
@@ -165,3 +167,33 @@ getVmsForExperiments ecf = do
             let private VmData{..} = vmPrivateIp
             let tups = map (login &&& private)
             return (tups cs, tups ms, tups ss, cs ++ ms ++ ss)
+
+genMiddleSetup
+    :: ExperimentConfig a
+    => a
+    -> (RemoteLogin, String)
+    -> [ServerSetup]
+    -> [(RemoteLogin, String)]
+    -> MiddleSetup
+genMiddleSetup ecf (mLogin, mPrivate) servers sers = MiddleSetup
+    { mRemoteLogin = mLogin
+    , mLocalTrace = experimentResultsDir ecf </> target ++ "-trace" <.> csvExt
+    , mMiddlewareFlags = MiddlewareFlags
+        { mwIp = mPrivate
+        , mwPort = middlePort
+        , mwNrThreads = 1
+        , mwReplicationFactor = length servers
+        , mwServers = map
+            (\(ServerSetup{..}, (_, sPrivate)) ->
+                RemoteServerUrl
+                    sPrivate
+                    (memcachedPort sMemcachedFlags))
+            (zip servers sers)
+        , mwTraceFile = experimentRemoteTmpDir ecf </> target ++ "-trace" <.> csvExt
+        , mwVerbosity = LogOff
+        }
+    }
+  where
+    target = experimentTarget ecf
+    middlePort = 23456
+
