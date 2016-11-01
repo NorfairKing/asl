@@ -3,7 +3,6 @@
 module AslBuild.Experiments.StabilityTrace.Types where
 
 import           Data.Aeson
-import           Data.List                  (intercalate)
 import           GHC.Generics
 
 import           Development.Shake.FilePath
@@ -13,9 +12,7 @@ import           AslBuild.Experiment
 import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
-import           AslBuild.Server
 import           AslBuild.Types
-import           AslBuild.Utils
 
 data StabilityTraceCfg
     = StabilityTraceCfg
@@ -35,7 +32,8 @@ instance ExperimentConfig StabilityTraceCfg where
 
         let servers = genServerSetups sers
 
-        let defaultMiddle = genMiddleSetup stc mid servers sers
+        let signGlobally = id
+        let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
         let middle = defaultMiddle
                 { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
                     { mwReplicationFactor = length servers
@@ -43,30 +41,14 @@ instance ExperimentConfig StabilityTraceCfg where
                     }
                 }
 
-        let clients = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
-                let sign f = intercalate "-" [target, f, show cix]
-                in ClientSetup
-                    { cRemoteLogin = cLogin
-                    , cIndex = cix
-                    , cLocalLog = experimentLocalTmpDir stc </> sign "client-local-log"
-                    , cRemoteLog = experimentRemoteTmpDir stc </> sign "memaslap-remote-log"
-                    , cResultsFile = experimentResultsDir stc </> sign "client-results"
-                    , cLocalMemaslapConfigFile = experimentLocalTmpDir stc </> sign "memaslap-config"
-                    , cMemaslapSettings = MemaslapSettings
-                        { msConfig = defaultMemaslapConfig
-                            { setProportion = 0.01
-                            }
-                        , msFlags = MemaslapFlags
-                            { msServers = [middleRemoteServer middle]
-                            , msThreads = 1
-                            , msConcurrency = 64
-                            , msOverwrite = 0.9
-                            , msStatFreq = Just $ Seconds 1
-                            , msWorkload = WorkFor runtime
-                            , msConfigFile = experimentRemoteTmpDir stc </> sign "memaslapcfg"
-                            }
+        let defaultClients = genClientSetup stc cls middle signGlobally runtime
+        let clients = flip map defaultClients $ \cs -> cs
+                { cMemaslapSettings = (cMemaslapSettings cs)
+                    { msConfig = defaultMemaslapConfig
+                        { setProportion = 0.01
                         }
                     }
+                }
 
         let setup = ExperimentSetup
                 { esRuntime = runtime

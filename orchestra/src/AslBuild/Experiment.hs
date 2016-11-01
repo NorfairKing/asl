@@ -7,6 +7,7 @@ module AslBuild.Experiment
 import           Control.Arrow
 import           Control.Concurrent
 import           Control.Monad
+import           Data.List                  (intercalate)
 import           System.Process
 
 import           Development.Shake
@@ -168,16 +169,28 @@ getVmsForExperiments ecf = do
             let tups = map (login &&& private)
             return (tups cs, tups ms, tups ss, cs ++ ms ++ ss)
 
+genServerSetups :: [(RemoteLogin, String)] -> [ServerSetup]
+genServerSetups sers = flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSetup
+    { sRemoteLogin = sLogin
+    , sIndex = six
+    , sMemcachedFlags = MemcachedFlags
+        { memcachedPort = serverPort + six
+        , memcachedAsDaemon = True
+        }
+    }
+  where serverPort = 12345
+
 genMiddleSetup
     :: ExperimentConfig a
     => a
     -> (RemoteLogin, String)
     -> [ServerSetup]
     -> [(RemoteLogin, String)]
+    -> (String -> FilePath)
     -> MiddleSetup
-genMiddleSetup ecf (mLogin, mPrivate) servers sers = MiddleSetup
+genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
     { mRemoteLogin = mLogin
-    , mLocalTrace = experimentResultsDir ecf </> target ++ "-trace" <.> csvExt
+    , mLocalTrace = experimentResultsDir ecf </> traceFileName <.> csvExt
     , mMiddlewareFlags = MiddlewareFlags
         { mwIp = mPrivate
         , mwPort = middlePort
@@ -189,11 +202,45 @@ genMiddleSetup ecf (mLogin, mPrivate) servers sers = MiddleSetup
                     sPrivate
                     (memcachedPort sMemcachedFlags))
             (zip servers sers)
-        , mwTraceFile = experimentRemoteTmpDir ecf </> target ++ "-trace" <.> csvExt
+        , mwTraceFile = experimentRemoteTmpDir ecf </> traceFileName <.> csvExt
         , mwVerbosity = LogOff
         }
     }
   where
     target = experimentTarget ecf
     middlePort = 23456
+    traceFileName = signGlobally (target ++ "-trace")
 
+genClientSetup
+    :: ExperimentConfig a
+    => a
+    -> [(RemoteLogin, String)]
+    -> MiddleSetup
+    -> (String -> FilePath)
+    -> TimeUnit
+    -> [ClientSetup]
+genClientSetup ecf cls middle signGlobally runtime = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
+    let target = experimentTarget ecf
+        sign f = signGlobally $ intercalate "-" [target, show cix, f]
+    in ClientSetup
+        { cRemoteLogin = cLogin
+        , cIndex = cix
+        , cLocalLog = experimentLocalTmpDir ecf </> sign "client-local-log"
+        , cRemoteLog = experimentRemoteTmpDir ecf </> sign "memaslap-remote-log"
+        , cResultsFile = experimentResultsDir ecf </> sign "client-results"
+        , cLocalMemaslapConfigFile = experimentLocalTmpDir ecf </> sign "memaslap-config"
+        , cMemaslapSettings = MemaslapSettings
+            { msConfig = defaultMemaslapConfig
+                { setProportion = 0.05
+                }
+            , msFlags = MemaslapFlags
+                { msServers = [middleRemoteServer middle]
+                , msThreads = 1
+                , msConcurrency = 64
+                , msOverwrite = 0.9
+                , msStatFreq = Just $ Seconds 1
+                , msWorkload = WorkFor runtime
+                , msConfigFile = experimentRemoteTmpDir ecf </> sign "memaslapcfg"
+                }
+            }
+        }
