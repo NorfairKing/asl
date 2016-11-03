@@ -83,10 +83,15 @@ generateTargetFor ecf = do
             wait middleStartTime
 
             -- Start the clients
-            startClientsOn clientSetups
+            clientPhs <- startClientsOn clientSetups
 
             -- Wait for the experiment to finish
             actionFinally (waitNicely $ toSeconds esRuntime) (return ())
+
+            putLoud "Done waiting for the runtime, now just waiting for the clients to finish."
+
+            -- Wait for memaslap to stop running. (This should not be long now, but who knows.)
+            waitForClients clientPhs
 
             -- Shut down the middleware
             shutdownMiddle middleSetup
@@ -97,9 +102,6 @@ generateTargetFor ecf = do
 
             -- Copy the middleware logs back
             copyMiddleTraceBack middleSetup
-
-            -- Wait for memaslap to finish writing logs.
-            wait shutdownTime
 
             -- Shut down the memaslap instances
             shutdownClients clientSetups

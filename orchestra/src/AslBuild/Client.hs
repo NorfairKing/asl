@@ -9,6 +9,9 @@ import           System.Directory
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import           System.Exit
+import           System.Process
+
 import           AslBuild.Client.Types
 import           AslBuild.CommonActions
 import           AslBuild.Constants
@@ -32,13 +35,12 @@ setupClientConfigs clientSetups = do
     phPar clientSetups $ \c@ClientSetup{..} ->
         rsyncTo cRemoteLogin cLocalMemaslapConfigFile $ remoteConfigFile c
 
-startClientsOn :: [ClientSetup] -> Action ()
+startClientsOn :: [ClientSetup] -> Action [ProcessHandle]
 startClientsOn clientSetups =
-    -- In parallel because they have to start at the same time.
-    parScriptAt $ flip map clientSetups $ \ClientSetup{..} ->
+    parScriptAtResult $ flip map clientSetups $ \ClientSetup{..} ->
         let line = unwords $
                 remoteMemaslap : memaslapArgs (msFlags cMemaslapSettings)
-                ++ [">", cRemoteLog, "2>&1", "&"]
+                ++ [">", cRemoteLog, "2>&1"]
             s = script [line]
         in (cRemoteLogin, s)
 
@@ -53,3 +55,15 @@ copyClientLogsBack clientSetups = do
 shutdownClients :: [ClientSetup] -> Action ()
 shutdownClients cs = phPar cs $ \ClientSetup{..} ->
     overSsh cRemoteLogin $ unwords ["killall", "memaslap", "||", "true"]
+
+waitForClients :: [ProcessHandle] -> Action ()
+waitForClients phs = forP_ (indexed phs) $ \(cix, ph) -> do
+    ec <- liftIO $ waitForProcess ph
+    case ec of
+        ExitSuccess -> return ()
+        ExitFailure e -> fail $ unwords
+            [ "Client"
+            , show cix
+            , "failed with exit code"
+            , show e
+            ]

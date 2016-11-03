@@ -69,6 +69,14 @@ parScriptAt ss = do
         liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
         overSsh rl $ scriptPath s
 
+parScriptAtResult :: CmdResult r => [(RemoteLogin, Script)] -> Action [r]
+parScriptAtResult ss = do
+    phPar ss $ uncurry copyScriptOver
+    forP ss $ \(rl, s) -> do
+        let fullScript = unlines $ scriptContent s
+        liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
+        overSsh rl $ scriptPath s
+
 overSsh :: CmdResult r => RemoteLogin -> String -> Action r
 overSsh rl commandOverSsh = do
     need [customSshKeyFile, customSshConfigFile]

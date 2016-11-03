@@ -49,7 +49,7 @@ instance ExperimentConfig MaximumThroughputCfg where
                         in cs
                         { cMemaslapSettings = sets
                             { msConfig = config
-                                { setProportion = 0.001 -- Very small number of writes, otherwise memaslap doesn't output anything.
+                                { setProportion = 0 -- There will be some sets anyway, in the warmup phase, and we have to handle that.
                                 }
                             , msFlags = flags
                                 { msConcurrency = curConcurrency
