@@ -1,4 +1,6 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Experiment.Types where
 
 import           Data.Aeson
@@ -51,8 +53,19 @@ data ExperimentResultSummary
     , erSetupFile          :: FilePath
     } deriving (Show, Eq, Generic)
 
-instance ToJSON   ExperimentResultSummary
-instance FromJSON ExperimentResultSummary
+instance ToJSON   ExperimentResultSummary where
+    toJSON ExperimentResultSummary{..} = object
+        [ "client-results-files" .= erClientResultsFiles
+        , "middle-results-file" .= erMiddleResultsFile
+        , "setup" .= erSetupFile
+        ]
+
+instance FromJSON ExperimentResultSummary where
+    parseJSON (Object o) = ExperimentResultSummary
+        <$> o .: "client-results-files"
+        <*> o .: "middle-results-file"
+        <*> o .: "setup"
+    parseJSON _ = mempty
 
 data ClientResults
     = ClientResults
