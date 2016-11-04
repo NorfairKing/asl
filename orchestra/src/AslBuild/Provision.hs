@@ -50,6 +50,9 @@ provisionLocalhostRules = do
             , provisionLocalhostMemaslapRule
             , provisionLocalhostMiddlewareRule
             ]
+        (Exit _) <- cmd "killall memcached"
+        (Exit _) <- cmd "killall memaslap"
+        return ()
 
     provisionLocalhostGlobalPackagesRule ~> return ()
     provisionLocalhostOrcRule ~> need [orcBin]
@@ -103,6 +106,13 @@ provisionVms rls = do
     provisionVmsMemcached rls
     provisionVmsMemaslap rls
     provisionVmsMiddleware rls
+    clearVms rls
+
+clearVms :: [RemoteLogin] -> Action ()
+clearVms rls = do
+    phPar rls $ \rl -> scriptAt rl $ script ["killall memaslap || true"]
+    phPar rls $ \rl -> scriptAt rl $ script ["killall java || true"]
+    phPar rls $ \rl -> scriptAt rl $ script ["killall memcached || true"]
 
 provisionVmsGlobalPackages :: [RemoteLogin] -> Action ()
 provisionVmsGlobalPackages rls = do

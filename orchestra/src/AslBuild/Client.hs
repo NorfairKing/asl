@@ -54,7 +54,7 @@ copyClientLogsBack clientSetups = do
 
 shutdownClients :: [ClientSetup] -> Action ()
 shutdownClients cs = phPar cs $ \ClientSetup{..} ->
-    overSsh cRemoteLogin $ unwords ["killall", "memaslap", "||", "true"]
+    scriptAt cRemoteLogin $ script [unwords ["killall", "memaslap", "||", "true"]]
 
 waitForClients :: [ProcessHandle] -> Action ()
 waitForClients phs = forP_ (indexed phs) $ \(cix, ph) -> do

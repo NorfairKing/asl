@@ -146,7 +146,7 @@ experimentRemoteTmpDir a = "/tmp" </> experimentTarget a
 
 resultSummariesLocationFile :: ExperimentConfig a => a -> FilePath
 resultSummariesLocationFile cfg
-    = resultsDir </> experimentTarget cfg ++ "-summary-locations" <.> jsonExt
+    = experimentResultsDir cfg </> "summary-locations" <.> jsonExt
 
 makeClientResultFiles :: [ClientSetup] -> Action ()
 makeClientResultFiles = (`forP_` makeClientResultFile)
