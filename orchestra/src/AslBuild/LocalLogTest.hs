@@ -19,12 +19,17 @@ import           AslBuild.Types
 import           AslBuild.Utils
 
 localLogTestRule :: String
-localLogTestRule = "local-logfile-test"
+localLogTestRule = "local-log-test"
 
 data LocalLogTestSetup
     = LocalLogTestSetup
-    { logFile :: FilePath
-    , mSets   :: MemaslapSettings
+    { clients :: [LocalLogClientSetup]
+    }
+
+data LocalLogClientSetup
+    = LocalLogClientSetup
+    { cLogFile :: FilePath
+    , cSets    :: MemaslapSettings
     }
 
 localLogTestDir :: FilePath
@@ -33,27 +38,33 @@ localLogTestDir = tmpDir </> localLogTestRule
 setups :: [LocalLogTestSetup]
 setups = do
     workloadSecs <- [1, 2, 5, 10]
+    setProp <- [0, 0.1]
     statsfreqSecs <- [1, 2, 5, 10]
     statsFreq <- [Nothing, Just $ Seconds statsfreqSecs]
+    nrClients <- [1, 8]
 
-    let sign f = intercalate "-" [f, show workloadSecs, show statsfreqSecs, show $ isJust statsFreq]
+    let sign f = intercalate "-" [f, show nrClients, show workloadSecs, show setProp, show statsfreqSecs, show $ isJust statsFreq]
 
     return LocalLogTestSetup
-        { logFile = localLogTestDir </> sign "local-logfile-test-log"
-        , mSets = MemaslapSettings
-            { msFlags = MemaslapFlags
-                { msServers = [RemoteServerUrl localhostIp defaultMemcachedPort]
-                , msThreads = 1
-                , msConcurrency = 64
-                , msOverwrite = 0.9
-                , msWorkload = WorkFor $ Seconds workloadSecs
-                , msStatFreq = statsFreq
-                , msConfigFile = localLogTestDir </> sign "local-logfile-test-memaslap-cfg"
-                }
-            , msConfig = MemaslapConfig
-                { keysizeDistributions = [Distribution 16 16 1]
-                , valueDistributions = [Distribution 128 128 1]
-                , setProportion = 0.1
+        { clients = flip map [1..nrClients] $ \ix ->
+            let signClient f = sign f ++ "-" ++ show (ix :: Int)
+            in LocalLogClientSetup
+            { cLogFile = localLogTestDir </> signClient "local-logfile-test-log"
+            , cSets = MemaslapSettings
+                { msFlags = MemaslapFlags
+                    { msServers = [RemoteServerUrl localhostIp defaultMemcachedPort]
+                    , msThreads = 1
+                    , msConcurrency = 64
+                    , msOverwrite = 0.9
+                    , msWorkload = WorkFor $ Seconds workloadSecs
+                    , msStatFreq = statsFreq
+                    , msConfigFile = localLogTestDir </> signClient "local-logfile-test-memaslap-cfg"
+                    }
+                , msConfig = MemaslapConfig
+                    { keysizeDistributions = [Distribution 16 16 1]
+                    , valueDistributions = [Distribution 128 128 1]
+                    , setProportion = setProp
+                    }
                 }
             }
         }
@@ -94,29 +105,33 @@ localLogTestRules = do
     -- Only one running at a time, multiple may parse at a time though.
     runLock <- newResource "runLock" 1
     forM_ (indexed setups) $ \(ix, LocalLogTestSetup{..}) -> do
-        logFile %> \_ -> do
-            need [memcachedBin, memaslapBin]
-
-            let MemaslapSettings{..} = mSets
-            -- Write the config to a file
-            writeMemaslapConfig (msConfigFile msFlags) msConfig
-
+        map cLogFile clients &%> \_ -> do
+            need [memcachedBin, memaslapBin] -- , outputJarFile]
+            -- TODO put a middleware inbetween here.
             withResource runLock 1 $ do
+                -- Write the config to a file
+                forP_ (map cSets clients) $ \MemaslapSettings{..} ->
+                    writeMemaslapConfig (msConfigFile msFlags) msConfig
+
                 -- Start memcached locally
                 ph <- cmd memcachedBin
 
                 -- Run memaslap locally
-                let runMemaslap :: Action ()
-                    runMemaslap = command [FileStdout logFile] memaslapBin (memaslapArgs msFlags)
+                let runMemaslaps :: Action ()
+                    runMemaslaps = do
+                        clientPhs <- forM clients $ \LocalLogClientSetup{..} -> do
+                            let MemaslapSettings{..} = cSets
+                            command [FileStdout cLogFile] memaslapBin (memaslapArgs msFlags)
+                        forM_ clientPhs $ liftIO . waitForProcess
 
                 -- Make sure to stop memcached
-                actionFinally runMemaslap $ do
+                actionFinally runMemaslaps $ do
                     terminateProcess ph
                     void $ waitForProcess ph
 
-        logTestTarget ix ~> do
+        phony (logTestTarget ix) $ forM_ (indexed $ map cLogFile clients) $ \(cix, logFile) -> do
             ml <- parseLog logFile
             case ml of
                 Nothing -> fail $ "Could not parse logfile " ++ logFile
-                Just _ -> putLoud $ "Log test " ++ show ix ++ " completed without parse errors."
+                Just _ -> putLoud $ "Log test " ++ show (ix, cix) ++ " completed without parse errors."
 

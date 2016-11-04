@@ -56,7 +56,6 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
 
     actionFinally goOn $ return ()
 
-    --liftIO $ mapM_ terminateProcess clientPHs
     forM_ (indexed clientPHs) $ \(ix, clientPH) -> do
         sec <- liftIO $ waitForProcess clientPH
         case sec of

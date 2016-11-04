@@ -163,10 +163,12 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
             waitMs 250
 
             -- Start the client memaslaps
-            startClientsOn clientSetups
+            clientPhs <- startClientsOn clientSetups
 
             -- Wait long enough to be sure that memaslap is fully done.
-            wait (maxClientTime + 5)
+            wait maxClientTime
+
+            waitForClients clientPhs
 
             -- Copy the logs back here
             copyClientLogsBack clientSetups

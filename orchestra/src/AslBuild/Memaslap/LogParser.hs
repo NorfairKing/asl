@@ -71,9 +71,10 @@ statsTriple = do
     void $ string "Get Statistics"
     void endOfLine
     gl <- statisticsLog
-    void $ string "Set Statistics"
-    void endOfLine
-    sl <- statisticsLog
+    sl <- optionMaybe $ try $ do
+        void $ string "Set Statistics"
+        void endOfLine
+        statisticsLog
     void $ string "Total Statistics"
     void endOfLine
     tl <- statisticsLog
@@ -151,8 +152,9 @@ totalStatsT :: Parser TotalStatsTrip
 totalStatsT = do
     void $ string "Get Statistics "
     gts <- totalStats
-    void $ string "Set Statistics "
-    sts <- totalStats
+    sts <- optionMaybe $ try $ do
+        void $ string "Set Statistics "
+        totalStats
     void $ string "Total Statistics "
     bts <- totalStats
     return TotalStatsTrip

@@ -3,13 +3,13 @@
         "config": [],
         "finalStats": {
             "finalRuntime": [],
-            "finalOps": 22390,
-            "finalTps": 4477,
-            "finalGets": 21238,
-            "finalReadBytes": 3502926,
-            "finalWrittenBytes": 650148,
-            "finalSets": 1152,
-            "finalObjectBytes": 165888,
+            "finalOps": 29561,
+            "finalTps": 5912,
+            "finalGets": 28046,
+            "finalReadBytes": 4631191,
+            "finalWrittenBytes": 856210,
+            "finalSets": 1515,
+            "finalObjectBytes": 218160,
             "finalGetMisses": 0,
             "finalNetRate": []
         },
@@ -17,320 +17,240 @@
             {
                 "setStats": {
                     "globalStats": {
-                        "ops": 192,
-                        "minUs": 579,
+                        "ops": 256,
+                        "minUs": 339,
                         "net": 0,
-                        "tps": 192,
-                        "geoDist": 8333.48,
+                        "tps": 256,
+                        "geoDist": 3357.35,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 12860,
-                        "stdDev": 11433.19,
-                        "maxUs": 40226
-                    },
-                    "periodStats": {
-                        "ops": 192,
-                        "minUs": 579,
-                        "net": 0,
-                        "tps": 192,
-                        "geoDist": 8333.48,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 12860,
-                        "stdDev": 11433.19,
-                        "maxUs": 40226
-                    }
-                },
-                "getStats": {
-                    "globalStats": {
-                        "ops": 3422,
-                        "minUs": 5614,
-                        "net": 0.5,
-                        "tps": 3422,
-                        "geoDist": 17045.82,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 17802,
-                        "stdDev": 5751.46,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 3422,
-                        "minUs": 5614,
-                        "net": 0.5,
-                        "tps": 3422,
-                        "geoDist": 17045.82,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 17802,
-                        "stdDev": 5751.46,
-                        "maxUs": 41045
-                    }
-                },
-                "bothStats": {
-                    "globalStats": {
-                        "ops": 3614,
-                        "minUs": 579,
-                        "net": 0.5,
-                        "tps": 3614,
-                        "geoDist": 16409.92,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 17539,
-                        "stdDev": 6283.03,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 3614,
-                        "minUs": 579,
-                        "net": 0.5,
-                        "tps": 3614,
-                        "geoDist": 16409.92,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 17539,
-                        "stdDev": 6283.03,
-                        "maxUs": 41045
-                    }
-                }
-            },
-            {
-                "setStats": {
-                    "globalStats": {
-                        "ops": 386,
-                        "minUs": 487,
-                        "net": 0,
-                        "tps": 193,
-                        "geoDist": 4991.73,
-                        "getMiss": 0,
-                        "time": 2,
-                        "avgUs": 8490,
-                        "stdDev": 9486.09,
-                        "maxUs": 40226
-                    },
-                    "periodStats": {
-                        "ops": 194,
-                        "minUs": 487,
-                        "net": 0,
-                        "tps": 194,
-                        "geoDist": 3005.87,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 4165,
-                        "stdDev": 3513.21,
-                        "maxUs": 17217
-                    }
-                },
-                "getStats": {
-                    "globalStats": {
-                        "ops": 7162,
-                        "minUs": 5614,
-                        "net": 0.5,
-                        "tps": 3581,
-                        "geoDist": 16837.64,
-                        "getMiss": 0,
-                        "time": 2,
-                        "avgUs": 17337,
-                        "stdDev": 4578.63,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 3740,
-                        "minUs": 9291,
-                        "net": 0.5,
-                        "tps": 3740,
-                        "geoDist": 16649.39,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 16911,
-                        "stdDev": 3086.03,
-                        "maxUs": 27251
-                    }
-                },
-                "bothStats": {
-                    "globalStats": {
-                        "ops": 7549,
-                        "minUs": 487,
-                        "net": 0.5,
-                        "tps": 3774,
-                        "geoDist": 15822.68,
-                        "getMiss": 0,
-                        "time": 2,
-                        "avgUs": 16884,
-                        "stdDev": 5319.18,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 3935,
-                        "minUs": 487,
-                        "net": 0.5,
-                        "tps": 3935,
-                        "geoDist": 15301.87,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 16283,
-                        "stdDev": 4154.04,
-                        "maxUs": 27251
-                    }
-                }
-            },
-            {
-                "setStats": {
-                    "globalStats": {
-                        "ops": 640,
-                        "minUs": 330,
-                        "net": 0,
-                        "tps": 213,
-                        "geoDist": 3268.96,
-                        "getMiss": 0,
-                        "time": 3,
-                        "avgUs": 6507,
-                        "stdDev": 8329.4,
-                        "maxUs": 40226
-                    },
-                    "periodStats": {
-                        "ops": 254,
-                        "minUs": 330,
-                        "net": 0,
-                        "tps": 254,
-                        "geoDist": 1718.01,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 3493,
-                        "stdDev": 4814.67,
-                        "maxUs": 17852
-                    }
-                },
-                "getStats": {
-                    "globalStats": {
-                        "ops": 11304,
-                        "minUs": 686,
-                        "net": 0.6,
-                        "tps": 3768,
-                        "geoDist": 16160.5,
-                        "getMiss": 0,
-                        "time": 3,
-                        "avgUs": 16584,
-                        "stdDev": 4087.2,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 4142,
-                        "minUs": 686,
-                        "net": 0.5,
-                        "tps": 4142,
-                        "geoDist": 15018.06,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 15277,
-                        "stdDev": 2599.24,
-                        "maxUs": 26873
-                    }
-                },
-                "bothStats": {
-                    "globalStats": {
-                        "ops": 11944,
-                        "minUs": 330,
-                        "net": 0.6,
-                        "tps": 3981,
-                        "geoDist": 14834.25,
-                        "getMiss": 0,
-                        "time": 3,
-                        "avgUs": 16044,
-                        "stdDev": 4967.23,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 4395,
-                        "minUs": 330,
-                        "net": 0.5,
-                        "tps": 4395,
-                        "geoDist": 13278.44,
-                        "getMiss": 0,
-                        "time": 1,
-                        "avgUs": 14600,
-                        "stdDev": 3898.76,
-                        "maxUs": 26873
-                    }
-                }
-            },
-            {
-                "setStats": {
-                    "globalStats": {
-                        "ops": 896,
-                        "minUs": 330,
-                        "net": 0,
-                        "tps": 224,
-                        "geoDist": 2240.7,
-                        "getMiss": 0,
-                        "time": 4,
-                        "avgUs": 5078,
-                        "stdDev": 7474.71,
-                        "maxUs": 40226
+                        "avgUs": 7846,
+                        "stdDev": 10544.39,
+                        "maxUs": 35213
                     },
                     "periodStats": {
                         "ops": 256,
-                        "minUs": 347,
+                        "minUs": 339,
                         "net": 0,
                         "tps": 256,
-                        "geoDist": 871.6,
+                        "geoDist": 3357.35,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 1506,
-                        "stdDev": 2074.29,
-                        "maxUs": 9233
+                        "avgUs": 7846,
+                        "stdDev": 10544.39,
+                        "maxUs": 35213
                     }
                 },
                 "getStats": {
                     "globalStats": {
-                        "ops": 16221,
-                        "minUs": 686,
-                        "net": 0.7,
-                        "tps": 4055,
-                        "geoDist": 15076.73,
-                        "getMiss": 0,
-                        "time": 4,
-                        "avgUs": 15476,
-                        "stdDev": 3888.36,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 4917,
-                        "minUs": 10566,
+                        "ops": 4468,
+                        "minUs": 6874,
                         "net": 0.6,
-                        "tps": 4917,
-                        "geoDist": 12852.84,
+                        "tps": 4468,
+                        "geoDist": 13305.1,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 12929,
-                        "stdDev": 1468.68,
-                        "maxUs": 18613
+                        "avgUs": 13758,
+                        "stdDev": 3850.38,
+                        "maxUs": 33212
+                    },
+                    "periodStats": {
+                        "ops": 4468,
+                        "minUs": 6874,
+                        "net": 0.6,
+                        "tps": 4468,
+                        "geoDist": 13305.1,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 13758,
+                        "stdDev": 3850.38,
+                        "maxUs": 33212
                     }
                 },
                 "bothStats": {
                     "globalStats": {
-                        "ops": 17117,
-                        "minUs": 330,
-                        "net": 0.7,
-                        "tps": 4279,
-                        "geoDist": 13644.86,
-                        "getMiss": 0,
-                        "time": 4,
-                        "avgUs": 14931,
-                        "stdDev": 4757.54,
-                        "maxUs": 41045
-                    },
-                    "periodStats": {
-                        "ops": 5173,
-                        "minUs": 347,
+                        "ops": 4724,
+                        "minUs": 339,
                         "net": 0.6,
-                        "tps": 5173,
-                        "geoDist": 11250.29,
+                        "tps": 4724,
+                        "geoDist": 12348.39,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 12364,
-                        "stdDev": 2897.25,
-                        "maxUs": 18613
+                        "avgUs": 13437,
+                        "stdDev": 4672.62,
+                        "maxUs": 35213
+                    },
+                    "periodStats": {
+                        "ops": 4724,
+                        "minUs": 339,
+                        "net": 0.6,
+                        "tps": 4724,
+                        "geoDist": 12348.39,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 13437,
+                        "stdDev": 4672.62,
+                        "maxUs": 35213
+                    }
+                }
+            },
+            {
+                "setStats": {
+                    "globalStats": {
+                        "ops": 512,
+                        "minUs": 302,
+                        "net": 0,
+                        "tps": 256,
+                        "geoDist": 1891.63,
+                        "getMiss": 0,
+                        "time": 2,
+                        "avgUs": 4639,
+                        "stdDev": 8150.75,
+                        "maxUs": 35213
+                    },
+                    "periodStats": {
+                        "ops": 256,
+                        "minUs": 302,
+                        "net": 0,
+                        "tps": 256,
+                        "geoDist": 1065.8,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 1431,
+                        "stdDev": 1139.37,
+                        "maxUs": 6890
+                    }
+                },
+                "getStats": {
+                    "globalStats": {
+                        "ops": 9149,
+                        "minUs": 6874,
+                        "net": 0.6,
+                        "tps": 4574,
+                        "geoDist": 13419.37,
+                        "getMiss": 0,
+                        "time": 2,
+                        "avgUs": 13681,
+                        "stdDev": 2887.03,
+                        "maxUs": 33212
+                    },
+                    "periodStats": {
+                        "ops": 4681,
+                        "minUs": 10493,
+                        "net": 0.6,
+                        "tps": 4681,
+                        "geoDist": 13529.37,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 13608,
+                        "stdDev": 1454.99,
+                        "maxUs": 17671
+                    }
+                },
+                "bothStats": {
+                    "globalStats": {
+                        "ops": 9662,
+                        "minUs": 302,
+                        "net": 0.7,
+                        "tps": 4831,
+                        "geoDist": 12096,
+                        "getMiss": 0,
+                        "time": 2,
+                        "avgUs": 13202,
+                        "stdDev": 3937.59,
+                        "maxUs": 35213
+                    },
+                    "periodStats": {
+                        "ops": 4938,
+                        "minUs": 302,
+                        "net": 0.7,
+                        "tps": 4938,
+                        "geoDist": 11859.38,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 12976,
+                        "stdDev": 3062.79,
+                        "maxUs": 17671
+                    }
+                }
+            },
+            {
+                "setStats": {
+                    "globalStats": {
+                        "ops": 832,
+                        "minUs": 243,
+                        "net": 0,
+                        "tps": 277,
+                        "geoDist": 1452.42,
+                        "getMiss": 0,
+                        "time": 3,
+                        "avgUs": 3693,
+                        "stdDev": 6735.41,
+                        "maxUs": 35213
+                    },
+                    "periodStats": {
+                        "ops": 320,
+                        "minUs": 243,
+                        "net": 0,
+                        "tps": 320,
+                        "geoDist": 951.71,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 2180,
+                        "stdDev": 2832.09,
+                        "maxUs": 9767
+                    }
+                },
+                "getStats": {
+                    "globalStats": {
+                        "ops": 15254,
+                        "minUs": 6874,
+                        "net": 0.8,
+                        "tps": 5084,
+                        "geoDist": 12088.94,
+                        "getMiss": 0,
+                        "time": 3,
+                        "avgUs": 12363,
+                        "stdDev": 2842.94,
+                        "maxUs": 33212
+                    },
+                    "periodStats": {
+                        "ops": 6105,
+                        "minUs": 7602,
+                        "net": 0.7,
+                        "tps": 6105,
+                        "geoDist": 10321.9,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 10387,
+                        "stdDev": 1089.87,
+                        "maxUs": 13846
+                    }
+                },
+                "bothStats": {
+                    "globalStats": {
+                        "ops": 16086,
+                        "minUs": 243,
+                        "net": 0.9,
+                        "tps": 5362,
+                        "geoDist": 10833.99,
+                        "getMiss": 0,
+                        "time": 3,
+                        "avgUs": 11915,
+                        "stdDev": 3699.29,
+                        "maxUs": 35213
+                    },
+                    "periodStats": {
+                        "ops": 6424,
+                        "minUs": 243,
+                        "net": 0.7,
+                        "tps": 6424,
+                        "geoDist": 9179.41,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 9980,
+                        "stdDev": 2167.08,
+                        "maxUs": 13846
                     }
                 }
             },
@@ -338,118 +258,198 @@
                 "setStats": {
                     "globalStats": {
                         "ops": 1152,
-                        "minUs": 314,
+                        "minUs": 243,
                         "net": 0,
-                        "tps": 230,
-                        "geoDist": 1663.74,
+                        "tps": 288,
+                        "geoDist": 1000.86,
                         "getMiss": 0,
-                        "time": 5,
-                        "avgUs": 4088,
-                        "stdDev": 6847.83,
-                        "maxUs": 40226
+                        "time": 4,
+                        "avgUs": 2779,
+                        "stdDev": 5911.06,
+                        "maxUs": 35213
                     },
                     "periodStats": {
-                        "ops": 256,
-                        "minUs": 314,
+                        "ops": 320,
+                        "minUs": 245,
                         "net": 0,
-                        "tps": 256,
-                        "geoDist": 586.88,
+                        "tps": 320,
+                        "geoDist": 380.11,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 625,
-                        "stdDev": 252.68,
-                        "maxUs": 1855
+                        "avgUs": 404,
+                        "stdDev": 218.92,
+                        "maxUs": 2058
                     }
                 },
                 "getStats": {
                     "globalStats": {
-                        "ops": 21110,
-                        "minUs": 686,
-                        "net": 0.7,
-                        "tps": 4222,
-                        "geoDist": 14557.47,
+                        "ops": 21603,
+                        "minUs": 6874,
+                        "net": 0.9,
+                        "tps": 5400,
+                        "geoDist": 11442.48,
                         "getMiss": 0,
-                        "time": 5,
-                        "avgUs": 14918,
-                        "stdDev": 3659.51,
-                        "maxUs": 41045
+                        "time": 4,
+                        "avgUs": 11686,
+                        "stdDev": 2647.72,
+                        "maxUs": 33212
                     },
                     "periodStats": {
-                        "ops": 4889,
-                        "minUs": 10367,
-                        "net": 0.6,
-                        "tps": 4889,
-                        "geoDist": 12959.36,
+                        "ops": 6349,
+                        "minUs": 9238,
+                        "net": 0.7,
+                        "tps": 6349,
+                        "geoDist": 10027.09,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 13069,
-                        "stdDev": 1771.84,
-                        "maxUs": 20443
+                        "avgUs": 10058,
+                        "stdDev": 847.28,
+                        "maxUs": 15361
                     }
                 },
                 "bothStats": {
                     "globalStats": {
-                        "ops": 22262,
-                        "minUs": 314,
-                        "net": 0.7,
-                        "tps": 4452,
-                        "geoDist": 13011.88,
+                        "ops": 22756,
+                        "minUs": 243,
+                        "net": 0.9,
+                        "tps": 5689,
+                        "geoDist": 10114.61,
                         "getMiss": 0,
-                        "time": 5,
-                        "avgUs": 14358,
-                        "stdDev": 4568.03,
-                        "maxUs": 41045
+                        "time": 4,
+                        "avgUs": 11235,
+                        "stdDev": 3497.96,
+                        "maxUs": 35213
                     },
                     "periodStats": {
-                        "ops": 5145,
-                        "minUs": 314,
-                        "net": 0.6,
-                        "tps": 5145,
-                        "geoDist": 11109.85,
+                        "ops": 6670,
+                        "minUs": 245,
+                        "net": 0.8,
+                        "tps": 6670,
+                        "geoDist": 8570.08,
                         "getMiss": 0,
                         "time": 1,
-                        "avgUs": 12449,
-                        "stdDev": 3214.02,
-                        "maxUs": 20443
+                        "avgUs": 9594,
+                        "stdDev": 2226.58,
+                        "maxUs": 15361
+                    }
+                }
+            },
+            {
+                "setStats": {
+                    "globalStats": {
+                        "ops": 1502,
+                        "minUs": 243,
+                        "net": 0,
+                        "tps": 300,
+                        "geoDist": 790.79,
+                        "getMiss": 0,
+                        "time": 5,
+                        "avgUs": 2222,
+                        "stdDev": 5275.2,
+                        "maxUs": 35213
+                    },
+                    "periodStats": {
+                        "ops": 350,
+                        "minUs": 243,
+                        "net": 0,
+                        "tps": 350,
+                        "geoDist": 364.17,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 388,
+                        "stdDev": 233.91,
+                        "maxUs": 2898
+                    }
+                },
+                "getStats": {
+                    "globalStats": {
+                        "ops": 27931,
+                        "minUs": 6874,
+                        "net": 0.9,
+                        "tps": 5586,
+                        "geoDist": 11112.17,
+                        "getMiss": 0,
+                        "time": 5,
+                        "avgUs": 11324,
+                        "stdDev": 2460.06,
+                        "maxUs": 33212
+                    },
+                    "periodStats": {
+                        "ops": 6328,
+                        "minUs": 9311,
+                        "net": 0.8,
+                        "tps": 6328,
+                        "geoDist": 10040.18,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 10086,
+                        "stdDev": 913.69,
+                        "maxUs": 16177
+                    }
+                },
+                "bothStats": {
+                    "globalStats": {
+                        "ops": 29433,
+                        "minUs": 243,
+                        "net": 0.9,
+                        "tps": 5886,
+                        "geoDist": 9710.21,
+                        "getMiss": 0,
+                        "time": 5,
+                        "avgUs": 10859,
+                        "stdDev": 3344.48,
+                        "maxUs": 35213
+                    },
+                    "periodStats": {
+                        "ops": 6677,
+                        "minUs": 243,
+                        "net": 0.8,
+                        "tps": 6677,
+                        "geoDist": 8449.58,
+                        "getMiss": 0,
+                        "time": 1,
+                        "avgUs": 9579,
+                        "stdDev": 2335.72,
+                        "maxUs": 16177
                     }
                 }
             }
         ],
         "totalStatsTrip": {
             "totalBothStats": {
-                "totalGeo": 13001.32,
-                "totalEvents": 22326,
-                "totalMin": 314,
-                "totalMax": 41045,
+                "totalGeo": 9710.71,
+                "totalEvents": 29497,
+                "totalMin": 243,
+                "totalMax": 35213,
                 "totalLog2Dist": [],
-                "totalStd": 4567.95,
-                "totalAvg": 14345
+                "totalStd": 3341.27,
+                "totalAvg": 10857
             },
             "totalGetStats": {
-                "totalGeo": 14540.08,
-                "totalEvents": 21174,
-                "totalMin": 686,
-                "totalMax": 41045,
+                "totalGeo": 11109.35,
+                "totalEvents": 27995,
+                "totalMin": 6874,
+                "totalMax": 33212,
                 "totalLog2Dist": [],
-                "totalStd": 3663.07,
-                "totalAvg": 14903
+                "totalStd": 2457.56,
+                "totalAvg": 11321
             },
             "totalSetStats": {
-                "totalGeo": 1663.74,
-                "totalEvents": 1152,
-                "totalMin": 314,
-                "totalMax": 40226,
+                "totalGeo": 790.79,
+                "totalEvents": 1502,
+                "totalMin": 243,
+                "totalMax": 35213,
                 "totalLog2Dist": [],
-                "totalStd": 6847.83,
-                "totalAvg": 4088
+                "totalStd": 5275.2,
+                "totalAvg": 2222
             }
         }
     },
     "crSetup": {
         "cResultsFile": "results/small-local-replication-effect/small-local-replication-effect-0-client-results-1-0.0",
-        "cLocalLog": "/tmp/asl/tmp/small-local-replication-effect/small-local-replication-effect-0-client-local-log-1-0.0",
+        "cLocalLog": "/home/syd/.asl/tmp/small-local-replication-effect/small-local-replication-effect-0-client-local-log-1-0.0",
         "cIndex": 0,
-        "cLocalMemaslapConfigFile": "/tmp/asl/tmp/small-local-replication-effect/small-local-replication-effect-0-memaslap-config-1-0.0",
+        "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/small-local-replication-effect/small-local-replication-effect-0-memaslap-config-1-0.0",
         "cRemoteLog": "/tmp/small-local-replication-effect/small-local-replication-effect-0-memaslap-remote-log-1-0.0",
         "cRemoteLogin": {
             "remoteUser": null,

@@ -38,12 +38,9 @@ waitMs i = do
     liftIO $ threadDelay $ i * 1000
 
 scriptAt :: CmdResult r => RemoteLogin -> Script -> Action r
-scriptAt rl s@Script{..} = do
+scriptAt rl s = do
     unit $ copyScriptOver rl s
-    let fullScript = unlines scriptContent
-    liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
-    -- Run the script
-    overSsh rl $ scriptPath s
+    runRemoteVerboseScript rl s
 
 scriptPath :: Script -> FilePath
 scriptPath Script{..} = "/tmp" </> scriptName <.> "bash"
@@ -64,18 +61,18 @@ copyScriptOver rl s@Script{..} = do
 parScriptAt :: [(RemoteLogin, Script)] -> Action ()
 parScriptAt ss = do
     phPar ss $ uncurry copyScriptOver
-    phPar ss $ \(rl, s) -> do
-        let fullScript = unlines $ scriptContent s
-        liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
-        overSsh rl $ scriptPath s
+    phPar ss $ uncurry runRemoteVerboseScript
 
 parScriptAtResult :: CmdResult r => [(RemoteLogin, Script)] -> Action [r]
 parScriptAtResult ss = do
     phPar ss $ uncurry copyScriptOver
-    forP ss $ \(rl, s) -> do
-        let fullScript = unlines $ scriptContent s
-        liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
-        overSsh rl $ scriptPath s
+    forP ss $ uncurry runRemoteVerboseScript
+
+runRemoteVerboseScript :: CmdResult b => RemoteLogin -> Script -> Action b
+runRemoteVerboseScript rl s =  do
+    let fullScript = unlines $ scriptContent s
+    liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
+    overSsh rl $ scriptPath s
 
 overSsh :: CmdResult r => RemoteLogin -> String -> Action r
 overSsh rl commandOverSsh = do
