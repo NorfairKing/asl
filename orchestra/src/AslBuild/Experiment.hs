@@ -130,7 +130,9 @@ generateTargetFor ecf = do
 experimentResultsDir
     :: ExperimentConfig a
     => a -> FilePath
-experimentResultsDir a = resultsDir </> experimentTarget a
+experimentResultsDir a = case resultsPersistence $ highLevelConfig a of
+    Persistent -> resultsDir </> experimentTarget a
+    Volatile -> tmpDir </> experimentTarget a
 
 experimentLocalTmpDir
     :: ExperimentConfig a

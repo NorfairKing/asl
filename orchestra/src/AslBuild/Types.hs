@@ -7,6 +7,14 @@ import           Data.Csv
 import           Data.Hashable
 import           GHC.Generics
 
+data Persistence
+    = Persistent
+    | Volatile
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   Persistence
+instance FromJSON Persistence
+
 data Location
     = Local
     | Remote

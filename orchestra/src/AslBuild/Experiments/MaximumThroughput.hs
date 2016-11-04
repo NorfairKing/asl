@@ -25,6 +25,7 @@ smallLocalMaximumThroughput = smallRemoteMaximumThroughput
     { hlConfig = (hlConfig smallRemoteMaximumThroughput)
         { target = smallLocalMaximumThroughputRule
         , location = Local
+        , resultsPersistence = Volatile
         }
     }
 
@@ -49,6 +50,7 @@ bigLocalMaximumThroughput = MaximumThroughputCfg
         , nrServers = 8
         , nrClients = 32
         , location = Local
+        , resultsPersistence = Persistent
         }
     , clientCountTuples = do
         ncl <- [1, 2, 3]
@@ -66,6 +68,7 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         , nrServers = 2
         , nrClients = 1
         , location = Remote
+        , resultsPersistence = Persistent
         }
     , clientCountTuples = [(1, 10), (2, 5)]
     }
@@ -81,6 +84,7 @@ remoteMaximumThroughput = MaximumThroughputCfg
         , nrServers = 7
         , nrClients = 3
         , location = Remote
+        , resultsPersistence = Persistent
         }
     , clientCountTuples = do
         ncl <- [3]

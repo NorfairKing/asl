@@ -24,10 +24,11 @@ experimentTarget = target . highLevelConfig
 
 data HighLevelConfig
     = HighLevelConfig
-    { target    :: String
-    , nrClients :: Int
-    , nrServers :: Int
-    , location  :: Location
+    { target             :: String
+    , nrClients          :: Int
+    , nrServers          :: Int
+    , location           :: Location
+    , resultsPersistence :: Persistence
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   HighLevelConfig
