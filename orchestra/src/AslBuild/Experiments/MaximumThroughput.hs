@@ -67,7 +67,7 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         , nrClients = 1
         , location = Remote
         }
-    , clientCountTuples = [(1, 10), (1, 20), (2, 5), (2, 10)]
+    , clientCountTuples = [(1, 10), (2, 5)]
     }
 
 

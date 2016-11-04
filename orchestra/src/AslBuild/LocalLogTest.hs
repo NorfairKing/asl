@@ -14,7 +14,9 @@ import           Development.Shake.FilePath
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
+import           AslBuild.Jar
 import           AslBuild.Memaslap
+import           AslBuild.Middleware
 import           AslBuild.Types
 import           AslBuild.Utils
 
@@ -23,7 +25,8 @@ localLogTestRule = "local-log-test"
 
 data LocalLogTestSetup
     = LocalLogTestSetup
-    { clients :: [LocalLogClientSetup]
+    { clients          :: [LocalLogClientSetup]
+    , mmiddlewareFlags :: Maybe MiddlewareFlags
     }
 
 data LocalLogClientSetup
@@ -37,24 +40,40 @@ localLogTestDir = tmpDir </> localLogTestRule
 
 setups :: [LocalLogTestSetup]
 setups = do
-    workloadSecs <- [1, 2, 5, 10]
+    workloadSecs <- [1, 2, 10]
     setProp <- [0, 0.1]
-    statsfreqSecs <- [1, 2, 5, 10]
+    statsfreqSecs <- [1, 2]
     statsFreq <- [Nothing, Just $ Seconds statsfreqSecs]
-    nrClients <- [1, 8]
+    nrClients <- [1]
 
-    let sign f = intercalate "-" [f, show nrClients, show workloadSecs, show setProp, show statsfreqSecs, show $ isJust statsFreq]
+    let mPort = 11210
 
-    return LocalLogTestSetup
-        { clients = flip map [1..nrClients] $ \ix ->
+    useMiddleware <- [True, False]
+    let sign f = intercalate "-" [f, show nrClients, show workloadSecs, show setProp, show statsfreqSecs, show $ isJust statsFreq, show useMiddleware]
+
+    let mw = MiddlewareFlags
+            { mwIp = localhostIp
+            , mwPort = mPort
+            , mwNrThreads = 1
+            , mwReplicationFactor = 1
+            , mwServers = [RemoteServerUrl localhostIp defaultMemcachedPort]
+            , mwVerbosity = LogOff
+            , mwTraceFile = localLogTestDir </> sign "middleware-trace" <.> csvExt
+            }
+
+    let mmflags = if useMiddleware then Just mw else Nothing
+
+    let cs = flip map [1..nrClients] $ \ix ->
             let signClient f = sign f ++ "-" ++ show (ix :: Int)
             in LocalLogClientSetup
             { cLogFile = localLogTestDir </> signClient "local-logfile-test-log"
             , cSets = MemaslapSettings
                 { msFlags = MemaslapFlags
-                    { msServers = [RemoteServerUrl localhostIp defaultMemcachedPort]
+                    { msServers = case mmflags of
+                        Nothing -> [RemoteServerUrl localhostIp defaultMemcachedPort]
+                        Just mflags -> [RemoteServerUrl localhostIp $ mwPort mflags]
                     , msThreads = 1
-                    , msConcurrency = 64
+                    , msConcurrency = 32
                     , msOverwrite = 0.9
                     , msWorkload = WorkFor $ Seconds workloadSecs
                     , msStatFreq = statsFreq
@@ -67,6 +86,9 @@ setups = do
                     }
                 }
             }
+    return LocalLogTestSetup
+        { clients = cs
+        , mmiddlewareFlags = mmflags
         }
 
 logTestTarget :: Int -> String
@@ -114,7 +136,16 @@ localLogTestRules = do
                     writeMemaslapConfig (msConfigFile msFlags) msConfig
 
                 -- Start memcached locally
-                ph <- cmd memcachedBin
+                serverPh <- cmd memcachedBin
+
+                mmiddlePh <- case mmiddlewareFlags of
+                    Nothing -> return Nothing
+                    Just middlewareFlags -> (Just <$>) $ do
+                        waitMs 250
+                        -- Start the middleware locally
+                        cmd javaCmd "-jar" outputJarFile $ middlewareArgs middlewareFlags
+
+                waitMs 250
 
                 -- Run memaslap locally
                 let runMemaslaps :: Action ()
@@ -126,8 +157,14 @@ localLogTestRules = do
 
                 -- Make sure to stop memcached
                 actionFinally runMemaslaps $ do
-                    terminateProcess ph
-                    void $ waitForProcess ph
+                    case mmiddlePh of
+                        Nothing -> return ()
+                        Just middlePh -> do
+                            terminateProcess middlePh
+                            void $ waitForProcess middlePh
+
+                    terminateProcess serverPh
+                    void $ waitForProcess serverPh
 
         phony (logTestTarget ix) $ forM_ (indexed $ map cLogFile clients) $ \(cix, logFile) -> do
             ml <- parseLog logFile
