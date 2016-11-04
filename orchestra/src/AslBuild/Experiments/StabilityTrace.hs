@@ -26,6 +26,7 @@ smallLocalStabilityTrace = StabilityTraceCfg
     { hlConfig = (hlConfig smallRemoteStabilityTrace)
         { target = smallLocalStabilityTraceRule
         , location = Local
+        , resultsPersistence = Volatile
         }
     , runtime = Seconds 5
     , logLevel = LogFiner
@@ -54,6 +55,7 @@ bigLocalStabilityTrace = StabilityTraceCfg
         , nrServers = 8
         , nrClients = 32
         , location = Local
+        , resultsPersistence = Persistent
         }
     , runtime = Hours 1
     , logLevel = LogOff
@@ -69,6 +71,7 @@ smallRemoteStabilityTrace = StabilityTraceCfg
         , nrServers = 3
         , nrClients = 3
         , location = Remote
+        , resultsPersistence = Persistent
         }
     , runtime = Seconds 10
     , logLevel = LogOff
@@ -85,6 +88,7 @@ remoteStabilityTrace = StabilityTraceCfg
         , nrServers = 3
         , nrClients = 3
         , location = Remote
+        , resultsPersistence = Persistent
         }
     , runtime = Hours 1
     , logLevel = LogOff
