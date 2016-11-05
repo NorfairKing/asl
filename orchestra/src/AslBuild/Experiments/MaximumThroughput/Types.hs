@@ -17,6 +17,7 @@ data MaximumThroughputCfg
     = MaximumThroughputCfg
     { hlConfig       :: HighLevelConfig
     , threadConcTups :: [(Int, Int)]
+    , mtRuntime      :: TimeUnit
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MaximumThroughputCfg
@@ -25,7 +26,7 @@ instance FromJSON MaximumThroughputCfg
 instance ExperimentConfig MaximumThroughputCfg where
     highLevelConfig = hlConfig
     genExperimentSetups stc@MaximumThroughputCfg{..} = do
-        let runtime = Seconds 5
+        let runtime = mtRuntime
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
 

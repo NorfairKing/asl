@@ -57,6 +57,7 @@ bigLocalMaximumThroughput = MaximumThroughputCfg
         middleThreads <- [1 .. 8]
         concurrencies <- [5, 10 .. 60]
         return (middleThreads, concurrencies)
+    , mtRuntime = Seconds 15
     }
 
 heavyLocalMaximumThroughputRule :: String
@@ -71,7 +72,8 @@ heavyLocalMaximumThroughput = MaximumThroughputCfg
         , location = Local
         , resultsPersistence = Volatile
         }
-    , threadConcTups = [(1, 8)]
+    , threadConcTups = [(1, 8), (1, 64)]
+    , mtRuntime = Seconds 30
     }
 
 smallRemoteMaximumThroughputRule :: String
@@ -90,6 +92,7 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         middleThreads <- [1, 2]
         concurrencies <- [5, 10]
         return (middleThreads, concurrencies)
+    , mtRuntime = Seconds 10
     }
 
 
@@ -109,4 +112,5 @@ remoteMaximumThroughput = MaximumThroughputCfg
         middleThreads <- [2, 4 .. 8]
         concurrencies <- [10, 20 .. 100]
         return (middleThreads, concurrencies)
+    , mtRuntime = Minutes 1
     }

@@ -124,6 +124,7 @@ public class AcceptCompletionHandler
 
     @Override
     public void failed(Throwable exc, InitialInput initialInput) {
+      exc.printStackTrace();
       try {
         log.info("Initial input failed, closing the connection.");
         initialInput.chan.close();
