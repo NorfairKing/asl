@@ -34,7 +34,8 @@ public class Middleware {
       int numThreadsPTP,
       int writeToCount,
       String logfile,
-      int readSampleRate,int writeSampleRate)
+      int readSampleRate,
+      int writeSampleRate)
       throws IOException {
     this.myAddress = new InetSocketAddress(myIp, myPort);
     this.servers = makeServers(mcAddresses);

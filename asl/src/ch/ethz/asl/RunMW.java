@@ -35,7 +35,16 @@ public class RunMW {
 
     logger.setLevel(verbosity);
     logger.addHandler(new AdhocLogger());
-    new Middleware(myIp, myPort, mcAddresses, numThreadsPTP, writeToCount, logfile, readSampleRate, writeSampleRate).run();
+    new Middleware(
+            myIp,
+            myPort,
+            mcAddresses,
+            numThreadsPTP,
+            writeToCount,
+            logfile,
+            readSampleRate,
+            writeSampleRate)
+        .run();
   }
 
   private static void parseArguments(String[] args) {

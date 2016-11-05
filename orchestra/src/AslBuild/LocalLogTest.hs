@@ -41,7 +41,7 @@ localLogTestDir = tmpDir </> localLogTestRule
 setups :: [LocalLogTestSetup]
 setups = do
     workloadSecs <- [1, 2, 10]
-    setProp <- [0, 0.1]
+    setProp <- [0, 0.5, 1]
     statsfreqSecs <- [1, 2]
     statsFreq <- [Nothing, Just $ Seconds statsfreqSecs]
     nrClients <- [1]

@@ -10,23 +10,23 @@ import static ch.ethz.asl.response.response_parsing.ResponseParser.KEYWORD_NOT_F
 
 public class DeletedResponse implements Response {
 
-    @Override
-    public ByteBuffer render() {
-        ByteBuffer bbuff = ByteBuffer.allocate(KEYWORD_DELETED.length + NEWLINE.length);
-        bbuff.put(KEYWORD_DELETED);
-        bbuff.put(NEWLINE);
-        return bbuff;
-    }
+  @Override
+  public ByteBuffer render() {
+    ByteBuffer bbuff = ByteBuffer.allocate(KEYWORD_DELETED.length + NEWLINE.length);
+    bbuff.put(KEYWORD_DELETED);
+    bbuff.put(NEWLINE);
+    return bbuff;
+  }
 
-    @Override
-    public String toString() {
-        return new String(render().array());
-    }
+  @Override
+  public String toString() {
+    return new String(render().array());
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        return true;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    return true;
+  }
 }

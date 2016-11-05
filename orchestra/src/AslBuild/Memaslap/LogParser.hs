@@ -68,9 +68,10 @@ ansiThingy = do
 statsTriple :: Parser StatsTriple
 statsTriple = do
     ansiThingy
-    void $ string "Get Statistics"
-    void endOfLine
-    gl <- statisticsLog
+    gl <- optionMaybe $ try $ do
+        void $ string "Get Statistics"
+        void endOfLine
+        statisticsLog
     sl <- optionMaybe $ try $ do
         void $ string "Set Statistics"
         void endOfLine
@@ -150,8 +151,9 @@ doubleOrNan =
 
 totalStatsT :: Parser TotalStatsTrip
 totalStatsT = do
-    void $ string "Get Statistics "
-    gts <- totalStats
+    gts <- optionMaybe $ try $ do
+        void $ string "Get Statistics "
+        totalStats
     sts <- optionMaybe $ try $ do
         void $ string "Set Statistics "
         totalStats
