@@ -125,8 +125,14 @@ reportsDir = aslDir </> reports
 report1Dir :: FilePath
 report1Dir = reportsDir </> "report1"
 
+report2Dir :: FilePath
+report2Dir = reportsDir </> "report2"
+
 report1PlotsDir :: FilePath
 report1PlotsDir = report1Dir </> "plots"
+
+report2PlotsDir :: FilePath
+report2PlotsDir = report2Dir </> "plots"
 
 codeSrcDir :: FilePath
 codeSrcDir = aslDir </> asl
