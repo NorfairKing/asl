@@ -52,10 +52,10 @@ bigLocalMaximumThroughput = MaximumThroughputCfg
         , location = Local
         , resultsPersistence = Persistent
         }
-    , clientCountTuples = do
-        ncl <- [1, 2, 3]
-        concurrency <- [5, 10 .. 60]
-        return (ncl, concurrency)
+    , threadConcTups = do
+        concurrencies <- [1 .. 8]
+        middleThreads <- [5, 10 .. 60]
+        return (middleThreads, concurrencies)
     }
 
 smallRemoteMaximumThroughputRule :: String
@@ -70,7 +70,10 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         , location = Remote
         , resultsPersistence = Persistent
         }
-    , clientCountTuples = [(1, 10), (2, 5)]
+    , threadConcTups = do
+        concurrencies <- [1, 2]
+        middleThreads <- [5, 10]
+        return (middleThreads, concurrencies)
     }
 
 
@@ -81,13 +84,13 @@ remoteMaximumThroughput :: MaximumThroughputCfg
 remoteMaximumThroughput = MaximumThroughputCfg
     { hlConfig = HighLevelConfig
         { target = remoteMaximumThroughputRule
-        , nrServers = 7
+        , nrServers = 5
         , nrClients = 3
         , location = Remote
         , resultsPersistence = Persistent
         }
-    , clientCountTuples = do
-        ncl <- [3]
-        concurrency <- [5, 10 .. 100]
-        return (ncl, concurrency)
+    , threadConcTups = do
+        concurrencies <- [10, 20 .. 100]
+        middleThreads <- [2, 4 .. 8]
+        return (middleThreads, concurrencies)
     }

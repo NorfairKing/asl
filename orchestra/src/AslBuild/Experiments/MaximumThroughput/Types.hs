@@ -15,8 +15,8 @@ import           AslBuild.Types
 
 data MaximumThroughputCfg
     = MaximumThroughputCfg
-    { hlConfig          :: HighLevelConfig
-    , clientCountTuples :: [(Int, Int)]
+    { hlConfig       :: HighLevelConfig
+    , threadConcTups :: [(Int, Int)]
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MaximumThroughputCfg
@@ -30,26 +30,27 @@ instance ExperimentConfig MaximumThroughputCfg where
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
 
         let setups = do
-                (curNrClients, curConcurrency) <- clientCountTuples
-                let signGlobally f = intercalate "-" [f, show curNrClients, show curConcurrency]
+                (curMiddleThreads, curConcurrency) <- threadConcTups
+                let signGlobally f = intercalate "-" [f, show curMiddleThreads, show curConcurrency]
                 let servers = genServerSetups sers
 
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
                 let middle = defaultMiddle
                         { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
                             { mwReplicationFactor = 1
+                            , mwNrThreads = curMiddleThreads
                             }
                         }
 
                 let defaultClients = genClientSetup stc cls middle signGlobally runtime
-                let clients = take curNrClients $ flip map defaultClients $ \cs ->
+                let clients = flip map defaultClients $ \cs ->
                         let sets = cMemaslapSettings cs
                             config = msConfig sets
                             flags = msFlags sets
                         in cs
                         { cMemaslapSettings = sets
                             { msConfig = config
-                                { setProportion = 0 -- There will be some sets anyway, in the warmup phase, and we have to handle that.
+                                { setProportion = 0
                                 }
                             , msFlags = flags
                                 { msConcurrency = curConcurrency
