@@ -67,6 +67,7 @@ public class ServerReadHandler {
 
         @Override
         public void run() {
+            Thread.currentThread().setName("ReadWorker " + readWorkerIndex + " for read requests to server " + serverAddress);
             while (true) {
                 if (ServerReadHandler.this.serverHandler.isShuttingDown()) {
                     log.info(
@@ -142,7 +143,7 @@ public class ServerReadHandler {
             Response resp;
             try {
                 resp = ResponseParser.parseResponse(bbuf2);
-            } catch (NotEnoughDataException e) {
+            } catch (NotEnoughDataException e) { // TODO handle this better.
                 resp = new ClientErrorResponse("Not enough data.");
                 packet.setFailed();
             } catch (ParseFailedException e) {

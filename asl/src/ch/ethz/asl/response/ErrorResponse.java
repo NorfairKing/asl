@@ -19,6 +19,13 @@ public class ErrorResponse implements Response {
   private static final byte[] ERROR_STR = "ERROR".getBytes();
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    return true;
+  }
+
+  @Override
   public String toString() {
     return new String(this.render().array());
   }

@@ -11,8 +11,8 @@ public class DeleteNotFoundResponse implements Response {
 
     @Override
     public ByteBuffer render() {
-        ByteBuffer bbuff = ByteBuffer.allocate(KEYWORD_DELETED.length + NEWLINE.length);
-        bbuff.put(KEYWORD_DELETED);
+        ByteBuffer bbuff = ByteBuffer.allocate(KEYWORD_NOT_FOUND.length + NEWLINE.length);
+        bbuff.put(KEYWORD_NOT_FOUND);
         bbuff.put(NEWLINE);
         return bbuff;
     }

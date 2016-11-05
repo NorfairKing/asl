@@ -91,7 +91,6 @@ public class AcceptCompletionHandler
         Response preliminaryResponse = null;
         try {
           req = RequestParser.parseRequest(bbuf);
-
         } catch (NotEnoughDataException e) {
           initialInput.doTheRead(this, bytesRead);
           return;

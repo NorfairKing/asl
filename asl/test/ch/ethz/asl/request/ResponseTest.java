@@ -2,17 +2,16 @@ package ch.ethz.asl.request;
 
 import ch.ethz.asl.generic_parsing.NotEnoughDataException;
 import ch.ethz.asl.generic_parsing.ParseFailedException;
-import ch.ethz.asl.response.DeleteNotFoundResponse;
-import ch.ethz.asl.response.FoundValueResponse;
-import ch.ethz.asl.response.MissingValueResponse;
-import ch.ethz.asl.response.StoredResponse;
-import ch.ethz.asl.response.responsesplitter.DeletedResponse;
+import ch.ethz.asl.response.*;
+import com.google.common.collect.LinkedListMultimap;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
 
 import static ch.ethz.asl.request.request_parsing.RequestParser.parseRequest;
 import static ch.ethz.asl.response.response_parsing.ResponseParser.parseResponse;
+import static ch.ethz.asl.response.response_parsing.ResponseParser.parseResponses;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ResponseTest {
@@ -73,6 +72,12 @@ public class ResponseTest {
     }
 
     @Test
+    public void parseErrorResponseDone() {
+        String s = "ERROR\r\n";
+        assertThat(parseResponse(wrappingByteBuffer(s))).isEqualTo(new ErrorResponse());
+    }
+
+    @Test
     public void parseFoundValueDone() {
         String s = "VALUE key 0 8\r\n12345678\r\nEND\r\n";
         assertThat(parseResponse(wrappingByteBuffer(s))).isEqualTo(new FoundValueResponse(
@@ -80,6 +85,16 @@ public class ResponseTest {
                 "0".getBytes(),
                 "8".getBytes(),
                 "12345678".getBytes()));
+    }
+
+    @Test
+    public void parseMultipleDifferentResponses(){
+        String s = "STORED\r\nEND\r\nDELETED\r\n";
+        LinkedList res = new LinkedList();
+        res.add(new StoredResponse());
+        res.add(new MissingValueResponse());
+        res.add(new DeletedResponse());
+        assertThat(parseResponses(wrappingByteBuffer(s))).isEqualTo(res);
     }
 
     private ByteBuffer wrappingByteBuffer(String s) {
