@@ -50,9 +50,7 @@ provisionLocalhostRules = do
             , provisionLocalhostMemaslapRule
             , provisionLocalhostMiddlewareRule
             ]
-        (Exit _) <- cmd "killall memcached"
-        (Exit _) <- cmd "killall memaslap"
-        return ()
+        clearLocal
 
     provisionLocalhostGlobalPackagesRule ~> return ()
     provisionLocalhostOrcRule ~> need [orcBin]
@@ -65,6 +63,23 @@ provisionLocalhostRules = do
 
     remoteMiddleware `byCopying` outputJarFile
     provisionLocalhostMiddlewareRule ~> need [remoteMiddleware]
+
+clearLocal :: Action ()
+clearLocal = do
+    -- Kill all servers that may be running
+    (Exit _) <- cmd "killall memcached"
+
+    -- Kill any middleware that is runnning
+    (Stdout jps) <- cmd "jps"
+    let jpss = lines jps
+    forM_ jpss $ \line -> do
+        let [pid, name] = words line
+        when (name == "asl.jar") $ cmd "kill" pid
+
+    -- Kill all clients that may be running
+    (Exit _) <- cmd "killall memaslap"
+    return ()
+
 
 localhostLogin :: RemoteLogin
 localhostLogin = RemoteLogin Nothing "localhost"

@@ -14,7 +14,6 @@ import qualified Data.Aeson.Encode.Pretty            as A
 import qualified Data.ByteString.Lazy                as LB
 import           Data.List
 
-import           AslBuild.BuildMemcached
 import           AslBuild.Client
 import           AslBuild.CommonActions
 import           AslBuild.Constants
@@ -31,7 +30,7 @@ baselineExperimentRules :: Rules ()
 baselineExperimentRules = do
     rulesForGivenBaselineExperiment smallLocalBaselineExperiment
     rulesForGivenBaselineExperiment localBaselineExperiment
-    -- rulesForGivenBaselineExperiment bigLocalBaselineExperiment
+    rulesForGivenBaselineExperiment bigLocalBaselineExperiment
     rulesForGivenBaselineExperiment smallRemoteBaselineExperiment
     rulesForGivenBaselineExperiment remoteBaselineExperiment
 
@@ -136,7 +135,6 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
         writeJSON baselineExperimentsCacheFile experiments
 
     csvOutFile %> \_ -> do
-        need [memcachedBin, memaslapBin, baselineExperimentsCacheFile]
         need [provisionLocalhostRule]
 
         (experiments, vmsNeeded) <- readJSON baselineExperimentsCacheFile

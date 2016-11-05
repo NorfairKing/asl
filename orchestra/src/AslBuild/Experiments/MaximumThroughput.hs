@@ -14,6 +14,7 @@ maximumThroughputRules = do
     generateTargetFor smallLocalMaximumThroughput
     generateTargetFor localMaximumThroughput
     generateTargetFor bigLocalMaximumThroughput
+    generateTargetFor heavyLocalMaximumThroughput
     generateTargetFor smallRemoteMaximumThroughput
     generateTargetFor remoteMaximumThroughput
 
@@ -53,9 +54,24 @@ bigLocalMaximumThroughput = MaximumThroughputCfg
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        concurrencies <- [1 .. 8]
-        middleThreads <- [5, 10 .. 60]
+        middleThreads <- [1 .. 8]
+        concurrencies <- [5, 10 .. 60]
         return (middleThreads, concurrencies)
+    }
+
+heavyLocalMaximumThroughputRule :: String
+heavyLocalMaximumThroughputRule = "heavy-local-maximum-throughput"
+
+heavyLocalMaximumThroughput :: MaximumThroughputCfg
+heavyLocalMaximumThroughput = MaximumThroughputCfg
+    { hlConfig = HighLevelConfig
+        { target = heavyLocalMaximumThroughputRule
+        , nrServers = 1
+        , nrClients = 8
+        , location = Local
+        , resultsPersistence = Volatile
+        }
+    , threadConcTups = [(1, 8)]
     }
 
 smallRemoteMaximumThroughputRule :: String
@@ -71,8 +87,8 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        concurrencies <- [1, 2]
-        middleThreads <- [5, 10]
+        middleThreads <- [1, 2]
+        concurrencies <- [5, 10]
         return (middleThreads, concurrencies)
     }
 
@@ -90,7 +106,7 @@ remoteMaximumThroughput = MaximumThroughputCfg
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        concurrencies <- [10, 20 .. 100]
         middleThreads <- [2, 4 .. 8]
+        concurrencies <- [10, 20 .. 100]
         return (middleThreads, concurrencies)
     }

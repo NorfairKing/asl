@@ -58,12 +58,19 @@ generateTargetFor ecf = do
         -- Intentionally no parallelism here.
         forM_ (indexed eSetups) $ \(ix, es@ExperimentSetup{..}) -> do
             let nrOfExperiments = length eSetups
-            putLoud $ unwords
-                [ "[=============["
-                , "Running experiment:"
-                , concat ["[", show (ix + 1), "/", show nrOfExperiments, "]"]
-                , "]=============]"
-                ]
+
+            let statusStr = unwords
+                    [ "|=============["
+                    , "Running experiment:"
+                    , experimentTarget ecf
+                    , concat ["[", show (ix + 1), "/", show nrOfExperiments, "]"]
+                    , "]=============|"
+                    ]
+            let upBannerStr = "/" ++ replicate (length statusStr - 2) '-' ++ "\\"
+            let doBannerStr = "\\" ++ replicate (length statusStr - 2) '-' ++ "/"
+            putLoud upBannerStr
+            putLoud statusStr
+            putLoud doBannerStr
 
             putLoud $ "Approximately " ++ toClockString (totalRuntimeRemaining ix) ++ " remaining."
 

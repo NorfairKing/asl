@@ -22,8 +22,8 @@ startMiddleOn MiddleSetup{..} = scriptAt mRemoteLogin $ script
     ]
 
 shutdownMiddle :: MiddleSetup -> Action ()
-shutdownMiddle MiddleSetup{..} =
-    overSsh mRemoteLogin $ unwords ["killall", "java"]
+shutdownMiddle MiddleSetup{..} = scriptAt mRemoteLogin $ script
+    [ "kill `jps | grep \"asl.jar\" | cut -d \" \" -f 1`" ]
 
 copyMiddleTraceBack :: MiddleSetup -> Action ()
 copyMiddleTraceBack MiddleSetup{..} =

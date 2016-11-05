@@ -40,7 +40,6 @@ preCommitRules = do
 
         need [codeHealthRule]
         need [testRule]
-        need [documentationRule]
 
         need [localLogTestRule]
         need [localMiddlewareParseTestRule]
@@ -65,7 +64,6 @@ preCommitRules = do
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 
     codeHealth
-    documentation
     formatClient
 
 codeHealthRule :: String
@@ -139,13 +137,6 @@ sanityIn dir = do
         stackCmd "build"
         "--fast"
         "--ghc-options" [unwords ghcOpts]
-
-
-documentationRule :: String
-documentationRule = "documentation"
-
-documentation :: Rules ()
-documentation = documentationRule ~> cmd (Cwd aslDir) stackCmd "haddock"
 
 javaFormatterUrl :: FilePath
 javaFormatterUrl = "https://github.com/google/google-java-format/releases/download/google-java-format-1.0/google-java-format-1.0-all-deps.jar"
