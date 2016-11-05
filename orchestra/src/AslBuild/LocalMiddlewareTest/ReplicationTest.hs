@@ -63,6 +63,8 @@ localMiddlewareReplicationTestRules =
                     , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) servers
                     , mwVerbosity = LogFine
                     , mwTraceFile = tmpDir </> localMiddlewareReplicationTestRule ++ "-trace" <.> csvExt
+                    , mwReadSampleRate = Nothing
+                    , mwWriteSampleRate = Nothing
                     }
 
             serverPhs <- forP servers $ \serverFlags ->

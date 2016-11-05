@@ -55,3 +55,6 @@ writeJSON file thing = liftIO $ do
     createDirectoryIfMissing True $ takeDirectory file
     LB.writeFile file $ A.encodePretty thing
 
+maybeFlag :: Show a => Char -> Maybe a -> [String]
+maybeFlag _ Nothing = []
+maybeFlag c (Just v) = ['-' : c : ' ' : show v]

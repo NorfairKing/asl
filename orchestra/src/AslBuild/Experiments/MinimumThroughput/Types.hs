@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE RecordWildCards #-}
-module AslBuild.Experiments.MaximumThroughput.Types where
+module AslBuild.Experiments.MinimumThroughput.Types where
 
 import           Data.Aeson
 import           Data.List           (intercalate)
@@ -13,19 +13,19 @@ import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Types
 
-data MaximumThroughputCfg
-    = MaximumThroughputCfg
+data MinimumThroughputCfg
+    = MinimumThroughputCfg
     { hlConfig       :: HighLevelConfig
     , threadConcTups :: [(Int, Int)]
     , mtRuntime      :: TimeUnit
     } deriving (Show, Eq, Generic)
 
-instance ToJSON   MaximumThroughputCfg
-instance FromJSON MaximumThroughputCfg
+instance ToJSON   MinimumThroughputCfg
+instance FromJSON MinimumThroughputCfg
 
-instance ExperimentConfig MaximumThroughputCfg where
+instance ExperimentConfig MinimumThroughputCfg where
     highLevelConfig = hlConfig
-    genExperimentSetups stc@MaximumThroughputCfg{..} = do
+    genExperimentSetups stc@MinimumThroughputCfg{..} = do
         let runtime = mtRuntime
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
@@ -51,7 +51,7 @@ instance ExperimentConfig MaximumThroughputCfg where
                         in cs
                         { cMemaslapSettings = sets
                             { msConfig = config
-                                { setProportion = 0
+                                { setProportion = 1
                                 }
                             , msFlags = flags
                                 { msConcurrency = curConcurrency

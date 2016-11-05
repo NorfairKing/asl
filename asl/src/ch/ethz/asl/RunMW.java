@@ -19,9 +19,10 @@ public class RunMW {
   static int writeToCount = -1;
   static Level verbosity = Level.INFO;
   static String logfile = "trace.csv";
+  static int readSampleRate = 1000;
+  static int writeSampleRate = 1000;
 
   public static void main(String[] args) throws Exception {
-
     // -----------------------------------------------------------------------------
     // Parse and prepare arguments
     // -----------------------------------------------------------------------------
@@ -34,7 +35,16 @@ public class RunMW {
 
     logger.setLevel(verbosity);
     logger.addHandler(new AdhocLogger());
-    new Middleware(myIp, myPort, mcAddresses, numThreadsPTP, writeToCount, logfile).run();
+    new Middleware(
+            myIp,
+            myPort,
+            mcAddresses,
+            numThreadsPTP,
+            writeToCount,
+            logfile,
+            readSampleRate,
+            writeSampleRate)
+        .run();
   }
 
   private static void parseArguments(String[] args) {
@@ -121,6 +131,12 @@ public class RunMW {
     }
     if (params.get("f") != null) {
       logfile = params.get("f").get(0);
+    }
+    if (params.get("R") != null) {
+      readSampleRate = Integer.parseInt(params.get("R").get(0));
+    }
+    if (params.get("W") != null) {
+      writeSampleRate = Integer.parseInt(params.get("W").get(0));
     }
   }
 

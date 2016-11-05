@@ -1,9 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Analysis.Baseline where
 
+import           Control.Monad
 import           Data.List
+import           System.Directory              (doesFileExist)
 
-import           Development.Shake
+import           Development.Shake             hiding (doesFileExist)
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
@@ -69,7 +71,7 @@ allBaselineAnalyses :: [BaselineAnalysisCfg]
 allBaselineAnalyses =
     [ smallLocalBaselineAnalysis
     , localBaselineAnalysis
-    -- , bigLocalBaselineAnalysis
+    , bigLocalBaselineAnalysis
     , remoteBaselineAnalysis
     , smallRemoteBaselineAnalysis
     ]
@@ -90,15 +92,15 @@ baselineAnalysisRulesFor :: BaselineAnalysisCfg -> Rules ()
 baselineAnalysisRulesFor bac@BaselineAnalysisCfg{..} = do
     let plotsForThisBaseline = plotsForBaseline bac
 
-    baselineAnalysisRuleFor bac ~> need plotsForThisBaseline
+    let results = csvOutFile experiment
+    resultsExist <- liftIO $ doesFileExist results
+    when resultsExist $ do
+        baselineAnalysisRuleFor bac ~> need plotsForThisBaseline
 
-    plotsForThisBaseline &%> \_ -> do
-        let results = csvOutFile experiment
-        resultsExist <- doesFileExist results
+        plotsForThisBaseline &%> \_ -> do
+            need [baselineAnalysisScript]
 
-        need $ baselineAnalysisScript : [results | not resultsExist] -- Do not depend on results if they exist already.
-
-        need [rBin]
-        needRLibs ["pkgmaker"]
-        needRLibs ["igraph"]
-        unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir
+            need [rBin]
+            needRLibs ["pkgmaker"]
+            needRLibs ["igraph"]
+            unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir

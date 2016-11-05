@@ -6,6 +6,7 @@ import           AslBuild.Analysis
 import           AslBuild.BuildMemcached
 import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.MaximumThroughput
+import           AslBuild.Experiments.MinimumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.WriteEffect
@@ -51,6 +52,7 @@ travisRules = travisRule ~> do
     need [smallLocalStabilityTraceRule]
     need [smallLocalBaselineExperimentRule]
     need [smallLocalMaximumThroughputRule]
+    need [smallLocalMinimumThroughputRule]
     need [smallLocalReplicationEffectRule]
     need [smallLocalWriteEffectRule]
 

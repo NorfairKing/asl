@@ -23,7 +23,6 @@ public class ServerHandler {
         serverWriteHandler.handle(req);
         break;
     }
-    req.setEnqueued();
   }
 
   public void shutdown() {

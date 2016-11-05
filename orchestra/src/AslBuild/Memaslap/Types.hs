@@ -71,7 +71,7 @@ instance FromJSON MemaslapLog
 
 data StatsTriple
     = StatsTriple
-    { getStats  :: StatisticsLog
+    { getStats  :: Maybe StatisticsLog
     , setStats  :: Maybe StatisticsLog
     , bothStats :: StatisticsLog
     } deriving (Show, Eq, Generic)
@@ -107,7 +107,7 @@ instance FromJSON Statistics
 
 data TotalStatsTrip
     = TotalStatsTrip
-    { totalGetStats  :: TotalStats
+    { totalGetStats  :: Maybe TotalStats
     , totalSetStats  :: Maybe TotalStats
     , totalBothStats :: TotalStats
     } deriving (Show, Eq, Generic)

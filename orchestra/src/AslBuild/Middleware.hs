@@ -6,6 +6,7 @@ module AslBuild.Middleware
 
 import           AslBuild.Middleware.Types
 import           AslBuild.Types
+import           AslBuild.Utils
 
 middlewareArgs :: MiddlewareFlags -> [String]
 middlewareArgs MiddlewareFlags{..} =
@@ -15,5 +16,9 @@ middlewareArgs MiddlewareFlags{..} =
     , "-r", show mwReplicationFactor
     , "-v", show $ logLevelInt mwVerbosity
     , "-f", mwTraceFile
-    , "-m"
+    ] ++ maybeFlag 'R' mwReadSampleRate
+      ++ maybeFlag 'W' mwWriteSampleRate
+      ++
+    [ "-m"
     ] ++ map remoteServerUrl mwServers
+

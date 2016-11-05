@@ -63,6 +63,8 @@ localMiddlewareMultiClientTestRules =
                     , mwServers = [RemoteServerUrl localhostIp sPort]
                     , mwVerbosity = LogAll
                     , mwTraceFile = tmpDir </> localMiddlewareMultiClientTestRule ++ "-trace" <.> csvExt
+                    , mwReadSampleRate = Nothing
+                    , mwWriteSampleRate = Nothing
                     }
 
             serverPH <- command [] memcachedBin
@@ -129,17 +131,6 @@ localMiddlewareMultiClientTestRules =
                     -- Do the same thing as for 'key', but for 'otherkey'.
                     "set otherkey 0 0 3\r\nabc\r\n" `shouldResultIn` "STORED\r\n"
                     "get otherkey\r\n" `shouldResultIn` "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
-
-                    -- Check for client_error on something that doesnt conform to the protocol,
-                    -- like a missing newline
-                    "g" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
-                    "ge" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
-                    "get" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
-                    "get " `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
-                    "get k" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
-                    "get ke" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
-                    "get key" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
-                    "get key\r" `shouldResultIn` "CLIENT_ERROR Not enough data.\r\n"
 
                     -- Check for error on nonexistent command
                     "ste key\r\n" `shouldResultIn` "ERROR\r\n"

@@ -78,6 +78,7 @@ clearLocal = do
 
     -- Kill all clients that may be running
     (Exit _) <- cmd "killall memaslap"
+    (Exit _) <- cmd "killall lt-memaslap"
     return ()
 
 
@@ -115,7 +116,7 @@ provisionVmsFromData :: [VmData] -> Action ()
 provisionVmsFromData = provisionVms . nub . map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmPublicIp)
 
 provisionVms :: [RemoteLogin] -> Action ()
-provisionVms rls = do
+provisionVms = postNub $ \rls -> do
     provisionVmsGlobalPackages rls
     provisionVmsOrc rls
     provisionVmsMemcached rls
@@ -123,33 +124,37 @@ provisionVms rls = do
     provisionVmsMiddleware rls
     clearVms rls
 
+postNub :: Eq a => ([a] -> b) -> [a] -> b
+postNub func ls = func $ nub ls
+
 clearVms :: [RemoteLogin] -> Action ()
-clearVms rls = do
+clearVms = postNub $ \rls -> do
     phPar rls $ \rl -> scriptAt rl $ script ["killall memaslap || true"]
     phPar rls $ \rl -> scriptAt rl $ script ["killall java || true"]
     phPar rls $ \rl -> scriptAt rl $ script ["killall memcached || true"]
 
 provisionVmsGlobalPackages :: [RemoteLogin] -> Action ()
-provisionVmsGlobalPackages rls = do
+provisionVmsGlobalPackages = postNub $ \rls -> do
     phPar rls $ \rl -> overSsh rl "sudo add-apt-repository ppa:openjdk-r/ppa -y"
     phPar rls $ \rl -> overSsh rl "sudo apt-get update -y"
     phPar rls $ \rl -> overSsh rl "sudo apt-get install -y build-essential htop libevent-dev openjdk-8-jdk"
     phPar rls $ \rl -> overSsh rl "sudo update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-amd64"
 
 provisionVmsOrc :: [RemoteLogin] -> Action ()
-provisionVmsOrc rls = do
+provisionVmsOrc ls = do
     need [orcBin]
-    phPar rls $ \rl -> overSsh rl $ "mkdir -p " ++ takeDirectory orcBin
-    phPar rls $ \rl -> rsyncTo rl orcBin orcBin
+    flip postNub ls $ \rls -> do
+        phPar rls $ \rl -> overSsh rl $ "mkdir -p " ++ takeDirectory orcBin
+        phPar rls $ \rl -> rsyncTo rl orcBin orcBin
 
 provisionVmsMemcached :: [RemoteLogin] -> Action ()
-provisionVmsMemcached = (`phPar` (`orcRemotely` remoteMemcached))
+provisionVmsMemcached = postNub (`phPar` (`orcRemotely` remoteMemcached))
 
 provisionVmsMemaslap :: [RemoteLogin] -> Action ()
-provisionVmsMemaslap = (`phPar` (`orcRemotely` remoteMemaslap))
+provisionVmsMemaslap = postNub (`phPar` (`orcRemotely` remoteMemaslap))
 
 provisionVmsMiddleware :: [RemoteLogin] -> Action ()
-provisionVmsMiddleware rls = phPar rls (\rl -> rsyncTo rl outputJarFile remoteMiddleware)
+provisionVmsMiddleware = postNub (`phPar` (\rl -> rsyncTo rl outputJarFile remoteMiddleware))
 
 orcRemotely :: CmdResult r => RemoteLogin -> String -> Action r
 orcRemotely rl target = overSsh rl $ unwords [orcBin, "build", target]

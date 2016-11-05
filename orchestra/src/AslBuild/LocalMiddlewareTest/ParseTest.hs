@@ -13,22 +13,22 @@ import           Control.Concurrent.Thread
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           AslBuild.BuildMemcached
 import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.Middleware
+import           AslBuild.Provision
 import           AslBuild.Types
 
--- TODO rename
 localMiddlewareParseTestRule :: String
 localMiddlewareParseTestRule = "local-middleware-parse-test"
 
 data RequestKind = READ | WRITE
+    deriving (Show, Eq)
 
 localMiddlewareParseTestRules :: Rules ()
 localMiddlewareParseTestRules =
     localMiddlewareParseTestRule ~> do
-        need [memcachedBin, memaslapBin, outputJarFile]
+        need [provisionLocalhostRule]
 
         let cPort :: Int
             cPort = 11234
@@ -47,6 +47,8 @@ localMiddlewareParseTestRules =
                 , mwServers = [RemoteServerUrl localhostIp sPort]
                 , mwVerbosity = LogAll
                 , mwTraceFile = tmpDir </> localMiddlewareParseTestRule ++ "-trace" <.> csvExt
+                , mwReadSampleRate = Nothing
+                , mwWriteSampleRate = Nothing
                 }
 
         ssock <- liftIO $ do
@@ -115,6 +117,14 @@ localMiddlewareParseTestRules =
                         [ "On output: " ++ show output
                         , "the middleware sent " ++ show res2 ++ " to the client instead."
                         ]
+                putLoud $ unwords
+                    [ "Successfully handled"
+                    , show reqKind
+                    , "request"
+                    , show input
+                    , "with expected response"
+                    , show output
+                    ]
 
         let shouldErrorWith :: ByteString -> ByteString -> Action ()
             shouldErrorWith input output = do
@@ -137,47 +147,36 @@ localMiddlewareParseTestRules =
                 -- Successful requests
 
                 -- Get keys that don't have data assigned.
-                shouldResultIn READ "get key\r\n"  "END\r\n"
-                shouldResultIn READ "get otherkey\r\n"  "END\r\n"
-                shouldResultIn READ "get moreKeys\r\n"  "END\r\n"
+                shouldResultIn READ "get key\r\n" "END\r\n"
+                shouldResultIn READ "get otherkey\r\n" "END\r\n"
+                shouldResultIn READ "get moreKeys\r\n" "END\r\n"
 
                 -- Set data for 'key'
-                shouldResultIn WRITE "set key 0 0 8\r\n12345678\r\n"  "STORED\r\n"
+                shouldResultIn WRITE "set key 0 0 8\r\n12345678\r\n" "STORED\r\n"
 
                 -- Get it back
-                shouldResultIn READ "get key\r\n"  "VALUE key 0 8\r\n12345678\r\nEND\r\n"
+                shouldResultIn READ "get key\r\n" "VALUE key 0 8\r\n12345678\r\nEND\r\n"
 
                 -- Check that getting a nonexistent piece still works
-                shouldResultIn READ "get otherkey\r\n"  "END\r\n"
+                shouldResultIn READ "get otherkey\r\n" "END\r\n"
 
                 -- Do the same thing as for 'key', but for 'otherkey'.
                 shouldResultIn WRITE "set otherkey 0 0 3\r\nabc\r\n"  "STORED\r\n"
-                shouldResultIn READ "get otherkey\r\n"  "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
+                shouldResultIn READ "get otherkey\r\n" "VALUE otherkey 0 3\r\nabc\r\nEND\r\n"
 
                 -- Delete the value for 'key'.
-                shouldResultIn WRITE "delete key\r\n"  "DELETED\r\n"
+                shouldResultIn WRITE "delete key\r\n" "DELETED\r\n"
 
                 -- Check that its data is indeed gone now.
-                shouldResultIn READ "get key\r\n"  "END\r\n"
+                shouldResultIn READ "get key\r\n" "END\r\n"
 
                 -- Check what happens if the data was already gone.
-                shouldResultIn WRITE "delete key\r\n"  "NOT_FOUND\r\n"
+                shouldResultIn WRITE "delete key\r\n" "NOT_FOUND\r\n"
 
                 -- Do the same thing for 'otherkey'.
-                shouldResultIn WRITE "delete otherkey\r\n"  "DELETED\r\n"
-                shouldResultIn READ "get otherkey\r\n"  "END\r\n"
-                shouldResultIn WRITE "delete otherkey\r\n"  "NOT_FOUND\r\n"
-
-                -- Check for client_error on something that doesnt conform to the protocol,
-                -- like missing data
-                shouldErrorWith "g"         "CLIENT_ERROR Not enough data.\r\n"
-                shouldErrorWith "ge"        "CLIENT_ERROR Not enough data.\r\n"
-                shouldErrorWith "get"       "CLIENT_ERROR Not enough data.\r\n"
-                shouldErrorWith "get "      "CLIENT_ERROR Not enough data.\r\n"
-                shouldErrorWith "get k"     "CLIENT_ERROR Not enough data.\r\n"
-                shouldErrorWith "get ke"    "CLIENT_ERROR Not enough data.\r\n"
-                shouldErrorWith "get key"   "CLIENT_ERROR Not enough data.\r\n"
-                shouldErrorWith "get key\r" "CLIENT_ERROR Not enough data.\r\n"
+                shouldResultIn WRITE "delete otherkey\r\n" "DELETED\r\n"
+                shouldResultIn READ "get otherkey\r\n" "END\r\n"
+                shouldResultIn WRITE "delete otherkey\r\n" "NOT_FOUND\r\n"
 
                 -- Check for error on nonexistent command
                 shouldErrorWith "st"            "ERROR\r\n"
