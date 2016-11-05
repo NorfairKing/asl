@@ -59,6 +59,8 @@ setups = do
             , mwServers = [RemoteServerUrl localhostIp defaultMemcachedPort]
             , mwVerbosity = LogOff
             , mwTraceFile = localLogTestDir </> sign "middleware-trace" <.> csvExt
+            , mwReadSampleRate = Nothing
+            , mwWriteSampleRate = Nothing
             }
 
     let mmflags = if useMiddleware then Just mw else Nothing

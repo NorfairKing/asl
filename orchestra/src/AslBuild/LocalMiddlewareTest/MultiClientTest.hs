@@ -63,6 +63,8 @@ localMiddlewareMultiClientTestRules =
                     , mwServers = [RemoteServerUrl localhostIp sPort]
                     , mwVerbosity = LogAll
                     , mwTraceFile = tmpDir </> localMiddlewareMultiClientTestRule ++ "-trace" <.> csvExt
+                    , mwReadSampleRate = Nothing
+                    , mwWriteSampleRate = Nothing
                     }
 
             serverPH <- command [] memcachedBin

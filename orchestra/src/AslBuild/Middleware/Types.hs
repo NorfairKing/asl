@@ -15,6 +15,8 @@ data MiddlewareFlags
     , mwServers           :: [RemoteServerUrl]
     , mwVerbosity         :: LogLevel
     , mwTraceFile         :: FilePath
+    , mwReadSampleRate    :: Maybe Int
+    , mwWriteSampleRate   :: Maybe Int
     } deriving (Show, Eq, Generic)
 
 instance FromJSON MiddlewareFlags

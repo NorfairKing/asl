@@ -37,6 +37,8 @@ runDebugRules =
                 , mwServers           = [RemoteServerUrl localhostIp $ memcachedPort mcfs]
                 , mwVerbosity         = LogFine
                 , mwTraceFile         = tmpDir </> "debug-trace" <.> csvExt
+                , mwReadSampleRate = Nothing
+                , mwWriteSampleRate = Nothing
                 }
 
         let cfs = MemaslapSettings

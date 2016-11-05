@@ -47,6 +47,8 @@ localMiddlewareParseTestRules =
                 , mwServers = [RemoteServerUrl localhostIp sPort]
                 , mwVerbosity = LogAll
                 , mwTraceFile = tmpDir </> localMiddlewareParseTestRule ++ "-trace" <.> csvExt
+                , mwReadSampleRate = Nothing
+                , mwWriteSampleRate = Nothing
                 }
 
         ssock <- liftIO $ do

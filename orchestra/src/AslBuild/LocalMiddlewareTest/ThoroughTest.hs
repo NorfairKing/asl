@@ -39,6 +39,8 @@ setups = do
             , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) serverFlags
             , mwVerbosity = LogFine
             , mwTraceFile = tmpDir </> localMiddlewareThoroughTestRule ++ "-trace" <.> csvExt
+            , mwReadSampleRate = Nothing
+            , mwWriteSampleRate = Nothing
             }
 
     (keySize, valueSize) <- [(16, 128), (64, 1024)]

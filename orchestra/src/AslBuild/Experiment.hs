@@ -239,6 +239,8 @@ genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
             (zip servers sers)
         , mwTraceFile = experimentRemoteTmpDir ecf </> traceFileName <.> csvExt
         , mwVerbosity = LogOff
+        , mwReadSampleRate = Just 1000
+        , mwWriteSampleRate = Just 1000
         }
     }
   where

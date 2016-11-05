@@ -52,6 +52,8 @@ setups = do
             , mwTraceFile = tmpDir
                 </> localMiddlewareMultipleClientsTestRule
                 </> localMiddlewareMultipleClientsTestRule ++ "-trace-" ++ signature <.> csvExt
+            , mwReadSampleRate = Nothing
+            , mwWriteSampleRate = Nothing
             }
 
     let mconfig = MemaslapConfig

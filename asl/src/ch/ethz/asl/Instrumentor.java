@@ -16,15 +16,13 @@ public class Instrumentor {
     private static final char NEWLINE = '\n';
     private final Throttler readCounter;
     private final Throttler writeCounter;
-    private static final int READ_SAMPLE_SIZE = 1000; //TODO make flag
-    private static final int WRITE_SAMPLE_SIZE = READ_SAMPLE_SIZE;
     private static final String HEADER =
             "Kind,ReceivedTime,ParsedTime,EnqueuedTime,DequeuedTime,AskedTime,RepliedTime,RespondedTime";
 
-    public Instrumentor(final String file) throws IOException {
+    public Instrumentor(final String file, final int readSampleRate, final int writeSampleRate) throws IOException {
         this.file = file;
-        this.readCounter = new Throttler(READ_SAMPLE_SIZE);
-        this.writeCounter = new Throttler(WRITE_SAMPLE_SIZE);
+        this.readCounter = new Throttler(readSampleRate);
+        this.writeCounter = new Throttler(writeSampleRate);
 
         FileWriter fstream = new FileWriter(file);
         writer = new BufferedWriter(fstream);
