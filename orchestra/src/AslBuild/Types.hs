@@ -1,11 +1,28 @@
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Types where
 
 import           Data.Aeson    (FromJSON, ToJSON)
 import           Data.Csv
 import           Data.Hashable
 import           GHC.Generics
+
+
+data RequestKind = READ | WRITE
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   RequestKind
+instance FromJSON RequestKind
+
+instance FromField RequestKind where
+    parseField "read"  = pure READ
+    parseField "write" = pure WRITE
+    parseField _ = mempty
+
+instance ToField RequestKind where
+    toField READ  = "read"
+    toField WRITE = "write"
 
 data Persistence
     = Persistent

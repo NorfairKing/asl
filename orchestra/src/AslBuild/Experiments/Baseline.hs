@@ -135,8 +135,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
         writeJSON baselineExperimentsCacheFile experiments
 
     csvOutFile %> \_ -> do
-        need [provisionLocalhostRule]
-
+        need [provisionLocalhostRule, baselineExperimentsCacheFile]
         (experiments, vmsNeeded) <- readJSON baselineExperimentsCacheFile
 
         provisionVmsFromData vmsNeeded
@@ -194,8 +193,6 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
 
             -- Make sure no memcached servers are running anymore
             shutdownServers [serverSetup]
-
-        -- stopVms vmsNeeded
 
         let resultsFiles = map cResultsFile $ concatMap clientSetups experiments
         explogs <- liftIO $ mapM LB.readFile resultsFiles

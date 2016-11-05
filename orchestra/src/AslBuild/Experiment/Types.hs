@@ -8,6 +8,9 @@ import           GHC.Generics
 
 import           Development.Shake
 
+import           Data.Csv                hiding (lookup, (.:), (.=))
+import qualified Data.Csv                as CSV (lookup)
+
 import           AslBuild.Client.Types
 import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
@@ -77,7 +80,6 @@ data ClientResults
 instance ToJSON   ClientResults
 instance FromJSON ClientResults
 
-
 data ExperimentResults
     = ExperimentResults
     { cResults :: [ClientResults]
@@ -89,7 +91,7 @@ instance FromJSON ExperimentResults
 
 data MiddleResultLine
     = MiddleResultLine
-    { requestSuccess       :: Bool
+    { requestKind          :: RequestKind
     , requestReceivedTime  :: Integer
     , requestParsedTime    :: Integer
     , requestEnqueuedTime  :: Integer
@@ -101,3 +103,14 @@ data MiddleResultLine
 
 instance ToJSON   MiddleResultLine
 instance FromJSON MiddleResultLine
+
+instance FromNamedRecord MiddleResultLine where
+    parseNamedRecord r = MiddleResultLine
+        <$> CSV.lookup r "Kind"
+        <*> CSV.lookup r "ReceivedTime"
+        <*> CSV.lookup r "ParsedTime"
+        <*> CSV.lookup r "EnqueuedTime"
+        <*> CSV.lookup r "DequeuedTime"
+        <*> CSV.lookup r "AskedTime"
+        <*> CSV.lookup r "RepliedTime"
+        <*> CSV.lookup r "RespondedTime"

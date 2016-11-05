@@ -7,6 +7,7 @@ module AslBuild.Experiment
 import           Control.Arrow
 import           Control.Concurrent
 import           Control.Monad
+import           Control.Monad.IO.Class
 import           Data.List                  (intercalate)
 import           System.Process
 
@@ -300,3 +301,10 @@ genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentS
     , middleSetup = middle
     , serverSetups = servers
     }
+
+readResultsSummaryLocations :: MonadIO m => FilePath -> m [FilePath]
+readResultsSummaryLocations = readJSON
+
+readResultsSummary :: MonadIO m => FilePath -> m ExperimentResultSummary
+readResultsSummary = readJSON
+

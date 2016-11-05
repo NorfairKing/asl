@@ -74,8 +74,8 @@ allStabilityTraceAnalyses :: [StabilityTraceAnalysisCfg]
 allStabilityTraceAnalyses =
     [ smallLocalStabilityTraceAnalysis
     , localStabilityTraceAnalysis
-    , bigLocalStabilityTraceAnalysis
-    , smallRemoteStabilityTraceAnalysis
+    -- , bigLocalStabilityTraceAnalysis
+    -- , smallRemoteStabilityTraceAnalysis
     , remoteStabilityTraceAnalysis
     ]
 
@@ -87,12 +87,6 @@ stabilityTraceAnalysisRules = do
     stabilityTraceAnalysisRule ~> need allStabilityTracePlots
     mapM_ stabilityTraceAnalysisRulesFor allStabilityTraceAnalyses
 
-readResultsSummaryLocations :: FilePath -> Action [FilePath]
-readResultsSummaryLocations = readJSON
-
-readResultsSummary :: FilePath -> Action ExperimentResultSummary
-readResultsSummary = readJSON
-
 stabilityTraceAnalysisRuleFor :: StabilityTraceAnalysisCfg -> String
 stabilityTraceAnalysisRuleFor StabilityTraceAnalysisCfg{..} =
     experimentTarget experiment ++ "-analysis"
@@ -100,14 +94,11 @@ stabilityTraceAnalysisRuleFor StabilityTraceAnalysisCfg{..} =
 stabilityTraceAnalysisRulesFor :: StabilityTraceAnalysisCfg -> Rules ()
 stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
     let plotsForThisTrace = plotsForStabilityTrace bac
-
     stabilityTraceAnalysisRuleFor bac ~> need plotsForThisTrace
 
-    let summaryLocationsFile = resultSummariesLocationFile experiment
-
     let simpleCsvFile = tmpDir </> experimentTarget experiment </> "simple.csv"
-
     simpleCsvFile %> \_ -> do
+        let summaryLocationsFile = resultSummariesLocationFile experiment
         -- Don't depend on the summary locations file if it exists
         needsToExist summaryLocationsFile
 

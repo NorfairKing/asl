@@ -22,9 +22,6 @@ import           AslBuild.Types
 localMiddlewareParseTestRule :: String
 localMiddlewareParseTestRule = "local-middleware-parse-test"
 
-data RequestKind = READ | WRITE
-    deriving (Show, Eq)
-
 localMiddlewareParseTestRules :: Rules ()
 localMiddlewareParseTestRules =
     localMiddlewareParseTestRule ~> do

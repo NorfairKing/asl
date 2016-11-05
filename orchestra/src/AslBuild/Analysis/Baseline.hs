@@ -1,14 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Analysis.Baseline where
 
-import           Control.Monad
 import           Data.List
-import           System.Directory              (doesFileExist)
 
 import           Development.Shake             hiding (doesFileExist)
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
+import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiments.Baseline
 
@@ -71,9 +70,9 @@ allBaselineAnalyses :: [BaselineAnalysisCfg]
 allBaselineAnalyses =
     [ smallLocalBaselineAnalysis
     , localBaselineAnalysis
-    , bigLocalBaselineAnalysis
+    -- , bigLocalBaselineAnalysis
     , remoteBaselineAnalysis
-    , smallRemoteBaselineAnalysis
+    -- , smallRemoteBaselineAnalysis
     ]
 
 allBaselinePlots :: [FilePath]
@@ -93,14 +92,14 @@ baselineAnalysisRulesFor bac@BaselineAnalysisCfg{..} = do
     let plotsForThisBaseline = plotsForBaseline bac
 
     let results = csvOutFile experiment
-    resultsExist <- liftIO $ doesFileExist results
-    when resultsExist $ do
-        baselineAnalysisRuleFor bac ~> need plotsForThisBaseline
 
-        plotsForThisBaseline &%> \_ -> do
-            need [baselineAnalysisScript]
+    baselineAnalysisRuleFor bac ~> need plotsForThisBaseline
 
-            need [rBin]
-            needRLibs ["pkgmaker"]
-            needRLibs ["igraph"]
-            unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir
+    plotsForThisBaseline &%> \_ -> do
+        needsToExist results
+        need [baselineAnalysisScript]
+
+        need [rBin]
+        needRLibs ["pkgmaker"]
+        needRLibs ["igraph"]
+        unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir

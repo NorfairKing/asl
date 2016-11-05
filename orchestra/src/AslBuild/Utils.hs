@@ -1,6 +1,7 @@
 module AslBuild.Utils where
 
 import           Control.Monad
+import           Control.Monad.IO.Class
 
 import           Data.Aeson                 (FromJSON, ToJSON)
 import qualified Data.Aeson                 as A
@@ -43,14 +44,14 @@ padMOrS :: Int -> String
 padMOrS = pad '0' 2 . show
 
 
-readJSON :: FromJSON a => FilePath -> Action a
+readJSON :: (MonadIO m, FromJSON a) => FilePath -> m a
 readJSON file = do
     contents <- liftIO $ LB.readFile file
     case A.eitherDecode contents of
         Left err -> fail $ "Failed to parse json file: " ++ file ++ ":\n" ++ err
         Right res -> return res
 
-writeJSON :: ToJSON a => FilePath -> a -> Action ()
+writeJSON :: (MonadIO m, ToJSON a) => FilePath -> a -> m ()
 writeJSON file thing = liftIO $ do
     createDirectoryIfMissing True $ takeDirectory file
     LB.writeFile file $ A.encodePretty thing

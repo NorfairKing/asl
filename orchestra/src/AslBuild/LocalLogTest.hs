@@ -17,6 +17,7 @@ import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.Memaslap
 import           AslBuild.Middleware
+import           AslBuild.Provision
 import           AslBuild.Types
 import           AslBuild.Utils
 
@@ -40,7 +41,7 @@ localLogTestDir = tmpDir </> localLogTestRule
 
 setups :: [LocalLogTestSetup]
 setups = do
-    workloadSecs <- [1, 2, 10]
+    workloadSecs <- [1, 2, 3]
     setProp <- [0, 0.5, 1]
     statsfreqSecs <- [1, 2]
     statsFreq <- [Nothing, Just $ Seconds statsfreqSecs]
@@ -130,13 +131,14 @@ localLogTestRules = do
     runLock <- newResource "runLock" 1
     forM_ (indexed setups) $ \(ix, LocalLogTestSetup{..}) -> do
         map cLogFile clients &%> \_ -> do
-            need [memcachedBin, memaslapBin] -- , outputJarFile]
-            -- TODO put a middleware inbetween here.
-            withResource runLock 1 $ do
-                -- Write the config to a file
-                forP_ (map cSets clients) $ \MemaslapSettings{..} ->
-                    writeMemaslapConfig (msConfigFile msFlags) msConfig
+            need [memcachedBin, memaslapBin, outputJarFile]
+            need [provisionLocalhostRule]
 
+            -- Write the config to a file
+            forP_ (map cSets clients) $ \MemaslapSettings{..} ->
+                writeMemaslapConfig (msConfigFile msFlags) msConfig
+
+            withResource runLock 1 $ do
                 -- Start memcached locally
                 serverPh <- cmd memcachedBin
 
