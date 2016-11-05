@@ -78,6 +78,7 @@ clearLocal = do
 
     -- Kill all clients that may be running
     (Exit _) <- cmd "killall memaslap"
+    (Exit _) <- cmd "killall lt-memaslap"
     return ()
 
 

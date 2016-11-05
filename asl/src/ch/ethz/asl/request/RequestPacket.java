@@ -58,19 +58,17 @@ public class RequestPacket {
 
   public static void respond(final AsynchronousSocketChannel chan, final Response res)
       throws InterruptedException, ExecutionException {
-    log.finest("Produced response: " + res.toString());
 
     if (!chan.isOpen()) {
-      log.info("Not writing to client connection because it is closed.");
+      // "Not writing to client connection because it is closed."
       return;
     }
 
     ByteBuffer responseBytes = res.render();
     responseBytes.position(0);
     int bytesWritten2 = chan.write(responseBytes).get();
-    log.finest("Sent " + Integer.toString(bytesWritten2) + " to client");
     if (bytesWritten2 <= 0) {
-      log.info("Failed to write response to client, closing connection.");
+      log.severe("Failed to write response to client, closing connection.");
       try {
         chan.close();
       } catch (IOException e) {

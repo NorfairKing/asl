@@ -44,7 +44,10 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
 
     waitMs 500
 
-    middlePH <- cmd javaCmd "-jar" outputJarFile $ middlewareArgs middlewareSetup
+    middlePH <- cmd
+        javaCmd
+        "-jar"
+        outputJarFile $ middlewareArgs middlewareSetup
 
     waitMs 500
 

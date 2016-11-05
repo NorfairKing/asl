@@ -14,7 +14,6 @@ maximumThroughputRules = do
     generateTargetFor smallLocalMaximumThroughput
     generateTargetFor localMaximumThroughput
     generateTargetFor bigLocalMaximumThroughput
-    generateTargetFor heavyLocalMaximumThroughput
     generateTargetFor smallRemoteMaximumThroughput
     generateTargetFor remoteMaximumThroughput
 
@@ -60,22 +59,6 @@ bigLocalMaximumThroughput = MaximumThroughputCfg
     , mtRuntime = Seconds 15
     }
 
-heavyLocalMaximumThroughputRule :: String
-heavyLocalMaximumThroughputRule = "heavy-local-maximum-throughput"
-
-heavyLocalMaximumThroughput :: MaximumThroughputCfg
-heavyLocalMaximumThroughput = MaximumThroughputCfg
-    { hlConfig = HighLevelConfig
-        { target = heavyLocalMaximumThroughputRule
-        , nrServers = 1
-        , nrClients = 8
-        , location = Local
-        , resultsPersistence = Volatile
-        }
-    , threadConcTups = [(1, 8), (1, 64)]
-    , mtRuntime = Seconds 30
-    }
-
 smallRemoteMaximumThroughputRule :: String
 smallRemoteMaximumThroughputRule = "small-remote-maximum-throughput"
 
@@ -89,8 +72,8 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        middleThreads <- [1, 2]
-        concurrencies <- [5, 10]
+        middleThreads <- [1]
+        concurrencies <- [10]
         return (middleThreads, concurrencies)
     , mtRuntime = Seconds 10
     }

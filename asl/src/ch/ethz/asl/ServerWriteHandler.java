@@ -1,9 +1,7 @@
 package ch.ethz.asl;
 
-import ch.ethz.asl.request.Request;
 import ch.ethz.asl.request.RequestPacket;
 import ch.ethz.asl.response.Response;
-import ch.ethz.asl.response.ServerErrorResponse;
 import ch.ethz.asl.response.SuccessfulResponse;
 import ch.ethz.asl.response.responsesplitter.ResponseSplitter;
 
@@ -12,7 +10,6 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
@@ -23,61 +20,54 @@ public class ServerWriteHandler {
   private final ServerHandler serverHandler;
   private final ServerAddress serverAddress;
   private static final Logger log = Logger.getGlobal();
-  private final ExecutorService executor;
+  private final ExecutorService writeExecutor;
+  private final ExecutorService readExecutor;
   private final BlockingQueue<RequestPacket> writequeue;
   private final BlockingQueue<RequestPacket> sentqueue;
+  private AsynchronousSocketChannel connection;
 
   public ServerWriteHandler(ServerHandler serverHandler, final ServerAddress serverAddress) {
     this.serverHandler = serverHandler;
     this.serverAddress = serverAddress;
     writequeue = new LinkedBlockingQueue<>();
     sentqueue = new LinkedBlockingQueue<>();
-    executor = Executors.newSingleThreadExecutor();
-    executor.submit(new WriteWorker());
+    writeExecutor = Executors.newSingleThreadExecutor();
+    readExecutor = Executors.newSingleThreadExecutor();
+    this.connection = connect(serverAddress);
+    if (this.connection == null) {
+      shutdown();
+      return;
+    }
+    writeExecutor.submit(new WriteWorker(this.connection));
+    readExecutor.submit(new ReadWorker(this.connection));
   }
 
-  public void handle(final RequestPacket req) throws InterruptedException {
-    log.finer(
-        "Putting request on write queue for server "
-            + serverAddress
-            + ", now sized "
-            + writequeue.size());
+  private static AsynchronousSocketChannel connect(ServerAddress serverAddress) {
+    SocketAddress address = serverAddress.getSocketAddress();
+    AsynchronousSocketChannel serverConnection = null;
+    try {
+      serverConnection = AsynchronousSocketChannel.open();
+      serverConnection.connect(address).get();
+    } catch (IOException | InterruptedException | ExecutionException e) {
+      e.printStackTrace();
+    }
+    return serverConnection;
+  }
+
+  void handle(final RequestPacket req) throws InterruptedException {
     writequeue.put(req);
-    log.finer(
-        "Put request on write queue, for server "
-            + serverAddress
-            + ", now sized "
-            + writequeue.size());
+    req.setEnqueued();
   }
 
   private void shutdown() {
     serverHandler.shutdown();
   }
 
-  class WriteWorker implements Runnable {
-    private AsynchronousSocketChannel serverConnection;
+  private class WriteWorker implements Runnable {
+    private final AsynchronousSocketChannel serverConnection;
 
-    public WriteWorker() {
-      connect();
-    }
-
-    private void connect() {
-      SocketAddress address = serverAddress.getSocketAddress();
-      log.finer("Writer connecting to: " + address);
-      serverConnection = null;
-      try {
-        serverConnection = AsynchronousSocketChannel.open();
-        serverConnection.connect(address).get();
-        log.finer("Writer connected to: " + address);
-      } catch (IOException | InterruptedException | ExecutionException e) {
-        e.printStackTrace();
-        shutdown();
-      }
-      startReader();
-    }
-
-    private void startReader() {
-      new ReadCompletionHandler(serverConnection).startReader();
+    WriteWorker(final AsynchronousSocketChannel serverConnection) {
+      this.serverConnection = serverConnection;
     }
 
     @Override
@@ -94,17 +84,7 @@ public class ServerWriteHandler {
     private void handleOneRequest() {
       RequestPacket packet = null;
       try {
-        log.finer(
-            "Dequeuing request from writequeue for server "
-                + serverAddress
-                + ", now sized "
-                + writequeue.size());
         packet = writequeue.take();
-        log.finer(
-            "Dequeud request from writequeue, for server "
-                + serverAddress
-                + ", now sized "
-                + writequeue.size());
         packet.setDequeued();
       } catch (InterruptedException e) {
         e.printStackTrace();
@@ -124,7 +104,6 @@ public class ServerWriteHandler {
             "Write worker for server: "
                 + serverAddress.getSocketAddress()
                 + " was interrupted adding a request to the sent queue.");
-        return;
       }
     }
 
@@ -140,78 +119,80 @@ public class ServerWriteHandler {
         shutdown();
         return;
       }
-      log.finer("Wrote " + bytesWritten + " bytes to server " + serverAddress);
       if (bytesWritten <= 0) {
         log.severe("Wrote " + bytesWritten + " bytes to server " + serverAddress);
         shutdown();
-        return;
       }
-      log.finest(new String(rbuf.array()));
     }
   }
 
-  class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
+  private class ReadWorker implements Runnable {
     private final AsynchronousSocketChannel serverConnection;
+    private final ReadCompletionHandler handler;
 
-    public ReadCompletionHandler(final AsynchronousSocketChannel serverConnection) {
+    private ReadWorker(final AsynchronousSocketChannel serverConnection) {
       this.serverConnection = serverConnection;
+      this.handler = new ReadCompletionHandler();
     }
 
     @Override
-    public void completed(Integer bytesRead, ByteBuffer bbuf) {
-      if (ServerWriteHandler.this.serverHandler.isShuttingDown()) {
-        log.info(
-            "Shutting down writer read completion handler for server: "
-                + serverAddress.getSocketAddress());
-        return;
-      }
+    public void run() {
+      ByteBuffer bbuf = ByteBuffer.allocate((sentqueue.size() + 1) * BUFFER_SIZE);
+      serverConnection.read(bbuf, bbuf, handler);
+    }
 
-      log.finer("Read " + bytesRead + " bytes from server " + serverAddress);
-      if (bytesRead <= 0) {
-        log.severe("Read " + bytesRead + " bytes from server " + serverAddress);
-        shutdown();
-        return;
-      }
-      log.finest(new String(bbuf.array()));
-      byte[] dst = new byte[bytesRead];
-      bbuf.position(0);
-      bbuf.get(dst);
-      ByteBuffer stripped = ByteBuffer.wrap(dst);
-      stripped.position(bytesRead);
-      List<ByteBuffer> resps = ResponseSplitter.splitResponses(stripped);
+    private class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
 
-      for (ByteBuffer bb : resps) {
-        // It's the response to the first request (hopefully)
-        RequestPacket packet;
-        try {
-          packet = sentqueue.take();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-          log.severe(
-              "Write worker for server: "
-                  + serverAddress.getSocketAddress()
-                  + " was interrupted while taking packets out of the sent queue.");
+      @Override
+      public void completed(Integer bytesRead, ByteBuffer bbuf) {
+        if (ServerWriteHandler.this.serverHandler.isShuttingDown()) {
+          return;
+        }
+
+        if (bytesRead <= 0) {
           shutdown();
           return;
         }
-        // Make the response.
-        Response resp = new SuccessfulResponse(bb);
-        // Send the response
-        try {
-          packet.respond(resp);
-        } catch (InterruptedException | ExecutionException | IOException e) {
-          e.printStackTrace(); // FIXME handle this somehow
+        byte[] dst = new byte[bytesRead];
+        bbuf.position(0);
+        bbuf.get(dst);
+        ByteBuffer stripped = ByteBuffer.wrap(dst);
+        stripped.position(bytesRead);
+
+        List<ByteBuffer> resps = ResponseSplitter.splitResponses(stripped);
+
+        for (ByteBuffer bb : resps) {
+          // It's the response to the first request (hopefully)
+          RequestPacket packet;
+          try {
+            packet = sentqueue.take();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+            log.severe(
+                "Write worker for server: "
+                    + serverAddress.getSocketAddress()
+                    + " was interrupted while taking packets out of the sent queue.");
+            shutdown();
+            return;
+          }
+          // Make the response.
+          Response resp = new SuccessfulResponse(bb);
+          // Send the response
+          try {
+            packet.respond(resp);
+          } catch (InterruptedException | ExecutionException | IOException e) {
+            e.printStackTrace(); // FIXME handle this somehow
+          }
         }
+        // Restart the waiting for the reader.
+        run();
       }
-      startReader();
-    }
 
-    private void startReader() {
-      ByteBuffer bbuf = ByteBuffer.allocate((sentqueue.size() + 1) * BUFFER_SIZE);
-      serverConnection.read(bbuf, bbuf, this);
+      @Override
+      public void failed(Throwable throwable, ByteBuffer bbuf) {
+        throwable.printStackTrace();
+        shutdown();
+      }
     }
-
-    @Override
-    public void failed(Throwable throwable, ByteBuffer bbuf) {}
   }
 }

@@ -73,11 +73,10 @@ public class Middleware {
   public void startServer() {
     try {
       assc.bind(myAddress);
-      log.fine("Bound to " + myAddress);
-      assc.accept(
-          null,
+      AcceptCompletionHandler ach =
           new AcceptCompletionHandler(
-              assc, servers, instrumentor, replicationFactor, readThreadpoolSize));
+              assc, servers, instrumentor, replicationFactor, readThreadpoolSize);
+      assc.accept(null, ach);
     } catch (BindException e) {
       e.printStackTrace();
       System.exit(1);

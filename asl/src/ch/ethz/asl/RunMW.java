@@ -21,7 +21,6 @@ public class RunMW {
   static String logfile = "trace.csv";
 
   public static void main(String[] args) throws Exception {
-
     // -----------------------------------------------------------------------------
     // Parse and prepare arguments
     // -----------------------------------------------------------------------------
