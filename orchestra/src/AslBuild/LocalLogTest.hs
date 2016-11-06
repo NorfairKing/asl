@@ -17,7 +17,6 @@ import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.Memaslap
 import           AslBuild.Middleware
-import           AslBuild.Provision
 import           AslBuild.Types
 import           AslBuild.Utils
 
@@ -132,7 +131,6 @@ localLogTestRules = do
     forM_ (indexed setups) $ \(ix, LocalLogTestSetup{..}) -> do
         map cLogFile clients &%> \_ -> do
             need [memcachedBin, memaslapBin, outputJarFile]
-            need [provisionLocalhostRule]
 
             -- Write the config to a file
             forP_ (map cSets clients) $ \MemaslapSettings{..} ->
