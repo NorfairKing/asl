@@ -2,8 +2,9 @@
 module AslBuild.Analysis.Baseline where
 
 import           Data.List
+import           Data.Maybe
 
-import           Development.Shake             hiding (doesFileExist)
+import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
@@ -45,13 +46,6 @@ localBaselineAnalysis = BaselineAnalysisCfg
     , analysisOutDir = analysisPlotsDir
     }
 
-bigLocalBaselineAnalysis :: BaselineAnalysisCfg
-bigLocalBaselineAnalysis = BaselineAnalysisCfg
-    { experiment = bigLocalBaselineExperiment
-    , filePrefix = "big-local-baseline-experiment"
-    , analysisOutDir = analysisPlotsDir
-    }
-
 remoteBaselineAnalysis :: BaselineAnalysisCfg
 remoteBaselineAnalysis = BaselineAnalysisCfg
     { experiment = remoteBaselineExperiment
@@ -70,9 +64,8 @@ allBaselineAnalyses :: [BaselineAnalysisCfg]
 allBaselineAnalyses =
     [ smallLocalBaselineAnalysis
     , localBaselineAnalysis
-    -- , bigLocalBaselineAnalysis
+    , smallRemoteBaselineAnalysis
     , remoteBaselineAnalysis
-    -- , smallRemoteBaselineAnalysis
     ]
 
 allBaselinePlots :: [FilePath]
@@ -80,26 +73,27 @@ allBaselinePlots = concatMap plotsForBaseline allBaselineAnalyses
 
 baselineAnalysisRules :: Rules ()
 baselineAnalysisRules = do
-    baselineAnalysisRule ~> need allBaselinePlots
-    mapM_ baselineAnalysisRulesFor allBaselineAnalyses
+    ts <- catMaybes <$> mapM baselineAnalysisRulesFor allBaselineAnalyses
+    baselineAnalysisRule ~> need ts
 
 baselineAnalysisRuleFor :: BaselineAnalysisCfg -> String
 baselineAnalysisRuleFor BaselineAnalysisCfg{..}
     = target experiment ++ "-analysis"
 
-baselineAnalysisRulesFor :: BaselineAnalysisCfg -> Rules ()
+baselineAnalysisRulesFor :: BaselineAnalysisCfg -> Rules (Maybe String)
 baselineAnalysisRulesFor bac@BaselineAnalysisCfg{..} = do
-    let plotsForThisBaseline = plotsForBaseline bac
-
     let results = csvOutFile experiment
+    onlyIfFileExists results $ do
+        let plotsForThisBaseline = plotsForBaseline bac
+        plotsForThisBaseline &%> \_ -> do
+            needsToExist results
+            need [baselineAnalysisScript]
 
-    baselineAnalysisRuleFor bac ~> need plotsForThisBaseline
+            need [rBin]
+            needRLibs ["pkgmaker"]
+            needRLibs ["igraph"]
+            unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir
 
-    plotsForThisBaseline &%> \_ -> do
-        needsToExist results
-        need [baselineAnalysisScript]
-
-        need [rBin]
-        needRLibs ["pkgmaker"]
-        needRLibs ["igraph"]
-        unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir
+        let target = baselineAnalysisRuleFor bac
+        target ~> need plotsForThisBaseline
+        return target

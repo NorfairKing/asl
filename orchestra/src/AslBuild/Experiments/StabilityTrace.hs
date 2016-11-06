@@ -11,37 +11,38 @@ import           AslBuild.Middleware
 import           AslBuild.Types
 
 stabilityTraceRules :: Rules ()
-stabilityTraceRules = do
-    generateTargetFor smallLocalStabilityTrace
-    generateTargetFor localStabilityTrace
-    generateTargetFor smallRemoteStabilityTrace
-    generateTargetFor remoteStabilityTrace
+stabilityTraceRules
+    = mapM_ generateTargetFor stabilityTracesExperiments
+
+stabilityTracesExperiments :: [StabilityTraceCfg]
+stabilityTracesExperiments =
+    [ smallLocalStabilityTrace
+    , localStabilityTrace
+    , smallRemoteStabilityTrace
+    , remoteStabilityTrace
+    ]
 
 smallLocalStabilityTraceRule :: String
 smallLocalStabilityTraceRule = "small-local-stability-trace"
 
 smallLocalStabilityTrace :: StabilityTraceCfg
-smallLocalStabilityTrace = StabilityTraceCfg
+smallLocalStabilityTrace = smallRemoteStabilityTrace
     { hlConfig = (hlConfig smallRemoteStabilityTrace)
         { target = smallLocalStabilityTraceRule
         , location = Local
         }
-    , runtime = Seconds 5
-    , logLevel = LogFiner
     }
 
 localStabilityTracelRule :: String
 localStabilityTracelRule = "local-stability-trace"
 
 localStabilityTrace :: StabilityTraceCfg
-localStabilityTrace = StabilityTraceCfg
+localStabilityTrace = remoteStabilityTrace
     { hlConfig = (hlConfig remoteStabilityTrace)
         { target = localStabilityTracelRule
         , location = Local
         , resultsPersistence = Volatile
         }
-    , runtime = runtime remoteStabilityTrace
-    , logLevel = LogOff
     }
 
 smallRemoteStabilityTraceRule :: String

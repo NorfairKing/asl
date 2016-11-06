@@ -2,14 +2,14 @@ library(ggplot2)
 args <- commandArgs(trailingOnly=TRUE)
 
 if (length(args) < 2) {
-  stop("Usage analyze_trace_slice.r <input.csv> <output.png>")
+  stop("Usage analyze_trace_slice.r <input.csv> <outputprefix>")
 }
 
 inFile <- args[1] 
 outFile <- args[2]
 
 startPng <- function(file) {
-    png(file, height=450, width=900, bg="white")
+    png(paste(file, "-slice.png", sep=""), height=450, width=900, bg="white")
     base2 = rgb(0xB5/256, 0x89/256, 0x00/256, 0.1)
     par(bg=base2)
 }

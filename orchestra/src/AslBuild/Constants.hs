@@ -117,7 +117,10 @@ analysisDir :: FilePath
 analysisDir = aslDir </> "analysis"
 
 analysisPlotsDir :: FilePath
-analysisPlotsDir = analysisDir </> "plots"
+analysisPlotsDir = tmpDir </> "plots"
+
+analysisTmpDir :: FilePath
+analysisTmpDir = tmpDir </> "analysis"
 
 reportsDir :: FilePath
 reportsDir = aslDir </> reports

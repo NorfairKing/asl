@@ -4,6 +4,7 @@ module AslBuild.CommonActions where
 import           Control.Concurrent
 import           Control.Monad
 import           System.Directory           hiding (doesFileExist)
+import qualified System.Directory           as D
 import           System.Exit
 import           System.Process
 
@@ -14,6 +15,12 @@ import           AslBuild.Memaslap
 import           AslBuild.Ssh
 import           AslBuild.Types
 
+onlyIfFileExists :: FilePath -> Rules a -> Rules (Maybe a)
+onlyIfFileExists file rule = do
+    exists <- liftIO $ D.doesFileExist file
+    if exists
+    then Just <$> rule
+    else return Nothing
 
 -- Depend on a file, but don't rebuild it evern once it exists.
 needsToExist :: FilePath -> Action ()

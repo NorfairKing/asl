@@ -18,9 +18,6 @@ analysisRule = "analysis"
 cleanAnalysisRule :: String
 cleanAnalysisRule = "clean-analysis"
 
-allPlots :: [FilePath]
-allPlots = allBaselinePlots ++ allStabilityTracePlots ++ allTraceSlicePlots
-
 analysisRules :: Rules ()
 analysisRules = do
     buildRRules
@@ -29,5 +26,10 @@ analysisRules = do
     stabilityTraceAnalysisRules
     traceSliceAnalysisRules
 
-    analysisRule ~> need allPlots
+    analysisRule ~> need
+        [ baselineAnalysisRule
+        , stabilityTraceAnalysisRule
+        , traceSliceAnalysisRule
+        ]
+
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]

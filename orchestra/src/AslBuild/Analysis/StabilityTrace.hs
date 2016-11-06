@@ -5,6 +5,7 @@ module AslBuild.Analysis.StabilityTrace where
 import qualified Data.ByteString.Lazy                as LB
 import           Data.Csv
 import           Data.List
+import           Data.Maybe
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -67,7 +68,7 @@ allStabilityTraceAnalyses :: [StabilityTraceAnalysisCfg]
 allStabilityTraceAnalyses =
     [ smallLocalStabilityTraceAnalysis
     , localStabilityTraceAnalysis
-    -- , smallRemoteStabilityTraceAnalysis
+    , smallRemoteStabilityTraceAnalysis
     , remoteStabilityTraceAnalysis
     ]
 
@@ -76,50 +77,55 @@ allStabilityTracePlots = concatMap plotsForStabilityTrace allStabilityTraceAnaly
 
 stabilityTraceAnalysisRules :: Rules ()
 stabilityTraceAnalysisRules = do
-    stabilityTraceAnalysisRule ~> need allStabilityTracePlots
-    mapM_ stabilityTraceAnalysisRulesFor allStabilityTraceAnalyses
+    ts <- catMaybes <$> mapM stabilityTraceAnalysisRulesFor allStabilityTraceAnalyses
+    stabilityTraceAnalysisRule ~> need ts
 
 stabilityTraceAnalysisRuleFor :: StabilityTraceAnalysisCfg -> String
 stabilityTraceAnalysisRuleFor StabilityTraceAnalysisCfg{..} =
     experimentTarget experiment ++ "-analysis"
 
-stabilityTraceAnalysisRulesFor :: StabilityTraceAnalysisCfg -> Rules ()
+stabilityTraceAnalysisRulesFor :: StabilityTraceAnalysisCfg -> Rules (Maybe String)
 stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
-    let plotsForThisTrace = plotsForStabilityTrace bac
-    stabilityTraceAnalysisRuleFor bac ~> need plotsForThisTrace
+    let summaryLocationsFile = resultSummariesLocationFile experiment
+    onlyIfFileExists summaryLocationsFile $ do
+        let simpleCsvFile = tmpDir </> experimentTarget experiment </> "simple.csv"
+        simpleCsvFile %> \_ -> do
+            -- Don't depend on the summary locations file if it exists
+            needsToExist summaryLocationsFile
 
-    let simpleCsvFile = tmpDir </> experimentTarget experiment </> "simple.csv"
-    simpleCsvFile %> \_ -> do
-        let summaryLocationsFile = resultSummariesLocationFile experiment
-        -- Don't depend on the summary locations file if it exists
-        needsToExist summaryLocationsFile
+            [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
+            ExperimentResultSummary{..} <- readResultsSummary summaryFile
 
-        [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
-        ExperimentResultSummary{..} <- readResultsSummary summaryFile
+            putLoud $ init $ unlines $ "Reading logfiles:" : erClientResultsFiles
+            logs <- forP erClientResultsFiles readJSON
 
-        putLoud $ init $ unlines $ "Reading logfiles:" : erClientResultsFiles
-        logs <- forP erClientResultsFiles readJSON
+            putLoud "Converting logfiles to a simple CSV file."
+            let statistics :: ClientResults -> [Statistics]
+                statistics = map (periodStats . bothStats) . triples . crLog
+            let tpsTuples :: ClientResults -> [(Int, Statistics)]
+                tpsTuples = zip [1..] . statistics
+            let tupsList :: [(Int, [(Int, Statistics)])]
+                tupsList = zip [1..] $ map tpsTuples logs
+            let withClientSimplePoints :: [SimplifiedPoint]
+                withClientSimplePoints = concatMap (\(client, simplePoints) -> map (uncurry (toSimplePoint client)) simplePoints) tupsList
+            let enc = simpleCsv withClientSimplePoints
+            liftIO $ LB.writeFile simpleCsvFile enc
 
-        putLoud "Converting logfiles to a simple CSV file."
-        let statistics :: ClientResults -> [Statistics]
-            statistics = map (periodStats . bothStats) . triples . crLog
-        let tpsTuples :: ClientResults -> [(Int, Statistics)]
-            tpsTuples = zip [1..] . statistics
-        let tupsList :: [(Int, [(Int, Statistics)])]
-            tupsList = zip [1..] $ map tpsTuples logs
-        let withClientSimplePoints :: [SimplifiedPoint]
-            withClientSimplePoints = concatMap (\(client, simplePoints) -> map (uncurry (toSimplePoint client)) simplePoints) tupsList
-        let enc = simpleCsv withClientSimplePoints
-        liftIO $ LB.writeFile simpleCsvFile enc
+        let plotsForThisTrace = plotsForStabilityTrace bac
+        plotsForThisTrace &%> \_ -> do
+            need [simpleCsvFile, stabilityTraceAnalysisScript]
 
-    plotsForThisTrace &%> \_ -> do
-        need [simpleCsvFile, stabilityTraceAnalysisScript]
+            need [rBin]
+            needRLibs ["pkgmaker"]
+            needRLibs ["caTools"]
 
-        need [rBin]
-        needRLibs ["pkgmaker"]
-        needRLibs ["caTools"]
+            unit $ rScript stabilityTraceAnalysisScript simpleCsvFile filePrefix analysisOutDir
 
-        unit $ rScript stabilityTraceAnalysisScript simpleCsvFile filePrefix analysisOutDir
+
+        let rule = stabilityTraceAnalysisRuleFor bac
+        rule ~> need plotsForThisTrace
+
+        return rule
 
 simpleCsv :: [SimplifiedPoint] -> LB.ByteString
 simpleCsv sps = encodeByName (header ["client", "second", "tps", "avg", "std"]) sps

@@ -1,190 +1,75 @@
-{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-module AslBuild.Analysis.TraceSlice where
+module AslBuild.Analysis.TraceSlice
+    ( module AslBuild.Analysis.TraceSlice
+    , module AslBuild.Analysis.TraceSlice.Types
+    ) where
 
 import           Control.Monad
 import           Control.Monad.IO.Class
-import           GHC.Generics
-import           System.Directory                    (doesFileExist)
+import           Data.Maybe
 import           System.IO
 
-import           Development.Shake                   hiding (doesFileExist)
+import           Development.Shake
 import           Development.Shake.FilePath
 
-import           Pipes                               (Pipe, (>->))
+import           Pipes                               ((>->))
 import qualified Pipes                               as P
 import qualified Pipes.ByteString                    as PB
 import qualified Pipes.Csv                           as P
 import qualified Pipes.Prelude                       as P
 
-import           Data.Csv
-
-import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.PipeUtils
+import           AslBuild.Analysis.TraceSlice.Pipes
+import           AslBuild.Analysis.TraceSlice.Script
+import           AslBuild.Analysis.TraceSlice.Types
+import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Types
-
-data Durations
-    = Durations
-    { reqKind            :: RequestKind
-    , arrivalTime        :: Integer
-    , untilParsedTime    :: Integer
-    , untilEnqueuedTime  :: Integer
-    , untilDequeuedTime  :: Integer
-    , untilAskedTime     :: Integer
-    , untilRepliedTime   :: Integer
-    , untilRespondedTime :: Integer
-    } deriving (Show, Eq, Generic)
-
-instance ToNamedRecord Durations where
-    toNamedRecord Durations{..} =
-        namedRecord
-            [ "reqKind" .= reqKind
-            , "arrivalTime" .= arrivalTime
-            , "untilParsed" .= untilParsedTime
-            , "untilEnqueued" .= untilEnqueuedTime
-            , "untilDequeued" .= untilDequeuedTime
-            , "untilAsked" .= untilAskedTime
-            , "untilReplied" .= untilRepliedTime
-            , "untilResponded" .= untilRespondedTime
-            ]
-
-durationsHeader :: Header
-durationsHeader = header
-    [ "reqKind"
-    , "arrivalTime"
-    , "untilParsed"
-    , "untilEnqueued"
-    , "untilDequeued"
-    , "untilAsked"
-    , "untilReplied"
-    , "untilResponded"
-    ]
-
-data DurationsLine
-    = DurationsLine
-    { rKind    :: RequestKind
-    , aTime    :: Integer
-    , category :: String
-    , value    :: Integer
-    } deriving (Show, Eq, Generic)
-
-instance ToNamedRecord DurationsLine where
-    toNamedRecord DurationsLine{..} =
-        namedRecord
-            [ "rKind" .= rKind
-            , "aTime" .= aTime
-            , "category" .= category
-            , "value" .= value
-            ]
-
-durationsLineHeader :: Header
-durationsLineHeader = header
-    [ "rKind"
-    , "aTime"
-    , "category"
-    , "value"
-    ]
-
-errorLogger :: MonadIO m => Pipe (Either String a) a m v
-errorLogger = forever $ do
-    eea <- P.await
-    case eea of
-        Left err -> liftIO $ putStrLn err
-        Right res -> P.yield res
-
-timeTransformer :: Monad m => Pipe MiddleResultLine Durations m v
-timeTransformer = do
-    mrl <- P.await
-    let startTime = requestReceivedTime mrl
-    forever $ do
-        MiddleResultLine{..} <- P.await
-        P.yield Durations
-            { reqKind = requestKind
-            , arrivalTime        = requestReceivedTime   - startTime
-            , untilParsedTime    = requestParsedTime     - requestReceivedTime
-            , untilEnqueuedTime  = requestEnqueuedTime   - requestParsedTime
-            , untilDequeuedTime  = requestDequeuedTime   - requestEnqueuedTime
-            , untilAskedTime     = requestAskedTime      - requestDequeuedTime
-            , untilRepliedTime   = requestRepliedTime    - requestRepliedTime
-            , untilRespondedTime = requestRespondedTime  - requestRespondedTime
-            }
-
-meanTransformer :: Monad m => Pipe Durations Durations m v
-meanTransformer = forever $ do
-    let chunkSize :: Integer
-        chunkSize = 250
-    dats <- replicateM (fromIntegral chunkSize) P.await
-    let mean :: (Durations -> Integer) -> Integer
-        mean func = sum (map func dats) `div` chunkSize
-    P.yield Durations
-        { reqKind = READ -- Fixme
-        , arrivalTime        = arrivalTime $ head dats
-        , untilParsedTime    = mean untilParsedTime
-        , untilEnqueuedTime  = mean untilEnqueuedTime
-        , untilDequeuedTime  = mean untilDequeuedTime
-        , untilAskedTime     = mean untilAskedTime
-        , untilRepliedTime   = mean untilRepliedTime
-        , untilRespondedTime = mean untilRespondedTime
-        }
-
-lineTransformer :: Monad m => Pipe Durations DurationsLine m v
-lineTransformer = forever $ do
-    Durations{..} <- P.await
-    let row cat val = DurationsLine
-            { rKind = reqKind
-            , aTime = arrivalTime
-            , category = cat
-            , value = val
-            }
-    mapM_ P.yield
-        [ row "parsing"   untilParsedTime
-        , row "enqueue"   untilEnqueuedTime
-        , row "inqueue"   untilDequeuedTime
-        , row "query"     untilAskedTime
-        , row "response"  untilRepliedTime
-        , row "finalized" untilRespondedTime
-        ]
-
-traceSliceAnalysisRules :: Rules ()
-traceSliceAnalysisRules = do
-    traceSliceAnalysisRule ~> need allTraceSlicePlots
-
-    configFromStabilityTrace smallLocalStabilityTrace
-    configFromStabilityTrace localStabilityTrace
-    configFromStabilityTrace smallRemoteStabilityTrace
-    configFromStabilityTrace remoteStabilityTrace
-
-
-allTraceSlicePlots :: [FilePath]
-allTraceSlicePlots = []
 
 traceSliceAnalysisRule :: String
 traceSliceAnalysisRule = "trace-slice-analysis"
 
+traceSliceAnalysisRules :: Rules ()
+traceSliceAnalysisRules = do
+    traceSliceAnalysisRule ~> need
+        [ ruleForStabilityTraces
+        ]
+
+    rulesForStabilityTraces
+        [ smallLocalStabilityTrace
+        , localStabilityTrace
+        , smallRemoteStabilityTrace
+        , remoteStabilityTrace
+        ]
+
+ruleForStabilityTraces :: String
+ruleForStabilityTraces = "stability-trace-trace-slice-analysis"
+
+rulesForStabilityTraces :: [StabilityTraceCfg] -> Rules ()
+rulesForStabilityTraces stcs = do
+    rs <- catMaybes <$> mapM (rulesForTraceSliceAnalysis . stabilityTraceTraceSliceAnalysisConfig) stcs
+
+    ruleForStabilityTraces ~> need rs
+
 traceSliceAnalysisCfgRule :: ExperimentConfig a => a -> String
 traceSliceAnalysisCfgRule cfg = experimentTarget cfg ++ "-trace-slice-analysis"
 
-traceSliceAnalysisScript :: FilePath
-traceSliceAnalysisScript = analysisDir </> "analyze_trace_slice.r"
+stabilityTraceTraceSliceAnalysisConfig :: ExperimentConfig a => a -> TraceSliceAnalysisCfg
+stabilityTraceTraceSliceAnalysisConfig ecf = TraceSliceAnalysisCfg
+    { analysisTarget = traceSliceAnalysisCfgRule ecf
+    , summaryLocationsPath = resultSummariesLocationFile ecf
+    , analysisOutDir = analysisPlotsDir
+    }
 
-traceSliceAnalysisOf :: FilePath -> FilePath -> Rules ()
-traceSliceAnalysisOf outFile inFile = outFile %> \_ -> do
-    need [traceSliceAnalysisScript, inFile]
-    need [rBin]
-    needRLibs ["ggplot2"]
-    rScript traceSliceAnalysisScript inFile outFile
-
-configFromStabilityTrace :: StabilityTraceCfg -> Rules ()
-configFromStabilityTrace stc@StabilityTraceCfg{..} = do
-    let rslf = resultSummariesLocationFile stc
-    exists <- liftIO $ doesFileExist rslf
-    when exists $ do
+rulesForTraceSliceAnalysis :: TraceSliceAnalysisCfg -> Rules (Maybe String)
+rulesForTraceSliceAnalysis tsa@TraceSliceAnalysisCfg{..} = do
+    let rslf = summaryLocationsPath
+    onlyIfFileExists rslf $ do
         summaryPaths <- readResultsSummaryLocations rslf
-        forM_ summaryPaths $ \summaryPath -> do
-            es@ExperimentResultSummary{..} <- readResultsSummary summaryPath
+        pss <- forM summaryPaths $ \summaryPath -> do
+            ers@ExperimentResultSummary{..} <- readResultsSummary summaryPath
             let dFile = durationsFile erMiddleResultsFile
 
             dFile %> \outFile ->
@@ -195,19 +80,17 @@ configFromStabilityTrace stc@StabilityTraceCfg{..} = do
                                     P.decodeByName (PB.fromHandle inHandle)
                                 >-> errorLogger
                                 >-> timeTransformer
-                                >-> P.drop 10
+                                >-> P.drop 3
                                 >-> meanTransformer
                                 >-> lineTransformer
                                 >-> P.encodeByName durationsLineHeader
                                 >-> PB.toHandle outHandle
 
-            traceSlicePlotFor es `traceSliceAnalysisOf` dFile
 
-traceSlicePlotFor :: ExperimentResultSummary -> FilePath
-traceSlicePlotFor ExperimentResultSummary{..} = dropExtensions erMiddleResultsFile ++ "slice" <.> pngExt
+            traceSliceAnalysisOf tsa ers dFile
+
+        analysisTarget ~> need (concat pss)
+        return analysisTarget
 
 durationsFile :: FilePath -> FilePath
-durationsFile f = dropExtensions f ++ "-durations" <.> csvExt
-
-traceSlicePlot :: FilePath -> FilePath
-traceSlicePlot f = dropExtensions f ++ "-trace-slice-plot" <.> pngExt
+durationsFile f = analysisTmpDir </> dropExtensions (takeFileName f) ++ "-durations" <.> csvExt
