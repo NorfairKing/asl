@@ -14,7 +14,6 @@ stabilityTraceRules :: Rules ()
 stabilityTraceRules = do
     generateTargetFor smallLocalStabilityTrace
     generateTargetFor localStabilityTrace
-    generateTargetFor bigLocalStabilityTrace
     generateTargetFor smallRemoteStabilityTrace
     generateTargetFor remoteStabilityTrace
 
@@ -39,24 +38,9 @@ localStabilityTrace = StabilityTraceCfg
     { hlConfig = (hlConfig remoteStabilityTrace)
         { target = localStabilityTracelRule
         , location = Local
+        , resultsPersistence = Volatile
         }
     , runtime = runtime remoteStabilityTrace
-    , logLevel = LogOff
-    }
-
-bigLocalStabilityTraceRule :: String
-bigLocalStabilityTraceRule = "big-local-stability-trace"
-
-bigLocalStabilityTrace :: StabilityTraceCfg
-bigLocalStabilityTrace = StabilityTraceCfg
-    { hlConfig = HighLevelConfig
-        { target = bigLocalStabilityTraceRule
-        , nrServers = 8
-        , nrClients = 32
-        , location = Local
-        , resultsPersistence = Persistent
-        }
-    , runtime = Hours 1
     , logLevel = LogOff
     }
 

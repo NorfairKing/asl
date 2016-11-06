@@ -49,13 +49,6 @@ localStabilityTraceAnalysis = StabilityTraceAnalysisCfg
     , analysisOutDir = analysisPlotsDir
     }
 
-bigLocalStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
-bigLocalStabilityTraceAnalysis = StabilityTraceAnalysisCfg
-    { experiment = bigLocalStabilityTrace
-    , filePrefix = "big-local-stability-trace"
-    , analysisOutDir = analysisPlotsDir
-    }
-
 smallRemoteStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
 smallRemoteStabilityTraceAnalysis = StabilityTraceAnalysisCfg
     { experiment = smallRemoteStabilityTrace
@@ -74,7 +67,6 @@ allStabilityTraceAnalyses :: [StabilityTraceAnalysisCfg]
 allStabilityTraceAnalyses =
     [ smallLocalStabilityTraceAnalysis
     , localStabilityTraceAnalysis
-    -- , bigLocalStabilityTraceAnalysis
     -- , smallRemoteStabilityTraceAnalysis
     , remoteStabilityTraceAnalysis
     ]
