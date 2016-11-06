@@ -81,7 +81,7 @@ rulesForTraceSliceAnalysis tsa@TraceSliceAnalysisCfg{..} = do
                                 >-> errorLogger
                                 >-> timeTransformer
                                 >-> P.drop 3
-                                >-> meanTransformer
+                                >-> meanTransformer 250
                                 >-> lineTransformer
                                 >-> P.encodeByName durationsLineHeader
                                 >-> PB.toHandle outHandle

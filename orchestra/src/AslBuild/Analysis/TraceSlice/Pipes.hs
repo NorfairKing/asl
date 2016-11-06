@@ -29,23 +29,30 @@ timeTransformer = do
             , untilRespondedTime = requestRespondedTime  - requestRespondedTime
             }
 
-meanTransformer :: Monad m => Pipe Durations Durations m v
-meanTransformer = forever $ do
-    let chunkSize :: Integer
-        chunkSize = 10
-    dats <- replicateM (fromIntegral chunkSize) P.await
-    let mean :: (Durations -> Integer) -> Integer
-        mean func = sum (map func dats) `div` chunkSize
-    P.yield Durations
-        { reqKind = READ -- Fixme
-        , arrivalTime        = arrivalTime $ head dats
-        , untilParsedTime    = mean untilParsedTime
-        , untilEnqueuedTime  = mean untilEnqueuedTime
-        , untilDequeuedTime  = mean untilDequeuedTime
-        , untilAskedTime     = mean untilAskedTime
-        , untilRepliedTime   = mean untilRepliedTime
-        , untilRespondedTime = mean untilRespondedTime
-        }
+-- Chunk size
+meanTransformer :: Monad m => Integer -> Pipe Durations Durations m v
+meanTransformer chunkSize = do
+    initData <- replicateM (fromIntegral chunkSize) P.await
+    recurse initData
+  where
+    recurse dats = do
+        let mean :: (Durations -> Integer) -> Integer
+            mean func = sum (map func dats) `div` chunkSize
+        P.yield Durations
+            { reqKind = READ -- Fixme
+            , arrivalTime        = arrivalTime $ head dats
+            , untilParsedTime    = mean untilParsedTime
+            , untilEnqueuedTime  = mean untilEnqueuedTime
+            , untilDequeuedTime  = mean untilDequeuedTime
+            , untilAskedTime     = mean untilAskedTime
+            , untilRepliedTime   = mean untilRepliedTime
+            , untilRespondedTime = mean untilRespondedTime
+            }
+
+        newdat <- P.await
+        let newdats = tail dats ++ [newdat]
+        recurse newdats
+
 
 lineTransformer :: Monad m => Pipe Durations DurationsLine m v
 lineTransformer = forever $ do

@@ -13,7 +13,6 @@ writeEffectRules :: Rules ()
 writeEffectRules = do
     generateTargetFor smallLocalWriteEffect
     generateTargetFor localWriteEffect
-    generateTargetFor bigLocalWriteEffect
     generateTargetFor smallRemoteWriteEffect
     generateTargetFor remoteWriteEffect
 
@@ -37,22 +36,6 @@ localWriteEffect = remoteWriteEffect
         { target = localWriteEffectRule
         , location = Local
         }
-    }
-
-bigLocalWriteEffectRule :: String
-bigLocalWriteEffectRule = "big-local-write-effect"
-
-bigLocalWriteEffect :: WriteEffectCfg
-bigLocalWriteEffect = WriteEffectCfg
-    { hlConfig = HighLevelConfig
-        { target = bigLocalWriteEffectRule
-        , nrServers = 8
-        , nrClients = 32
-        , location = Local
-        , resultsPersistence = Persistent
-        }
-    , writePercentages = [0.01, 0.05, 0.1]
-    , serverCounts = [1, 2, 8]
     }
 
 smallRemoteWriteEffectRule :: String

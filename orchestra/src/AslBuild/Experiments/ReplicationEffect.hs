@@ -13,7 +13,6 @@ replicationEffectRules :: Rules ()
 replicationEffectRules = do
     generateTargetFor smallLocalReplicationEffect
     generateTargetFor localReplicationEffect
-    generateTargetFor bigLocalReplicationEffect
     generateTargetFor smallRemoteReplicationEffect
     generateTargetFor remoteReplicationEffect
 
@@ -37,22 +36,6 @@ localReplicationEffect = remoteReplicationEffect
         { target = localReplicationEffectRule
         , location = Local
         }
-    }
-
-bigLocalReplicationEffectRule :: String
-bigLocalReplicationEffectRule = "big-local-replication-effect"
-
-bigLocalReplicationEffect :: ReplicationEffectCfg
-bigLocalReplicationEffect = ReplicationEffectCfg
-    { hlConfig = HighLevelConfig
-        { target = bigLocalReplicationEffectRule
-        , nrServers = 8
-        , nrClients = 32
-        , location = Local
-        , resultsPersistence = Persistent
-        }
-    , serverCounts = [1,2,8]
-    , replicationFactors = [0,0.5,1]
     }
 
 smallRemoteReplicationEffectRule :: String
