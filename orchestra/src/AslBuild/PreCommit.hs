@@ -18,6 +18,7 @@ import           AslBuild.LocalMiddlewareTest.MultiClientTest
 import           AslBuild.LocalMiddlewareTest.MultipleClientsTest
 import           AslBuild.LocalMiddlewareTest.MultipleServersTest
 import           AslBuild.LocalMiddlewareTest.ParseTest
+import           AslBuild.LocalMiddlewareTest.ReplicationFailureTest
 import           AslBuild.LocalMiddlewareTest.ReplicationTest
 import           AslBuild.LocalMiddlewareTest.SimpleTest
 import           AslBuild.Orc
@@ -46,6 +47,7 @@ preCommitRules = do
         need [localMiddlewareParseTestRule]
         need [localMiddlewareMultiClientTestRule]
         need [localMiddlewareReplicationTestRule]
+        need [localMiddlewareReplicationFailureTestRule]
         need [localMiddlewareSimpleTestRule]
         need [localMiddlewareMultipleServersTestRule]
         need [localMiddlewareMultipleClientsTestRule]
