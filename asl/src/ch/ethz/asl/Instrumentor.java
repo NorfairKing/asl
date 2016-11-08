@@ -3,6 +3,7 @@ package ch.ethz.asl;
 import ch.ethz.asl.request.RequestPacket;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -19,12 +20,14 @@ public class Instrumentor {
   private static final String HEADER =
       "Kind,ReceivedTime,ParsedTime,EnqueuedTime,DequeuedTime,AskedTime,RepliedTime,RespondedTime";
 
-  public Instrumentor(final String file, final int readSampleRate, final int writeSampleRate)
+  public Instrumentor(final String filepath, final int readSampleRate, final int writeSampleRate)
       throws IOException {
-    this.file = file;
+    this.file = filepath;
     this.readCounter = new Throttler(readSampleRate);
     this.writeCounter = new Throttler(writeSampleRate);
 
+    File file = new File(filepath);
+    file.getParentFile().mkdirs();
     FileWriter fstream = new FileWriter(file);
     writer = new BufferedWriter(fstream);
     writer.write(HEADER);
