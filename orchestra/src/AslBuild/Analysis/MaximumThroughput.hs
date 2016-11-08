@@ -20,6 +20,7 @@ import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
+import           AslBuild.Reports.Common
 import           AslBuild.Utils
 
 maximumThroughputAnalysisRule :: String
@@ -42,6 +43,12 @@ simplifiedCsvFor mtc = experimentAnalysisDir mtc </> "simplified.csv"
 
 maximumThroughputPrefixFor :: MaximumThroughputCfg -> String
 maximumThroughputPrefixFor mtc = experimentAnalysisDir mtc </> experimentTarget mtc ++ "-maximum-throughput"
+
+useMaximumThroughputPlotsInReport :: MaximumThroughputCfg -> Int -> Rules ()
+useMaximumThroughputPlotsInReport stc = usePlotsInReport $ maximumThroughputPlotsFor stc
+
+dependOnMaximumThroughputPlotsForReport :: MaximumThroughputCfg -> Int -> Action ()
+dependOnMaximumThroughputPlotsForReport stc = dependOnPlotsForReport $ maximumThroughputPlotsFor stc
 
 rulesForMaximumThroughputExperiment :: MaximumThroughputCfg -> Rules (Maybe String)
 rulesForMaximumThroughputExperiment mtc = onlyIfResultsExist mtc $ do

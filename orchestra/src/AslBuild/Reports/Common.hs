@@ -1,5 +1,7 @@
 module AslBuild.Reports.Common where
 
+import           Control.Monad
+
 import           Development.Shake
 import           Development.Shake.FilePath
 
@@ -67,6 +69,9 @@ plotForReport plot i = plot `replaceDirectory` reportPlotsDir i
 
 usePlotInReport :: FilePath -> Int -> Rules ()
 usePlotInReport plot i = (plot `plotForReport` i) `byCopying` plot
+
+usePlotsInReport :: [FilePath] -> Int -> Rules ()
+usePlotsInReport plots i = forM_ plots (`usePlotInReport` i)
 
 dependOnPlotsForReport :: [FilePath] -> Int -> Action ()
 dependOnPlotsForReport plots i = need $ map (`plotForReport` i) plots
