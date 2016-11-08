@@ -1,6 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Experiment
-    ( module AslBuild.Experiment
+    ( generateTargetFor
+    , genExperimentSetup
+    , genClientSetup
+    , genMiddleSetup
+    , genServerSetups
+    , getVmsForExperiments
+    , resultSummariesLocationFile
+    , readResultsSummary
+    , readResultsSummaryLocations
     , module AslBuild.Experiment.Types
     ) where
 
@@ -47,93 +55,120 @@ generateTargetFor ecf = do
 
         provisionVmsFromData vmsNeeded
 
-        let startTime = 1
-        let serverStartTime = startTime
-        let middleStartTime = startTime
-        let shutdownTime = 1
-        let guessedOverheadTime = 2
-        let totalRuntimeRemaining ix = sum
-                $ map (\ExperimentSetup{..} -> toSeconds esRuntime + serverStartTime + middleStartTime + shutdownTime + guessedOverheadTime)
-                $ drop ix eSetups
-
         -- Intentionally no parallelism here.
-        forM_ (indexed eSetups) $ \(ix, es@ExperimentSetup{..}) -> do
-            let nrOfExperiments = length eSetups
-
-            let statusStr = unwords
-                    [ "|=============["
-                    , "Running experiment:"
-                    , experimentTarget ecf
-                    , concat ["[", show (ix + 1), "/", show nrOfExperiments, "]"]
-                    , "]=============|"
-                    ]
-            let upBannerStr = "/" ++ replicate (length statusStr - 2) '-' ++ "\\"
-            let doBannerStr = "\\" ++ replicate (length statusStr - 2) '-' ++ "/"
-            putLoud upBannerStr
-            putLoud statusStr
-            putLoud doBannerStr
-
-            putLoud $ "Approximately " ++ toClockString (totalRuntimeRemaining ix) ++ " remaining."
-
-            -- Get the clients configs set up
-            setupClientConfigs clientSetups
-
-            -- Start the servers
-            startServersOn serverSetups
-
-            -- Wait for the servers to get started
-            wait serverStartTime
-
-            -- Start the middleware
-            middlePh <- startMiddleOn middleSetup
-
-            -- Wait for the middleware to get started
-            wait middleStartTime
-
-            -- Start the clients
-            clientPhs <- startClientsOn clientSetups
-
-            -- Wait for the experiment to finish
-            actionFinally (waitNicely $ toSeconds esRuntime) (return ())
-
-            putLoud "Done waiting for the runtime, now just waiting for the clients to finish."
-
-            -- Wait for memaslap to stop running. (This should not be long now, but who knows.)
-            waitForClients clientPhs
-
-            -- Shut down the middleware
-            shutdownMiddle middleSetup
-            void $ liftIO $ waitForProcess middlePh
-
-            -- Shut down the servers
-            shutdownServers serverSetups
-
-            -- Copy the middleware logs back
-            copyMiddleTraceBack middleSetup
-
-            -- Shut down the memaslap instances
-            shutdownClients clientSetups
-
-            -- Copy the client logs back
-            copyClientLogsBack clientSetups
-
-            -- Prepare analysis files for the client logs.
-            makeClientResultFiles clientSetups
-
-            -- Write the setup file
-            writeJSON esSetupFile es
-
-            -- Make the result record
-            let results = ExperimentResultSummary
-                    { erClientResultsFiles = map cResultsFile clientSetups
-                    , erMiddleResultsFile = mLocalTrace middleSetup
-                    , erSetupFile = esSetupFile
-                    }
-
-            -- Write the result record to file
-            writeJSON esResultsSummaryFile results
+        forM_ (indexed eSetups) $ \(ix, es) -> do
+            printBanner ecf ix eSetups
+            runOneExperiment es
 
         writeJSON rFile $ map esResultsSummaryFile eSetups
+
+startTime :: Int
+startTime = 1
+
+serverStartTime :: Int
+serverStartTime = startTime
+
+middleStartTime :: Int
+middleStartTime = startTime
+
+shutdownTime :: Int
+shutdownTime = 1
+
+guessedOverheadTime :: Int
+guessedOverheadTime = 2
+
+totalRuntimeRemaining :: Int -> [ExperimentSetup] -> Int
+totalRuntimeRemaining ix eSetups = sum
+    $ map (\ExperimentSetup{..} -> sum
+        [ toSeconds esRuntime
+        , serverStartTime
+        , middleStartTime
+        , shutdownTime
+        , guessedOverheadTime
+        ])
+    $ drop ix eSetups
+
+printBanner :: ExperimentConfig a => a -> Int -> [ExperimentSetup] -> Action ()
+printBanner ecf ix eSetups = do
+    let nrOfExperiments = length eSetups
+    let statusStr = unwords
+            [ "|=============["
+            , "Running experiment:"
+            , experimentTarget ecf
+            , concat ["[", show (ix + 1), "/", show nrOfExperiments, "]"]
+            , "]=============|"
+            ]
+    let upBannerStr = "/" ++ replicate (length statusStr - 2) '-' ++ "\\"
+    let doBannerStr = "\\" ++ replicate (length statusStr - 2) '-' ++ "/"
+    putLoud upBannerStr
+    putLoud statusStr
+    putLoud doBannerStr
+
+    putLoud $ unwords
+        [ "Approximately"
+        , toClockString $ totalRuntimeRemaining ix eSetups
+        , "remaining."
+        ]
+
+runOneExperiment :: ExperimentSetup -> Action ()
+runOneExperiment es@ExperimentSetup{..} = do
+    -- Get the clients configs set up
+    setupClientConfigs clientSetups
+
+    -- Start the servers
+    startServersOn serverSetups
+
+    -- Wait for the servers to get started
+    wait serverStartTime
+
+    -- Start the middleware
+    middlePh <- startMiddleOn middleSetup
+
+    -- Wait for the middleware to get started
+    wait middleStartTime
+
+    -- Start the clients
+    clientPhs <- startClientsOn clientSetups
+
+    -- Wait for the experiment to finish
+    actionFinally (waitNicely $ toSeconds esRuntime) (return ())
+
+    putLoud "Done waiting for the runtime, now just waiting for the clients to finish."
+
+    -- Wait for memaslap to stop running. (This should not be long now, but who knows.)
+    waitForClients clientPhs
+
+    -- Shut down the middleware
+    shutdownMiddle middleSetup
+    void $ liftIO $ waitForProcess middlePh
+
+    -- Shut down the servers
+    shutdownServers serverSetups
+
+    -- Copy the middleware logs back
+    copyMiddleTraceBack middleSetup
+
+    -- Shut down the memaslap instances
+    shutdownClients clientSetups
+
+    -- Copy the client logs back
+    copyClientLogsBack clientSetups
+
+    -- Prepare analysis files for the client logs.
+    makeClientResultFiles clientSetups
+
+    -- Write the setup file
+    writeJSON esSetupFile es
+
+    -- Make the result record
+    let results = ExperimentResultSummary
+            { erClientResultsFiles = map cResultsFile clientSetups
+            , erMiddleResultsFile = mLocalTrace middleSetup
+            , erSetupFile = esSetupFile
+            }
+
+    -- Write the result record to file
+    writeJSON esResultsSummaryFile results
 
 experimentResultsDir
     :: ExperimentConfig a

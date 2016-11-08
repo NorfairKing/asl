@@ -36,6 +36,7 @@ localMaximumThroughput = remoteMaximumThroughput
     { hlConfig = (hlConfig remoteMaximumThroughput)
         { target = localMaximumThroughputRule
         , location = Local
+        , resultsPersistence = Volatile
         }
     }
 
@@ -49,11 +50,11 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         , nrServers = 2
         , nrClients = 1
         , location = Remote
-        , resultsPersistence = Persistent
+        , resultsPersistence = Volatile
         }
     , threadConcTups = do
         middleThreads <- [1]
-        concurrencies <- [8]
+        concurrencies <- [8, 16]
         return (middleThreads, concurrencies)
     , mtRuntime = Seconds 10
     }
