@@ -16,6 +16,7 @@ import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Memaslap
+import           AslBuild.Reports.Common
 import           AslBuild.Utils
 
 stabilityTraceAnalysisScript :: FilePath
@@ -61,7 +62,7 @@ remoteStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
 remoteStabilityTraceAnalysis = StabilityTraceAnalysisCfg
     { experiment = remoteStabilityTrace
     , filePrefix = "remote-stability-trace"
-    , analysisOutDir = report1PlotsDir
+    , analysisOutDir = reportPlotsDir 1
     }
 
 allStabilityTraceAnalyses :: [StabilityTraceAnalysisCfg]

@@ -11,6 +11,7 @@ import           AslBuild.Analysis.BuildR
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiments.Baseline
+import           AslBuild.Reports.Common
 
 baselineAnalysisScript :: FilePath
 baselineAnalysisScript = analysisDir </> "analyze_baseline.r"
@@ -50,7 +51,7 @@ remoteBaselineAnalysis :: BaselineAnalysisCfg
 remoteBaselineAnalysis = BaselineAnalysisCfg
     { experiment = remoteBaselineExperiment
     , filePrefix = "remote-baseline-experiment"
-    , analysisOutDir = report1PlotsDir
+    , analysisOutDir = reportPlotsDir 1
     }
 
 smallRemoteBaselineAnalysis :: BaselineAnalysisCfg
