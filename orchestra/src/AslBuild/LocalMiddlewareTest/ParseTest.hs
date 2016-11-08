@@ -114,14 +114,6 @@ localMiddlewareParseTestRules =
                         [ "On output: " ++ show output
                         , "the middleware sent " ++ show res2 ++ " to the client instead."
                         ]
-                putLoud $ unwords
-                    [ "Successfully handled"
-                    , show reqKind
-                    , "request"
-                    , show input
-                    , "with expected response"
-                    , show output
-                    ]
 
         let shouldErrorWith :: ByteString -> ByteString -> Action ()
             shouldErrorWith input output = do

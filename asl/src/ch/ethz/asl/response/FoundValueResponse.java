@@ -16,7 +16,8 @@ public class FoundValueResponse implements Response {
 
   @Override
   public ByteBuffer render() {
-    ByteBuffer bbuf =
+    ByteBuffer bbuf;
+    bbuf =
         ByteBuffer.allocate(
             KEYWORD_VALUE.length
                 + SPACE.length
@@ -43,6 +44,11 @@ public class FoundValueResponse implements Response {
     bbuf.put(KEYWORD_END);
     bbuf.put(NEWLINE);
     return bbuf;
+  }
+
+  @Override
+  public boolean isWriteFailure() {
+    return false;
   }
 
   @Override

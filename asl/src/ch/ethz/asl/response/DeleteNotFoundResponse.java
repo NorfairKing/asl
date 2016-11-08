@@ -18,6 +18,11 @@ public class DeleteNotFoundResponse implements Response {
   }
 
   @Override
+  public boolean isWriteFailure() {
+    return false;
+  }
+
+  @Override
   public String toString() {
     return new String(render().array());
   }

@@ -4,4 +4,6 @@ import java.nio.ByteBuffer;
 
 public interface Response {
   ByteBuffer render();
+
+  boolean isWriteFailure();
 }

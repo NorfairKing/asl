@@ -16,6 +16,11 @@ public class NotStoredResponse implements Response {
   }
 
   @Override
+  public boolean isWriteFailure() {
+    return true;
+  }
+
+  @Override
   public String toString() {
     return new String(render().array());
   }

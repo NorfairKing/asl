@@ -77,6 +77,12 @@ public class ResponseTest {
   }
 
   @Test
+  public void parseServerErrorDone() {
+    String s = "SERVER_ERROR hi\r\n";
+    assertThat(parseResponse(wrappingByteBuffer(s))).isEqualTo(new ServerErrorResponse("hi"));
+  }
+
+  @Test
   public void parseErrorResponseDone() {
     String s = "ERROR\r\n";
     assertThat(parseResponse(wrappingByteBuffer(s))).isEqualTo(new ErrorResponse());

@@ -30,9 +30,10 @@ data ReplicationFailureTestSetup
     , sPortBase :: Int
     , nrServers :: Int
     , err       :: ServerError
-    }
+    } deriving (Show, Eq)
 
 data ServerError = NOT_STORED | SERVER_ERROR
+    deriving (Show, Eq)
 
 setups :: [ReplicationFailureTestSetup]
 setups = do
@@ -111,7 +112,6 @@ localMiddlewareReplicationFailureTestRules =
                     let req = "set " <> key <> " 0 0 " <> SB8.pack (show $ SB.length dat) <> "\r\n" <> dat <> "\r\n"
 
                     forM_ sixs $ \failingIx -> do
-
                         liftIO $ sendAll csock req
                         forM_ sixs $ \receivingIx -> do
                             let sconn = sconns !! receivingIx
@@ -148,13 +148,6 @@ localMiddlewareReplicationFailureTestRules =
                                 [ "On error: " ++ show errdat
                                 , "the middleware sent " ++ show res2 ++ " to the client instead."
                                 ]
-                        putLoud $ unwords
-                            [ "Successfully handled request"
-                            , show req
-                            , "with expected response"
-                            , show errdat
-                            ]
-
 
             let tests = do
                     let testups = do

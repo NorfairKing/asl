@@ -16,6 +16,11 @@ public class ErrorResponse implements Response {
     return res;
   }
 
+  @Override
+  public boolean isWriteFailure() {
+    return true;
+  }
+
   private static final byte[] ERROR_STR = "ERROR".getBytes();
 
   @Override
