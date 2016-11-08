@@ -71,6 +71,12 @@ public class ResponseTest {
   }
 
   @Test
+  public void parseNotStoredDone() {
+    String s = "NOT_STORED\r\n";
+    assertThat(parseResponse(wrappingByteBuffer(s))).isEqualTo(new NotStoredResponse());
+  }
+
+  @Test
   public void parseErrorResponseDone() {
     String s = "ERROR\r\n";
     assertThat(parseResponse(wrappingByteBuffer(s))).isEqualTo(new ErrorResponse());
