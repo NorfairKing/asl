@@ -10,10 +10,10 @@ import           AslBuild.Experiments.MaximumThroughput.Types
 import           AslBuild.Types
 
 maximumThroughputRules :: Rules ()
-maximumThroughputRules = mapM_ generateTargetFor allMaximumThroughputAnalyses
+maximumThroughputRules = mapM_ generateTargetFor allMaximumThroughputExperiments
 
-allMaximumThroughputAnalyses :: [MaximumThroughputCfg]
-allMaximumThroughputAnalyses =
+allMaximumThroughputExperiments :: [MaximumThroughputCfg]
+allMaximumThroughputExperiments =
     [ smallLocalMaximumThroughput
     , localMaximumThroughput
     , smallRemoteMaximumThroughput
@@ -51,7 +51,7 @@ smallRemoteMaximumThroughput :: MaximumThroughputCfg
 smallRemoteMaximumThroughput = MaximumThroughputCfg
     { hlConfig = HighLevelConfig
         { target = smallRemoteMaximumThroughputRule
-        , nrServers = 2
+        , nrServers = 1
         , nrClients = 1
         , location = Remote
         , resultsPersistence = Volatile
@@ -77,8 +77,8 @@ remoteMaximumThroughput = MaximumThroughputCfg
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        middleThreads <- [4, 8 .. 20]
-        concurrencies <- [25, 50 .. 400]
+        middleThreads <- [4]
+        concurrencies <- [25, 50 .. 800]
         return (middleThreads, concurrencies)
     , mtRuntime = Minutes 1
     }

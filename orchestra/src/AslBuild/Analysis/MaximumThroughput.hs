@@ -28,8 +28,7 @@ maximumThroughputAnalysisRule = "maximum-throughput-analysis"
 
 maximumThroughputAnalysisRules :: Rules ()
 maximumThroughputAnalysisRules = do
-    rs <- catMaybes <$> mapM rulesForMaximumThroughputExperiment allMaximumThroughputAnalyses
-
+    rs <- catMaybes <$> mapM rulesForMaximumThroughputExperiment allMaximumThroughputExperiments
     maximumThroughputAnalysisRule ~> need rs
 
 maximumThroughputRuleFor :: MaximumThroughputCfg -> String

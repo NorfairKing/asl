@@ -10,11 +10,15 @@ import           AslBuild.Experiments.WriteEffect.Types
 import           AslBuild.Types
 
 writeEffectRules :: Rules ()
-writeEffectRules = do
-    generateTargetFor smallLocalWriteEffect
-    generateTargetFor localWriteEffect
-    generateTargetFor smallRemoteWriteEffect
-    generateTargetFor remoteWriteEffect
+writeEffectRules = mapM_ generateTargetFor allWriteEffectExperiments
+
+allWriteEffectExperiments :: [WriteEffectCfg]
+allWriteEffectExperiments =
+    [ smallLocalWriteEffect
+    , localWriteEffect
+    , smallRemoteWriteEffect
+    , remoteWriteEffect
+    ]
 
 smallLocalWriteEffectRule :: String
 smallLocalWriteEffectRule = "small-local-write-effect"

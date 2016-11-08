@@ -12,10 +12,10 @@ import           AslBuild.Types
 
 stabilityTraceRules :: Rules ()
 stabilityTraceRules
-    = mapM_ generateTargetFor stabilityTracesExperiments
+    = mapM_ generateTargetFor allStabilityTraceExperiments
 
-stabilityTracesExperiments :: [StabilityTraceCfg]
-stabilityTracesExperiments =
+allStabilityTraceExperiments :: [StabilityTraceCfg]
+allStabilityTraceExperiments =
     [ smallLocalStabilityTrace
     , localStabilityTrace
     , smallRemoteStabilityTrace

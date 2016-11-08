@@ -10,11 +10,15 @@ import           AslBuild.Experiments.ReplicationEffect.Types
 import           AslBuild.Types
 
 replicationEffectRules :: Rules ()
-replicationEffectRules = do
-    generateTargetFor smallLocalReplicationEffect
-    generateTargetFor localReplicationEffect
-    generateTargetFor smallRemoteReplicationEffect
-    generateTargetFor remoteReplicationEffect
+replicationEffectRules = mapM_ generateTargetFor allReplicationEffectExperiments
+
+allReplicationEffectExperiments :: [ReplicationEffectCfg]
+allReplicationEffectExperiments =
+    [ smallLocalReplicationEffect
+    , localReplicationEffect
+    , smallRemoteReplicationEffect
+    , remoteReplicationEffect
+    ]
 
 smallLocalReplicationEffectRule :: String
 smallLocalReplicationEffectRule = "small-local-replication-effect"

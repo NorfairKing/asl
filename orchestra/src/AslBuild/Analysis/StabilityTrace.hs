@@ -37,7 +37,7 @@ stabilityTracePrefixFor stc = experimentTarget stc ++ "-stability-trace-analysis
 
 stabilityTraceAnalysisRules :: Rules ()
 stabilityTraceAnalysisRules = do
-    ts <- catMaybes <$> mapM stabilityTraceAnalysisRulesFor stabilityTracesExperiments
+    ts <- catMaybes <$> mapM stabilityTraceAnalysisRulesFor allStabilityTraceExperiments
     stabilityTraceAnalysisRule ~> need ts
 
 stabilityTraceAnalysisRuleFor :: StabilityTraceCfg -> String
