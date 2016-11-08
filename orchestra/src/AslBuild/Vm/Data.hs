@@ -39,11 +39,11 @@ vmDataRules = do
 
     vmDataFile %> \_ -> do
         avmData <- getAzureVmData
-        writeJSON vmDataFile $ map azureUnpack avmData
+        writeJSON vmDataFile $ azureUnpack avmData
 
     clearVmDataRule ~> clearVmData
 
-getAzureVmData :: Action [VmDataInAzureFormat]
+getAzureVmData :: Action AzureVmData
 getAzureVmData = do
     need [azureVmJsonFile]
     readJSON azureVmJsonFile
@@ -84,4 +84,4 @@ clientOrServerElligible :: VmData -> Bool
 clientOrServerElligible VmData{..} = vmType == "Basic_A2"
 
 clearVmData :: Action ()
-clearVmData = removeFilesAfter "" [azureVmJsonFile, vmDataFile]
+clearVmData = cmd "rm" "-f" azureVmJsonFile vmDataFile

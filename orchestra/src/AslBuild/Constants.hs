@@ -9,6 +9,9 @@ import           System.IO.Unsafe
 myNetzh :: String
 myNetzh = "tomk"
 
+myUsername :: String
+myUsername = "syd"
+
 -- Constants
 asl :: String
 asl = "asl"

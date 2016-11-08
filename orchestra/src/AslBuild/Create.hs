@@ -55,7 +55,7 @@ createRules = do
                     unit $ cmd (FileStdout fileOut) sedCmd
                         [intercalate ";"
                             [ "s/your_public_SSH_key/" ++ escape pubkey ++ "/g"
-                            , "s/your_nethz/" ++ escape myNetzh ++ "/g"
+                            , "s/your_nethz/" ++ escape myUsername ++ "/g"
                             , "s/defaultValue\\\":\\ null/defaultValue\\\":\\ \\\"pass\\\"/g"
                             ]]
                         fileIn

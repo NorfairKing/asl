@@ -129,10 +129,13 @@ postNub :: Eq a => ([a] -> b) -> [a] -> b
 postNub func ls = func $ nub ls
 
 clearVms :: [RemoteLogin] -> Action ()
-clearVms = postNub $ \rls -> do
-    phPar rls $ \rl -> scriptAt rl $ script ["killall memaslap || true"]
-    phPar rls $ \rl -> scriptAt rl $ script ["killall java || true"]
-    phPar rls $ \rl -> scriptAt rl $ script ["killall memcached || true"]
+clearVms = postNub $ \rls -> phPar rls $ \rl ->
+    scriptAt rl $ script
+        [ "killall memaslap"
+        , "killall java"
+        , "killall memcached"
+        , "true"
+        ]
 
 provisionVmsGlobalPackages :: [RemoteLogin] -> Action ()
 provisionVmsGlobalPackages = postNub $ \rls -> do
