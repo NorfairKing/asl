@@ -188,7 +188,7 @@ experimentLocalTmpDir a = tmpDir </> experimentTarget a
 experimentRemoteTmpDir
     :: ExperimentConfig a
     => a -> FilePath
-experimentRemoteTmpDir a = "/tmp" </> experimentTarget a
+experimentRemoteTmpDir a = remoteTmpDir </> experimentTarget a
 
 resultSummariesLocationFile :: ExperimentConfig a => a -> FilePath
 resultSummariesLocationFile cfg

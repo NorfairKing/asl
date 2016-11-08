@@ -110,6 +110,9 @@ outDir = aslCacheDir </> out
 tmpDir :: FilePath
 tmpDir = aslCacheDir </> tmp
 
+remoteTmpDir :: FilePath
+remoteTmpDir = "/tmp/asl" </> tmp
+
 assignmentDir :: FilePath
 assignmentDir = aslDir </> "assignment"
 
