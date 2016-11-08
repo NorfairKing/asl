@@ -39,7 +39,8 @@ import           AslBuild.Provision
 import           AslBuild.Server
 import           AslBuild.Types
 import           AslBuild.Utils
-import           AslBuild.Vm
+import           AslBuild.Vm.Data
+import           AslBuild.Vm.Types
 
 generateTargetFor
     :: ExperimentConfig a

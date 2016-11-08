@@ -15,7 +15,8 @@ import           AslBuild.Jar
 import           AslBuild.Orc
 import           AslBuild.Types
 import           AslBuild.Utils
-import           AslBuild.Vm
+import           AslBuild.Vm.Data
+import           AslBuild.Vm.Types
 
 provisionRules :: Rules ()
 provisionRules = do
@@ -105,12 +106,12 @@ provisionVmsMiddlewareRule = "provision-vms-middleware"
 
 provisionVmsRules :: Rules ()
 provisionVmsRules = do
-    provisionVmsRule ~> (getAllVmsToProvision >>= provisionVms)
-    provisionVmsGlobalPackagesRule ~> (getAllVmsToProvision >>= provisionVmsGlobalPackages)
-    provisionVmsOrcRule ~> (getAllVmsToProvision >>= provisionVmsOrc)
-    provisionVmsMemcachedRule ~> (getAllVmsToProvision >>= provisionVmsMemcached)
-    provisionVmsMemaslapRule ~> (getAllVmsToProvision >>= provisionVmsMemaslap)
-    provisionVmsMiddlewareRule ~> (getAllVmsToProvision >>= provisionVmsMiddleware)
+    provisionVmsRule ~> (getVmLogins >>= provisionVms)
+    provisionVmsGlobalPackagesRule ~> (getVmLogins >>= provisionVmsGlobalPackages)
+    provisionVmsOrcRule ~> (getVmLogins >>= provisionVmsOrc)
+    provisionVmsMemcachedRule ~> (getVmLogins >>= provisionVmsMemcached)
+    provisionVmsMemaslapRule ~> (getVmLogins >>= provisionVmsMemaslap)
+    provisionVmsMiddlewareRule ~> (getVmLogins >>= provisionVmsMiddleware)
 
 provisionVmsFromData :: [VmData] -> Action ()
 provisionVmsFromData = provisionVms . nub . map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmPublicIp)
@@ -161,16 +162,10 @@ orcRemotely rl target = overSsh rl $ unwords [orcBin, "build", target]
 
 eachVm :: (RemoteLogin -> Action ProcessHandle) -> Action ()
 eachVm func = do
-    vms <- getAllVmsToProvision
+    vms <- getVmLogins
     phPar vms func
 
 eachVm' :: (RemoteLogin -> Action ()) -> Action ()
 eachVm' func = do
-    vms <- getAllVmsToProvision
+    vms <- getVmLogins
     forM_ vms func
-
-getAllVmsToProvision :: Action [RemoteLogin]
-getAllVmsToProvision = do
-    vms <- getRawVmData
-    return $ map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmFullUrl) vms
-
