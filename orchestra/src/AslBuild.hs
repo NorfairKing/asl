@@ -8,7 +8,6 @@ import           System.Environment (getArgs, withArgs)
 import           AslBuild.Build
 import           AslBuild.Clean
 import           AslBuild.OptParse
-import           AslBuild.Travis
 
 aslBuild :: IO ()
 aslBuild = do
@@ -24,4 +23,3 @@ aslBuild = do
             case command of
                 DispatchBuild target -> buildTarget target
                 DispatchClean -> buildTarget cleanRule
-                DispatchTravis -> buildTarget travisRule

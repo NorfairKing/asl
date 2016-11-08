@@ -14,13 +14,7 @@ import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
-import           AslBuild.LocalMiddlewareTest.MultiClientTest
-import           AslBuild.LocalMiddlewareTest.MultipleClientsTest
-import           AslBuild.LocalMiddlewareTest.MultipleServersTest
-import           AslBuild.LocalMiddlewareTest.ParseTest
-import           AslBuild.LocalMiddlewareTest.ReplicationFailureTest
-import           AslBuild.LocalMiddlewareTest.ReplicationTest
-import           AslBuild.LocalMiddlewareTest.SimpleTest
+import           AslBuild.LocalMiddlewareTests
 import           AslBuild.Orc
 import           AslBuild.Reports
 import           AslBuild.Test
@@ -41,16 +35,10 @@ preCommitRules = do
         need [memaslapBin]
 
         need [codeHealthRule]
-        need [testRule]
 
-        need [localLogTestRule]
-        need [localMiddlewareParseTestRule]
-        need [localMiddlewareMultiClientTestRule]
-        need [localMiddlewareReplicationTestRule]
-        need [localMiddlewareReplicationFailureTestRule]
-        need [localMiddlewareSimpleTestRule]
-        need [localMiddlewareMultipleServersTestRule]
-        need [localMiddlewareMultipleClientsTestRule]
+        need [testRule, localLogTestRule]
+
+        need [localMiddlewareTestsRule]
 
         need [smallLocalBaselineExperimentRule]
         need [smallLocalStabilityTraceRule]

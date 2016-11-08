@@ -48,14 +48,14 @@ public class RequestPacket {
   }
 
   public void respond(Response res) throws InterruptedException, ExecutionException, IOException {
-    if (responseToSend == null || res.isWriteFailure()) {
+    if (res.isWriteFailure()) {
       responseToSend = res;
     }
     if (replicationCounter.decrementAndGet() > 0) {
       return;
     }
     setReplied();
-    RequestPacket.respond(this.chan, responseToSend);
+    RequestPacket.respond(this.chan, responseToSend == null ? res : responseToSend);
     setResponded();
     instrumentor.finaliseRequest(this);
   }

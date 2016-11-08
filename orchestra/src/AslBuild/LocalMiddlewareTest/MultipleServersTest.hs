@@ -21,7 +21,7 @@ setups = do
 
     nrServers <- [2, 3, 5, 10]
     let serverFlags = do
-            port <- take nrServers [11211 ..]
+            port <- take nrServers [11250 ..]
             return MemcachedFlags
                 { memcachedPort = port
                 , memcachedAsDaemon = False
@@ -29,7 +29,7 @@ setups = do
 
     let mwFlags = MiddlewareFlags
             { mwIp = localhostIp
-            , mwPort = 11210
+            , mwPort = 11261
             , mwNrThreads = 1
             , mwReplicationFactor = 1
             , mwServers = map (RemoteServerUrl localhostIp . memcachedPort) serverFlags

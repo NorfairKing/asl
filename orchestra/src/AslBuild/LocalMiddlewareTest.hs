@@ -19,7 +19,6 @@ import           AslBuild.LocalMiddlewareTest.Types
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.Middleware
-import           AslBuild.Provision
 import           AslBuild.Utils
 
 runLocalMiddlewareTests :: [LocalMiddlewareTestSetup] -> Action ()
@@ -34,7 +33,7 @@ runLocalMiddlewareTests setups = forM_ (indexed setups) $ \(ix, setup) -> do
 
 runLocalMiddlewareTest :: LocalMiddlewareTestSetup -> Action ()
 runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
-    need [provisionLocalhostRule]
+    need [memaslapBin, outputJarFile, memcachedBin]
 
     forM_ clientSetups $ \mss ->
         writeMemaslapConfig (msConfigFile $ msFlags mss) $ msConfig mss

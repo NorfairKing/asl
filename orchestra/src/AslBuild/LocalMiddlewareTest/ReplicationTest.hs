@@ -37,13 +37,13 @@ data ReplicationTestSetup
 setups :: [ReplicationTestSetup]
 setups = do
     nss <- takeWhile (<= 8) $ iterate (*2) 1
-    let ss = flip map [1.. nss] $ \ix -> MemcachedFlags
-            { memcachedPort = 11213 + ix
+    let ss = flip map [0 .. (nss - 1)] $ \ix -> MemcachedFlags
+            { memcachedPort = 11262 + ix
             , memcachedAsDaemon = False
             }
     return ReplicationTestSetup
         { cPortOffset = 10000
-        , mPort = 11212
+        , mPort = 11271
         , servers = ss
         }
 

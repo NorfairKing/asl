@@ -37,9 +37,9 @@ setups :: [MulticlientTestSetup]
 setups = do
     ncs <- takeWhile (<= 8) $ iterate (*2) 1
     return MulticlientTestSetup
-        { sPort = 11211
-        , mPort = 11212
-        , cPortOffset = 11213
+        { sPort = 11237
+        , mPort = 11238
+        , cPortOffset = 11239
         , nrClients = ncs
         }
 
@@ -79,7 +79,7 @@ localMiddlewareMultiClientTestRules =
 
             waitMs 250
 
-            csocks <- liftIO $ forM [1 .. nrClients] $ \i -> do
+            csocks <- liftIO $ forM [0 .. (nrClients - 1)] $ \i -> do
                 let localhostAddr = tupleToHostAddress (127, 0, 0, 1)
                 -- Create client socket
                 csock <- socket AF_INET Stream defaultProtocol

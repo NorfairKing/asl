@@ -10,14 +10,7 @@ import           AslBuild.Create
 import           AslBuild.Experiments
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
-import           AslBuild.LocalMiddlewareTest.MultiClientTest
-import           AslBuild.LocalMiddlewareTest.MultipleClientsTest
-import           AslBuild.LocalMiddlewareTest.MultipleServersTest
-import           AslBuild.LocalMiddlewareTest.ParseTest
-import           AslBuild.LocalMiddlewareTest.ReplicationFailureTest
-import           AslBuild.LocalMiddlewareTest.ReplicationTest
-import           AslBuild.LocalMiddlewareTest.SimpleTest
-import           AslBuild.LocalMiddlewareTest.ThoroughTest
+import           AslBuild.LocalMiddlewareTests
 import           AslBuild.Orc
 import           AslBuild.PreCommit
 import           AslBuild.Provision
@@ -25,7 +18,6 @@ import           AslBuild.Reports
 import           AslBuild.RunDebug
 import           AslBuild.Ssh
 import           AslBuild.Test
-import           AslBuild.Travis
 import           AslBuild.VisualVm
 import           AslBuild.Vm
 
@@ -46,14 +38,7 @@ theShake  = do
     reportRules
     testRules
     localLogTestRules
-    localMiddlewareMultipleClientsTestRules
-    localMiddlewareMultipleServersTestRules
-    localMiddlewareParseTestRules
-    localMiddlewareMultiClientTestRules
-    localMiddlewareReplicationTestRules
-    localMiddlewareReplicationFailureTestRules
-    localMiddlewareSimpleTestRules
-    localMiddlewareThoroughTestRules
+    localMiddlewareTestRules
     experimentRules
     visualVmRules
     runDebugRules
@@ -64,7 +49,6 @@ theShake  = do
     vmRules
     cleanRules
     preCommitRules
-    travisRules
 
     allRule ~> need
         [ commithashRule

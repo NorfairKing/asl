@@ -19,7 +19,6 @@ type Arguments = (Command, Flags)
 data Command
     = CommandBuild String -- Target
     | CommandClean
-    | CommandTravis
     deriving (Show, Eq)
 
 data Experiment
@@ -56,7 +55,6 @@ parseCommand :: Parser Command
 parseCommand = hsubparser $ mconcat
     [ command "build"       parseBuild
     , command "clean"       parseClean
-    , command "travis"      parseTravis
     ]
 
 parseBuild :: ParserInfo Command
@@ -74,19 +72,11 @@ parseClean = info parser modifier
     modifier = fullDesc
             <> progDesc "Clean up"
 
-parseTravis :: ParserInfo Command
-parseTravis = info parser modifier
-  where
-    parser = pure CommandTravis
-    modifier = fullDesc
-            <> progDesc "Run continuous integration"
-
 type Instructions = (Dispatch, Settings)
 
 data Dispatch
     = DispatchBuild String
     | DispatchClean
-    | DispatchTravis
     deriving (Show, Eq)
 
 data Settings = Settings
@@ -121,6 +111,5 @@ combineToInstructions c _ _ = do
     let d = case c of
             CommandBuild targ -> DispatchBuild targ
             CommandClean      -> DispatchClean
-            CommandTravis     -> DispatchTravis
     return (d, sets)
 

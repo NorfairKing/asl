@@ -20,7 +20,6 @@ import           Development.Shake.FilePath
 import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.Middleware
-import           AslBuild.Provision
 import           AslBuild.Types
 
 data ReplicationFailureTestSetup
@@ -40,9 +39,9 @@ setups = do
     nSers <- takeWhile (<= 8) $ iterate (*2) 2
     e <- [NOT_STORED, SERVER_ERROR]
     return ReplicationFailureTestSetup
-        { cPort = 11234
-        , mPort = 11235
-        , sPortBase = 11236
+        { cPort = 11272
+        , mPort = 11273
+        , sPortBase = 11274
         , nrServers = nSers
         , err = e
         }
@@ -53,7 +52,7 @@ localMiddlewareReplicationFailureTestRule = "local-middleware-replication-failur
 localMiddlewareReplicationFailureTestRules :: Rules ()
 localMiddlewareReplicationFailureTestRules =
     localMiddlewareReplicationFailureTestRule ~> do
-        need [provisionLocalhostRule]
+        need [outputJarFile]
 
         forM_ setups $ \ReplicationFailureTestSetup{..} -> do
 

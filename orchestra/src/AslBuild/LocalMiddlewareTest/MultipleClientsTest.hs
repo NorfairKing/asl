@@ -20,7 +20,7 @@ setups = do
     let rtime = 1
 
     let serverFlags = MemcachedFlags
-            { memcachedPort = defaultMemcachedPort
+            { memcachedPort = 11248
             , memcachedAsDaemon = False
             }
 
@@ -44,7 +44,7 @@ setups = do
 
     let mwFlags = MiddlewareFlags
             { mwIp = localhostIp
-            , mwPort = 11210
+            , mwPort = 11249
             , mwNrThreads = 1
             , mwReplicationFactor = 1
             , mwServers = [RemoteServerUrl localhostIp $ memcachedPort serverFlags]
