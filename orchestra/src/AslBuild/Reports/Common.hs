@@ -36,7 +36,7 @@ reportDir :: Int -> FilePath
 reportDir i = reportsDir </> "report" ++ show i
 
 reportName :: Int -> FilePath
-reportName i = "r" </> show i
+reportName i = "r" ++ show i
 
 reportInBuildDir :: Int -> FilePath
 reportInBuildDir i = reportDir i </> reportName i <.> pdfExt
@@ -61,6 +61,15 @@ reportGraphsDir i = reportDir i </> "graphs"
 
 reportPlotsDir :: Int -> FilePath
 reportPlotsDir i = reportDir i </> "plots"
+
+plotForReport :: FilePath -> Int -> FilePath
+plotForReport plot i = plot `replaceDirectory` reportPlotsDir i
+
+usePlotInReport :: FilePath -> Int -> Rules ()
+usePlotInReport plot i = (plot `plotForReport` i) `byCopying` plot
+
+dependOnPlotsForReport :: [FilePath] -> Int -> Action ()
+dependOnPlotsForReport plots i = need $ map (`plotForReport` i) plots
 
 report
     :: Int -- The milestone number

@@ -2,6 +2,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.StabilityTrace where
 
+import           Control.Monad
 import qualified Data.ByteString.Lazy                as LB
 import           Data.Csv
 import           Data.List
@@ -11,6 +12,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.Utils
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiment
@@ -25,108 +27,70 @@ stabilityTraceAnalysisScript = analysisDir </> "analyze_stability_trace.r"
 stabilityTraceAnalysisRule :: String
 stabilityTraceAnalysisRule = "stability-trace-analysis"
 
-data StabilityTraceAnalysisCfg
-    = StabilityTraceAnalysisCfg
-    { experiment     :: StabilityTraceCfg
-    , filePrefix     :: FilePath
-    , analysisOutDir :: FilePath
-    }
-
-plotsForStabilityTrace :: StabilityTraceAnalysisCfg -> [FilePath]
-plotsForStabilityTrace StabilityTraceAnalysisCfg{..} = do
+plotsForStabilityTrace :: StabilityTraceCfg -> [FilePath]
+plotsForStabilityTrace stc = do
     kind <- ["resp", "tps"]
-    return $ analysisOutDir </> intercalate "-" [filePrefix, kind] <.> pngExt
+    return $ analysisPlotsDir </> intercalate "-" [stabilityTracePrefixFor stc, kind] <.> pngExt
 
-smallLocalStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
-smallLocalStabilityTraceAnalysis = StabilityTraceAnalysisCfg
-    { experiment = smallLocalStabilityTrace
-    , filePrefix = "small-local-stability-trace"
-    , analysisOutDir = analysisPlotsDir
-    }
-
-localStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
-localStabilityTraceAnalysis = StabilityTraceAnalysisCfg
-    { experiment = localStabilityTrace
-    , filePrefix = "local-stability-trace"
-    , analysisOutDir = analysisPlotsDir
-    }
-
-smallRemoteStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
-smallRemoteStabilityTraceAnalysis = StabilityTraceAnalysisCfg
-    { experiment = smallRemoteStabilityTrace
-    , filePrefix = "small-remote-stability-trace"
-    , analysisOutDir = analysisPlotsDir
-    }
-
-remoteStabilityTraceAnalysis :: StabilityTraceAnalysisCfg
-remoteStabilityTraceAnalysis = StabilityTraceAnalysisCfg
-    { experiment = remoteStabilityTrace
-    , filePrefix = "remote-stability-trace"
-    , analysisOutDir = reportPlotsDir 1
-    }
-
-allStabilityTraceAnalyses :: [StabilityTraceAnalysisCfg]
-allStabilityTraceAnalyses =
-    [ smallLocalStabilityTraceAnalysis
-    , localStabilityTraceAnalysis
-    , smallRemoteStabilityTraceAnalysis
-    , remoteStabilityTraceAnalysis
-    ]
-
-allStabilityTracePlots :: [FilePath]
-allStabilityTracePlots = concatMap plotsForStabilityTrace allStabilityTraceAnalyses
+stabilityTracePrefixFor :: StabilityTraceCfg -> FilePath
+stabilityTracePrefixFor stc = experimentTarget stc ++ "-stability-trace-analysis"
 
 stabilityTraceAnalysisRules :: Rules ()
 stabilityTraceAnalysisRules = do
-    ts <- catMaybes <$> mapM stabilityTraceAnalysisRulesFor allStabilityTraceAnalyses
+    ts <- catMaybes <$> mapM stabilityTraceAnalysisRulesFor stabilityTracesExperiments
     stabilityTraceAnalysisRule ~> need ts
 
-stabilityTraceAnalysisRuleFor :: StabilityTraceAnalysisCfg -> String
-stabilityTraceAnalysisRuleFor StabilityTraceAnalysisCfg{..} =
-    experimentTarget experiment ++ "-analysis"
+stabilityTraceAnalysisRuleFor :: StabilityTraceCfg -> String
+stabilityTraceAnalysisRuleFor stc =
+    experimentTarget stc ++ "-analysis"
 
-stabilityTraceAnalysisRulesFor :: StabilityTraceAnalysisCfg -> Rules (Maybe String)
-stabilityTraceAnalysisRulesFor bac@StabilityTraceAnalysisCfg{..} = do
-    let summaryLocationsFile = resultSummariesLocationFile experiment
-    onlyIfFileExists summaryLocationsFile $ do
-        let simpleCsvFile = tmpDir </> experimentTarget experiment </> "simple.csv"
-        simpleCsvFile %> \_ -> do
-            -- Don't depend on the summary locations file if it exists
-            needsToExist summaryLocationsFile
+useStabilityTracePlotsInReport :: StabilityTraceCfg -> Int -> Rules ()
+useStabilityTracePlotsInReport stc i = forM_ (plotsForStabilityTrace stc) (`usePlotInReport` i)
 
-            [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
-            ExperimentResultSummary{..} <- readResultsSummary summaryFile
+dependOnStabilityTracePlotsForReport :: StabilityTraceCfg -> Int -> Action ()
+dependOnStabilityTracePlotsForReport stc = dependOnPlotsForReport $ plotsForStabilityTrace stc
 
-            putLoud $ init $ unlines $ "Reading logfiles:" : erClientResultsFiles
-            logs <- forP erClientResultsFiles readJSON
+stabilityTraceAnalysisRulesFor :: StabilityTraceCfg -> Rules (Maybe String)
+stabilityTraceAnalysisRulesFor stc = onlyIfResultsExist stc $ do
+    let summaryLocationsFile = resultSummariesLocationFile stc
+    let simpleCsvFile = experimentAnalysisDir stc </> "simple.csv"
+    simpleCsvFile %> \_ -> do
+        -- Don't depend on the summary locations file if it exists
+        needsToExist summaryLocationsFile
 
-            putLoud "Converting logfiles to a simple CSV file."
-            let statistics :: ClientResults -> [Statistics]
-                statistics = map (periodStats . bothStats) . triples . crLog
-            let tpsTuples :: ClientResults -> [(Int, Statistics)]
-                tpsTuples = zip [1..] . statistics
-            let tupsList :: [(Int, [(Int, Statistics)])]
-                tupsList = zip [1..] $ map tpsTuples logs
-            let withClientSimplePoints :: [SimplifiedPoint]
-                withClientSimplePoints = concatMap (\(client, simplePoints) -> map (uncurry (toSimplePoint client)) simplePoints) tupsList
-            let enc = simpleCsv withClientSimplePoints
-            liftIO $ LB.writeFile simpleCsvFile enc
+        [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
+        ExperimentResultSummary{..} <- readResultsSummary summaryFile
 
-        let plotsForThisTrace = plotsForStabilityTrace bac
-        plotsForThisTrace &%> \_ -> do
-            need [simpleCsvFile, stabilityTraceAnalysisScript]
+        putLoud $ init $ unlines $ "Reading logfiles:" : erClientResultsFiles
+        logs <- forP erClientResultsFiles readJSON
 
-            need [rBin]
-            needRLibs ["pkgmaker"]
-            needRLibs ["caTools"]
+        putLoud "Converting logfiles to a simple CSV file."
+        let statistics :: ClientResults -> [Statistics]
+            statistics = map (periodStats . bothStats) . triples . crLog
+        let tpsTuples :: ClientResults -> [(Int, Statistics)]
+            tpsTuples = zip [1..] . statistics
+        let tupsList :: [(Int, [(Int, Statistics)])]
+            tupsList = zip [1..] $ map tpsTuples logs
+        let withClientSimplePoints :: [SimplifiedPoint]
+            withClientSimplePoints = concatMap (\(client, simplePoints) -> map (uncurry (toSimplePoint client)) simplePoints) tupsList
+        let enc = simpleCsv withClientSimplePoints
+        liftIO $ LB.writeFile simpleCsvFile enc
 
-            unit $ rScript stabilityTraceAnalysisScript simpleCsvFile filePrefix analysisOutDir
+    let plotsForThisTrace = plotsForStabilityTrace stc
+    plotsForThisTrace &%> \_ -> do
+        need [simpleCsvFile, stabilityTraceAnalysisScript]
+
+        need [rBin]
+        needRLibs ["pkgmaker"]
+        needRLibs ["caTools"]
+
+        rScript stabilityTraceAnalysisScript simpleCsvFile (stabilityTracePrefixFor stc) analysisPlotsDir
 
 
-        let rule = stabilityTraceAnalysisRuleFor bac
-        rule ~> need plotsForThisTrace
+    let rule = stabilityTraceAnalysisRuleFor stc
+    rule ~> need plotsForThisTrace
 
-        return rule
+    return rule
 
 simpleCsv :: [SimplifiedPoint] -> LB.ByteString
 simpleCsv sps = encodeByName (header ["client", "second", "tps", "avg", "std"]) sps
@@ -158,5 +122,5 @@ instance ToNamedRecord SimplifiedPoint where
             , "std" .= sStd
             ]
 
-clientResultsDir :: StabilityTraceAnalysisCfg -> FilePath
-clientResultsDir StabilityTraceAnalysisCfg{..} = experimentTarget experiment
+-- clientResultsDir :: StabilityTraceCfg -> FilePath
+-- clientResultsDir StabilityTraceCfg{..} = experimentTarget experiment

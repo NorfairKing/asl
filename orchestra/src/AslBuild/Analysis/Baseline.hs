@@ -1,6 +1,6 @@
-{-# LANGUAGE RecordWildCards #-}
 module AslBuild.Analysis.Baseline where
 
+import           Control.Monad
 import           Data.List
 import           Data.Maybe
 
@@ -10,7 +10,7 @@ import           Development.Shake.FilePath
 import           AslBuild.Analysis.BuildR
 import           AslBuild.CommonActions
 import           AslBuild.Constants
-import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.Baseline as B
 import           AslBuild.Reports.Common
 
 baselineAnalysisScript :: FilePath
@@ -19,82 +19,47 @@ baselineAnalysisScript = analysisDir </> "analyze_baseline.r"
 baselineAnalysisRule :: String
 baselineAnalysisRule = "baseline-analysis"
 
-data BaselineAnalysisCfg
-    = BaselineAnalysisCfg
-    { experiment     :: BaselineExperimentRuleCfg
-    , filePrefix     :: FilePath
-    , analysisOutDir :: FilePath
-    }
+baselinePrefixFor :: BaselineExperimentRuleCfg -> FilePath
+baselinePrefixFor bac = B.target bac ++ "-baseline-analysis"
 
-plotsForBaseline :: BaselineAnalysisCfg -> [FilePath]
-plotsForBaseline BaselineAnalysisCfg{..} = map
-    (\f -> analysisOutDir </> intercalate "-" [filePrefix, f] <.> pngExt)
-    [ "avg"
-    , "tps"
-    ]
-
-smallLocalBaselineAnalysis :: BaselineAnalysisCfg
-smallLocalBaselineAnalysis = BaselineAnalysisCfg
-    { experiment = smallLocalBaselineExperiment
-    , filePrefix = "small-local-baseline-experiment"
-    , analysisOutDir = analysisPlotsDir
-    }
-
-localBaselineAnalysis :: BaselineAnalysisCfg
-localBaselineAnalysis = BaselineAnalysisCfg
-    { experiment = localBaselineExperiment
-    , filePrefix = "local-baseline-experiment"
-    , analysisOutDir = analysisPlotsDir
-    }
-
-remoteBaselineAnalysis :: BaselineAnalysisCfg
-remoteBaselineAnalysis = BaselineAnalysisCfg
-    { experiment = remoteBaselineExperiment
-    , filePrefix = "remote-baseline-experiment"
-    , analysisOutDir = reportPlotsDir 1
-    }
-
-smallRemoteBaselineAnalysis :: BaselineAnalysisCfg
-smallRemoteBaselineAnalysis = BaselineAnalysisCfg
-    { experiment = smallRemoteBaselineExperiment
-    , filePrefix = "small-remote-baseline-experiment"
-    , analysisOutDir = analysisPlotsDir
-    }
-
-allBaselineAnalyses :: [BaselineAnalysisCfg]
-allBaselineAnalyses =
-    [ smallLocalBaselineAnalysis
-    , localBaselineAnalysis
-    , smallRemoteBaselineAnalysis
-    , remoteBaselineAnalysis
-    ]
-
-allBaselinePlots :: [FilePath]
-allBaselinePlots = concatMap plotsForBaseline allBaselineAnalyses
+plotsForBaseline :: BaselineExperimentRuleCfg -> [FilePath]
+plotsForBaseline bac = map
+    (\f -> analysisPlotsDir </> intercalate "-" [baselinePrefixFor bac, f] <.> pngExt)
+        [ "avg"
+        , "tps"
+        ]
 
 baselineAnalysisRules :: Rules ()
 baselineAnalysisRules = do
-    ts <- catMaybes <$> mapM baselineAnalysisRulesFor allBaselineAnalyses
+    ts <- catMaybes <$> mapM baselineAnalysisRulesFor allBaselineExperiments
     baselineAnalysisRule ~> need ts
 
-baselineAnalysisRuleFor :: BaselineAnalysisCfg -> String
-baselineAnalysisRuleFor BaselineAnalysisCfg{..}
-    = target experiment ++ "-analysis"
+baselineAnalysisRuleFor :: BaselineExperimentRuleCfg -> String
+baselineAnalysisRuleFor bac
+    = B.target bac ++ "-baseline-analysis"
 
-baselineAnalysisRulesFor :: BaselineAnalysisCfg -> Rules (Maybe String)
-baselineAnalysisRulesFor bac@BaselineAnalysisCfg{..} = do
-    let results = csvOutFile experiment
+useBaselinePlotsInReport :: BaselineExperimentRuleCfg -> Int -> Rules ()
+useBaselinePlotsInReport bac i = forM_ (plotsForBaseline bac) (`usePlotInReport` i)
+
+dependOnBaselinePlotsForReport :: BaselineExperimentRuleCfg -> Int -> Action ()
+dependOnBaselinePlotsForReport bac = dependOnPlotsForReport $ plotsForBaseline bac
+
+baselineAnalysisRulesFor :: BaselineExperimentRuleCfg -> Rules (Maybe String)
+baselineAnalysisRulesFor bac = do
+    let results = csvOutFile bac
     onlyIfFileExists results $ do
         let plotsForThisBaseline = plotsForBaseline bac
         plotsForThisBaseline &%> \_ -> do
             needsToExist results
             need [baselineAnalysisScript]
 
+            let prefix = baselinePrefixFor bac
+
             need [rBin]
             needRLibs ["pkgmaker"]
             needRLibs ["igraph"]
-            unit $ rScript baselineAnalysisScript results filePrefix analysisOutDir
+            unit $ rScript baselineAnalysisScript results prefix analysisPlotsDir
 
-        let target = baselineAnalysisRuleFor bac
-        target ~> need plotsForThisBaseline
-        return target
+        let thisTarget = baselineAnalysisRuleFor bac
+        thisTarget ~> need plotsForThisBaseline
+        return thisTarget
