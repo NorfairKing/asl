@@ -5,6 +5,7 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Baseline
 import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.MaximumThroughput
 import           AslBuild.Analysis.StabilityTrace
 import           AslBuild.Analysis.TraceSlice
 import           AslBuild.Constants
@@ -25,11 +26,13 @@ analysisRules = do
     baselineAnalysisRules
     stabilityTraceAnalysisRules
     traceSliceAnalysisRules
+    maximumThroughputAnalysisRules
 
     analysisRule ~> need
         [ baselineAnalysisRule
         , stabilityTraceAnalysisRule
         , traceSliceAnalysisRule
+        , maximumThroughputAnalysisRule
         ]
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]

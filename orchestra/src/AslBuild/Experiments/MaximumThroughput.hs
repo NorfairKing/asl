@@ -10,11 +10,15 @@ import           AslBuild.Experiments.MaximumThroughput.Types
 import           AslBuild.Types
 
 maximumThroughputRules :: Rules ()
-maximumThroughputRules = do
-    generateTargetFor smallLocalMaximumThroughput
-    generateTargetFor localMaximumThroughput
-    generateTargetFor smallRemoteMaximumThroughput
-    generateTargetFor remoteMaximumThroughput
+maximumThroughputRules = mapM_ generateTargetFor allMaximumThroughputAnalyses
+
+allMaximumThroughputAnalyses :: [MaximumThroughputCfg]
+allMaximumThroughputAnalyses =
+    [ smallLocalMaximumThroughput
+    , localMaximumThroughput
+    , smallRemoteMaximumThroughput
+    , remoteMaximumThroughput
+    ]
 
 smallLocalMaximumThroughputRule :: String
 smallLocalMaximumThroughputRule = "small-local-maximum-throughput"

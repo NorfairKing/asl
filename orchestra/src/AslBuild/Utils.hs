@@ -7,6 +7,8 @@ import           Data.Aeson                 (FromJSON, ToJSON)
 import qualified Data.Aeson                 as A
 import qualified Data.Aeson.Encode.Pretty   as A
 import qualified Data.ByteString.Lazy       as LB
+import           Data.Csv                   (DefaultOrdered, ToNamedRecord)
+import qualified Data.Csv                   as CSV
 import           System.Directory           (createDirectoryIfMissing)
 
 import           Development.Shake
@@ -59,3 +61,6 @@ writeJSON file thing = liftIO $ do
 maybeFlag :: Show a => Char -> Maybe a -> [String]
 maybeFlag _ Nothing = []
 maybeFlag c (Just v) = ['-' : c : ' ' : show v]
+
+writeCSV :: (MonadIO m, DefaultOrdered a, ToNamedRecord a) => FilePath -> [a] -> m ()
+writeCSV file entries = liftIO $ LB.writeFile file $ CSV.encodeDefaultOrderedByName entries

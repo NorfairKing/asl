@@ -7,8 +7,11 @@ module AslBuild.Experiment
     , genServerSetups
     , getVmsForExperiments
     , resultSummariesLocationFile
-    , readResultsSummary
     , readResultsSummaryLocations
+    , readResultsSummary
+    , readExperimentSetup
+    , readClientResults
+    , experimentLocalTmpDir
     , module AslBuild.Experiment.Types
     ) where
 
@@ -92,11 +95,11 @@ printBanner :: ExperimentConfig a => a -> Int -> [ExperimentSetup] -> Action ()
 printBanner ecf ix eSetups = do
     let nrOfExperiments = length eSetups
     let statusStr = unwords
-            [ "|=============["
+            [ "|===["
             , "Running experiment:"
             , experimentTarget ecf
             , concat ["[", show (ix + 1), "/", show nrOfExperiments, "]"]
-            , "]=============|"
+            , "]===|"
             ]
     let upBannerStr = "/" ++ replicate (length statusStr - 2) '-' ++ "\\"
     let doBannerStr = "\\" ++ replicate (length statusStr - 2) '-' ++ "/"
@@ -343,3 +346,8 @@ readResultsSummaryLocations = readJSON
 readResultsSummary :: MonadIO m => FilePath -> m ExperimentResultSummary
 readResultsSummary = readJSON
 
+readExperimentSetup :: MonadIO m => FilePath -> m ExperimentSetup
+readExperimentSetup = readJSON
+
+readClientResults :: MonadIO m => FilePath -> m ClientResults
+readClientResults = readJSON
