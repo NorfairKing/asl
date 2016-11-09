@@ -69,7 +69,7 @@ public class ResponseParser {
             ParseProgress epp = parseLiteral(KEYWORD_SERVER_ERROR, byteBuffer, 2, offset + 2);
             return parseServerErrorResponse(byteBuffer, epp.nextoffset);
           default:
-            throw new ParseFailedException();
+            throw new ParseFailedException(byteBuffer);
         }
 
       case 'E':
@@ -84,7 +84,7 @@ public class ResponseParser {
             ParseProgress errpp = parseLiteral(KEYWORD_ERROR, byteBuffer, 2, offset + 2);
             return parseErrorResponse(byteBuffer, errpp.nextoffset);
           default:
-            throw new ParseFailedException();
+            throw new ParseFailedException(byteBuffer);
         }
       case 'D':
         ParseProgress dpp = parseLiteral(KEYWORD_DELETED, byteBuffer, 1, offset + 1);
@@ -104,10 +104,10 @@ public class ResponseParser {
             ParseProgress nspp = parseLiteral(KEYWORD_NOT_STORED, byteBuffer, iix, no);
             return parseNotStoredResponse(byteBuffer, nspp.nextoffset);
           default:
-            throw new ParseFailedException();
+            throw new ParseFailedException(byteBuffer);
         }
       default:
-        throw new ParseFailedException();
+        throw new ParseFailedException(byteBuffer);
     }
   }
 

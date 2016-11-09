@@ -13,7 +13,6 @@ minimumThroughputRules :: Rules ()
 minimumThroughputRules = do
     generateTargetFor smallLocalMinimumThroughput
     generateTargetFor localMinimumThroughput
-    generateTargetFor bigLocalMinimumThroughput
     generateTargetFor heavyLocalMinimumThroughput
     generateTargetFor smallRemoteMinimumThroughput
     generateTargetFor remoteMinimumThroughput
@@ -41,25 +40,6 @@ localMinimumThroughput = remoteMinimumThroughput
         }
     }
 
-bigLocalMinimumThroughputRule :: String
-bigLocalMinimumThroughputRule = "big-local-minimum-throughput"
-
-bigLocalMinimumThroughput :: MinimumThroughputCfg
-bigLocalMinimumThroughput = MinimumThroughputCfg
-    { hlConfig = HighLevelConfig
-        { target = bigLocalMinimumThroughputRule
-        , nrServers = 8
-        , nrClients = 32
-        , location = Local
-        , resultsPersistence = Persistent
-        }
-    , threadConcTups = do
-        middleThreads <- [1 .. 8]
-        concurrencies <- [5, 10 .. 60]
-        return (middleThreads, concurrencies)
-    , mtRuntime = Seconds 15
-    }
-
 heavyLocalMinimumThroughputRule :: String
 heavyLocalMinimumThroughputRule = "heavy-local-minimum-throughput"
 
@@ -72,7 +52,7 @@ heavyLocalMinimumThroughput = MinimumThroughputCfg
         , location = Local
         , resultsPersistence = Volatile
         }
-    , threadConcTups = [(1, 8), (1, 64)]
+    , threadConcTups = [(1, 500)]
     , mtRuntime = Seconds 30
     }
 

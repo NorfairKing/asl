@@ -104,6 +104,9 @@ provisionVmsMemaslapRule = "provision-vms-memaslap"
 provisionVmsMiddlewareRule :: String
 provisionVmsMiddlewareRule = "provision-vms-middleware"
 
+clearVmsRule :: String
+clearVmsRule = "clear-vms"
+
 provisionVmsRules :: Rules ()
 provisionVmsRules = do
     provisionVmsRule ~> (getVmLogins >>= provisionVms)
@@ -112,6 +115,8 @@ provisionVmsRules = do
     provisionVmsMemcachedRule ~> (getVmLogins >>= provisionVmsMemcached)
     provisionVmsMemaslapRule ~> (getVmLogins >>= provisionVmsMemaslap)
     provisionVmsMiddlewareRule ~> (getVmLogins >>= provisionVmsMiddleware)
+
+    clearVmsRule ~> (getVmLogins >>= clearVms)
 
 provisionVmsFromData :: [VmData] -> Action ()
 provisionVmsFromData = provisionVms . nub . map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmPublicIp)
@@ -129,8 +134,9 @@ postNub :: Eq a => ([a] -> b) -> [a] -> b
 postNub func ls = func $ nub ls
 
 clearVms :: [RemoteLogin] -> Action ()
-clearVms = postNub $ \rls -> phPar rls $ \rl ->
-    scriptAt rl $ script
+clearVms = postNub $ \rls -> parScriptAt $ map (\rl -> (rl, s)) rls
+  where
+    s = script
         [ "killall memaslap"
         , "killall java"
         , "killall memcached"

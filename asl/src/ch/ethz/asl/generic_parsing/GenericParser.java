@@ -18,7 +18,7 @@ public class GenericParser {
       }
       byte bi = byteBuffer.get(bbpos);
       if (bi != bytes[i]) {
-        throw new ParseFailedException();
+        throw new ParseFailedException(byteBuffer);
       }
       ix++;
     }

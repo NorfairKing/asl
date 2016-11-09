@@ -8,6 +8,7 @@ import ch.ethz.asl.response.response_parsing.ResponseParser;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
@@ -50,6 +51,8 @@ public class ServerWriteHandler {
     AsynchronousSocketChannel serverConnection = null;
     try {
       serverConnection = AsynchronousSocketChannel.open();
+      serverConnection.setOption(StandardSocketOptions.SO_RCVBUF, 1024 * 1024);
+      serverConnection.setOption(StandardSocketOptions.SO_SNDBUF, 1024 * 1024);
       serverConnection.connect(address).get();
     } catch (IOException | InterruptedException | ExecutionException e) {
       e.printStackTrace();

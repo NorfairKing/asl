@@ -40,7 +40,7 @@ public class RequestParser {
         ParseProgress delspp = parseLiteral(SPACE, byteBuffer, 0, delpp.nextoffset);
         return parseDeleteRequest(byteBuffer, delspp.nextoffset);
       default:
-        throw new ParseFailedException();
+        throw new ParseFailedException(byteBuffer);
     }
   }
 
