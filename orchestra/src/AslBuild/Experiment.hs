@@ -317,6 +317,7 @@ genClientSetup ecf cls middle signGlobally runtime = flip map (indexed cls) $ \(
                 , msOverwrite = 0.9
                 , msStatFreq = Just $ Seconds 1
                 , msWorkload = WorkFor runtime
+                , msWindowSize = Kilo 1
                 , msConfigFile = experimentRemoteTmpDir ecf </> sign "memaslapcfg"
                 }
             }

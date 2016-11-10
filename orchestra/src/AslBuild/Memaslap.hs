@@ -18,14 +18,15 @@ memaslapArgs MemaslapFlags{..} =
     , "--threads=" ++ show msThreads
     , "--concurrency=" ++ show msConcurrency
     , "--overwrite=" ++ show msOverwrite
-    , case msStatFreq of
-        Just statFreq -> "--stat_freq=" ++ timeUnit statFreq
-        Nothing       -> ""
+    , "--win_size=" ++ renderWindowSize msWindowSize
+    , "--cfg_cmd=" ++ msConfigFile
     , case msWorkload of
         WorkFor msTime  -> "--time=" ++ timeUnit msTime
         NrRequests reqs -> "--execute_number=" ++ show reqs
-    , "--cfg_cmd=" ++ msConfigFile
     ]
+    ++ case msStatFreq of
+        Just statFreq -> ["--stat_freq=" ++ timeUnit statFreq]
+        Nothing       -> []
 
 msTimeUnsafe :: MemaslapWorkload -> TimeUnit
 msTimeUnsafe msWorkload = case msWorkload of
@@ -54,3 +55,6 @@ defaultMemaslapConfig = MemaslapConfig
     , valueDistributions = [Distribution 128 128 1]
     , setProportion = 0.01
     }
+
+singleDist :: Int -> [Distribution]
+singleDist size = [Distribution size size 1]

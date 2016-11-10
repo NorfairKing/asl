@@ -53,8 +53,8 @@ setups = do
 
     let msSets = MemaslapSettings
             { msConfig = MemaslapConfig
-                { keysizeDistributions = [Distribution keySize keySize 1]
-                , valueDistributions = [Distribution valueSize valueSize 1]
+                { keysizeDistributions = singleDist keySize
+                , valueDistributions = singleDist valueSize
                 , setProportion = 0.1
                 }
             , msFlags = MemaslapFlags
@@ -64,6 +64,7 @@ setups = do
                 , msOverwrite = 0.5
                 , msWorkload = NrRequests 256
                 , msStatFreq = Nothing
+                , msWindowSize = Kilo 1
                 , msConfigFile = tmpDir
                     </> "local-middleware-simple-test"
                     </> "local-middleware-simple-test-memaslap-cfg-" ++ signature

@@ -50,8 +50,7 @@ smallLocalBaselineExperiment = BaselineExperimentRuleCfg
         </> "small-local-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "small-local-baseline_memaslaplog.txt"
     , maxNrClients = 2
-    , baselineExperimentsCacheFile = tmpDir </> "small-local-baseline-experiments.json"
-    , baselineLocation = BaselineLocal
+    , baselineLocation = Local
     , baselineSetup = BaseLineSetup
         { repetitions = 1
         , runtime = 2
@@ -68,8 +67,7 @@ localBaselineExperiment = BaselineExperimentRuleCfg
     , csvOutFile = resultsDir </> "local-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "local-baseline_memaslaplog.txt"
     , maxNrClients = maxNrClients remoteBaselineExperiment
-    , baselineExperimentsCacheFile = tmpDir </> "local-baseline-experiments.json"
-    , baselineLocation = BaselineLocal
+    , baselineLocation = Local
     , baselineSetup = baselineSetup remoteBaselineExperiment
     }
 
@@ -82,8 +80,7 @@ smallRemoteBaselineExperiment = BaselineExperimentRuleCfg
     , csvOutFile = resultsDir </> "small-remote-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "small-remote-baseline_memaslaplog.txt"
     , maxNrClients = 2
-    , baselineExperimentsCacheFile = tmpDir </> "small-remote-baseline-experiments.json"
-    , baselineLocation = BaselineLocal -- BaselineRemote
+    , baselineLocation = Local -- Remote
     , baselineSetup = BaseLineSetup
         { repetitions = 1
         , runtime = 5
@@ -100,8 +97,7 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
     , csvOutFile = resultsDir </> "remote-baseline-experiment-results.csv"
     , localLogfile = tmpDir </> "remote-baseline_memaslaplog.txt"
     , maxNrClients = 2
-    , baselineExperimentsCacheFile = tmpDir </> "remote-baseline-experiments.json"
-    , baselineLocation = BaselineLocal -- BaselineRemote
+    , baselineLocation = Local -- Remote
     , baselineSetup = BaseLineSetup
         { repetitions = 1 -- 5
         , runtime = 5 -- 30
@@ -117,13 +113,9 @@ rulesForGivenBaselineExperiment :: BaselineExperimentRuleCfg -> Rules ()
 rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
     target ~> need [csvOutFile]
 
-    baselineExperimentsCacheFile %> \_ -> do
-        experiments <- mkBaselineExperiments berc
-        writeJSON baselineExperimentsCacheFile experiments
-
     csvOutFile %> \_ -> do
-        need [provisionLocalhostRule, baselineExperimentsCacheFile]
-        (experiments, vmsNeeded) <- readJSON baselineExperimentsCacheFile
+        need [provisionLocalhostRule]
+        (experiments, vmsNeeded) <- mkBaselineExperiments berc
 
         provisionVmsFromData vmsNeeded
 
@@ -191,7 +183,7 @@ rulesForGivenBaselineExperiment berc@BaselineExperimentRuleCfg{..} = do
 mkBaselineExperiments :: BaselineExperimentRuleCfg -> Action ([BaselineExperimentSetup], [VmData])
 mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
     (clientLogins, memcachedServer, serverSetup, remoteVmsNeeded) <- case baselineLocation of
-        BaselineLocal -> do
+        Local -> do
             let l = "localhost"
                 p = 11211
                 c = replicate maxNrClients $ RemoteLogin Nothing l
@@ -205,7 +197,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                     , sIndex = 0
                     }
             return (c, m, s, [])
-        BaselineRemote -> do
+        Remote -> do
             (cs, s) <- (\(c,_,[s]) -> (c, s)) <$> getVms maxNrClients 0 1
             let p = 11211
                 c_ = map (\vm -> RemoteLogin (Just $ vmAdmin vm) (vmFullUrl vm)) cs
@@ -260,6 +252,7 @@ mkBaselineExperiments BaselineExperimentRuleCfg{..} = do
                         , msThreads = 1
                         , msConcurrency = concurrents
                         , msOverwrite = 0.9
+                        , msWindowSize = Kilo 1
                         , msStatFreq = Just $ Seconds runtime
                         , msWorkload = WorkFor $ Seconds runtime
                         , msConfigFile = sign i "/tmp/memaslapcfg"

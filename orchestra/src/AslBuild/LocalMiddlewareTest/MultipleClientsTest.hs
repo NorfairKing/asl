@@ -69,6 +69,7 @@ setups = do
             , msOverwrite = 0.5
             , msWorkload = NrRequests 256
             , msStatFreq = Nothing
+            , msWindowSize = Kilo 1
             , msConfigFile = tmpDir
                 </> "local-middleware-multiple-clients-test"
                 </> "local-middleware-multiple-clients-test-memaslap-cfg-" ++ signature

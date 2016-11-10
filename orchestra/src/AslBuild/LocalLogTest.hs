@@ -79,6 +79,7 @@ setups = do
                     , msOverwrite = 0.9
                     , msWorkload = WorkFor $ Seconds workloadSecs
                     , msStatFreq = statsFreq
+                    , msWindowSize = Kilo 1
                     , msConfigFile = localLogTestDir </> signClient "local-logfile-test-memaslap-cfg"
                     }
                 , msConfig = MemaslapConfig

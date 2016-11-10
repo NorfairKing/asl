@@ -45,6 +45,7 @@ data MemaslapFlags
     , msStatFreq    :: Maybe TimeUnit
     , msWorkload    :: MemaslapWorkload
     , msConfigFile  :: FilePath
+    , msWindowSize  :: WindowSize
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MemaslapFlags
@@ -57,6 +58,18 @@ data MemaslapWorkload
 
 instance ToJSON   MemaslapWorkload
 instance FromJSON MemaslapWorkload
+
+data WindowSize
+    = Unit Int
+    | Kilo Int
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   WindowSize
+instance FromJSON WindowSize
+
+renderWindowSize :: WindowSize -> String
+renderWindowSize (Unit i) = show i
+renderWindowSize (Kilo i ) = show i ++ "k"
 
 data MemaslapLog
     = MemaslapLog

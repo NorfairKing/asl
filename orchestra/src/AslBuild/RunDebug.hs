@@ -54,6 +54,7 @@ runDebugRules =
                     , msOverwrite = 0.9
                     , msStatFreq = Just $ Seconds 1
                     , msWorkload = WorkFor $ Hours 1
+                    , msWindowSize = Kilo 1
                     , msConfigFile = tmpDir </> "debug-memaslap-config" <.> txtExt
                     }
                 }
