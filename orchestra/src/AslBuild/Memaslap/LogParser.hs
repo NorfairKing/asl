@@ -139,7 +139,7 @@ statistics = do
         , minUs = mn
         , maxUs = mx
         , avgUs = av
-        , stdDev = st
+        , std = st
         , geoDist = ge
         }
 
@@ -207,9 +207,11 @@ final = do
     wb <- titled "written_bytes:"
     rb <- titled "read_bytes:"
     ob <- titled "object_bytes:"
-    void $ string "Run time: "
-    void double
-    void anyChar
+    rt <- do
+        void $ string "Run time: "
+        v <- double
+        void $ char 's'
+        return v
     spaces
     void $ string "Ops:"
     spaces
@@ -228,7 +230,7 @@ final = do
         , finalWrittenBytes = wb
         , finalReadBytes = rb
         , finalObjectBytes = ob
-        , finalRuntime = ()
+        , finalRuntime = rt
         , finalOps = os
         , finalTps = ts
         , finalNetRate = ()

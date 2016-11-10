@@ -19,6 +19,7 @@ library
     , AslBuild.Analysis
     , AslBuild.Analysis.Baseline
     , AslBuild.Analysis.BuildR
+    , AslBuild.Analysis.Common
     , AslBuild.Analysis.MaximumThroughput
     , AslBuild.Analysis.PipeUtils
     , AslBuild.Analysis.StabilityTrace
@@ -113,7 +114,8 @@ library
     , pipes                         >= 4.1    && < 4.2
     , pipes-csv                     >= 1.4    && < 1.5
     , pipes-bytestring              >= 2.1    && < 2.2
-    , vector                        >= 0.11    && < 0.12
+    , vector                        >= 0.11   && < 0.12
+    , statistics                    >= 0.13   && < 0.14
   default-language:    Haskell2010
 
 executable orc

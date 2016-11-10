@@ -101,7 +101,7 @@ toSimplePoint client ix Statistics{..} = SimplifiedPoint
     , sClient = client
     , sTps = tps
     , sAvg = avgUs
-    , sStd = stdDev
+    , sStd = std
     }
 
 data SimplifiedPoint

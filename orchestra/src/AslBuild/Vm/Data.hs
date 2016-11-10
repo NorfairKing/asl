@@ -15,6 +15,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
+import           AslBuild.Ssh
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm.Types
@@ -84,4 +85,4 @@ clientOrServerElligible :: VmData -> Bool
 clientOrServerElligible VmData{..} = vmType == "Basic_A2"
 
 clearVmData :: Action ()
-clearVmData = cmd "rm" "-f" azureVmJsonFile vmDataFile
+clearVmData = cmd "rm" "-f" azureVmJsonFile vmDataFile customKnownHostsFile

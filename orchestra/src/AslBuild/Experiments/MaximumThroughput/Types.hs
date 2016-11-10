@@ -40,6 +40,7 @@ instance ExperimentConfig MaximumThroughputCfg where
                         { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
                             { mwReplicationFactor = 1
                             , mwNrThreads = curMiddleThreads
+                            , mwWriteSampleRate = Just 0
                             }
                         }
 

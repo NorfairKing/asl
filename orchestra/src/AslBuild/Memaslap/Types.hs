@@ -1,8 +1,9 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Memaslap.Types where
 
-import           Data.Aeson     (FromJSON, ToJSON)
+import           Data.Aeson
 import           GHC.Generics
 
 import           AslBuild.Types
@@ -111,12 +112,36 @@ data Statistics
     , minUs   :: Int
     , maxUs   :: Int
     , avgUs   :: Int
-    , stdDev  :: Double
+    , std     :: Double
     , geoDist :: Double
     } deriving (Show, Eq, Generic)
 
-instance ToJSON Statistics
-instance FromJSON Statistics
+instance ToJSON Statistics where
+    toJSON Statistics{..} = object
+        [ "time" .= time
+        , "ops" .= ops
+        , "tps" .= tps
+        , "net" .= net
+        , "getMiss" .= getMiss
+        , "minUs" .= minUs
+        , "maxUs" .= maxUs
+        , "avgUs" .= avgUs
+        , "stdDev" .= std
+        , "geoDist" .= geoDist
+        ]
+instance FromJSON Statistics where
+    parseJSON (Object o) = Statistics
+        <$> o .: "time"
+        <*> o .: "ops"
+        <*> o .: "tps"
+        <*> o .: "net"
+        <*> o .: "getMiss"
+        <*> o .: "minUs"
+        <*> o .: "maxUs"
+        <*> o .: "avgUs"
+        <*> o .: "stdDev"
+        <*> o .: "geoDist"
+    parseJSON _ = mempty
 
 data TotalStatsTrip
     = TotalStatsTrip
@@ -150,7 +175,7 @@ data FinalStats
     , finalWrittenBytes :: Int
     , finalReadBytes    :: Int
     , finalObjectBytes  :: Int
-    , finalRuntime      :: ()
+    , finalRuntime      :: Double
     , finalOps          :: Int
     , finalTps          :: Int
     , finalNetRate      :: ()

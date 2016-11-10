@@ -4,6 +4,9 @@ module AslBuild.Middle
     , module AslBuild.Middle.Types
     ) where
 
+import           Control.Monad
+import           System.Process
+
 import           Development.Shake
 
 import           AslBuild.CommonActions
@@ -23,9 +26,12 @@ startMiddleOn MiddleSetup{..} = scriptAt mRemoteLogin $ script
         ++ ["2>&1", "&"]
     ]
 
-shutdownMiddle :: MiddleSetup -> Action ()
-shutdownMiddle MiddleSetup{..} = scriptAt mRemoteLogin $ script
-    [ "kill `jps | grep \"asl.jar\" | cut -d \" \" -f 1`" ]
+shutdownMiddle :: MiddleSetup -> ProcessHandle -> Action ()
+shutdownMiddle MiddleSetup{..} middlePh = do
+    unit $ scriptAt mRemoteLogin $ script
+        [ "kill `jps | grep \"asl.jar\" | cut -d \" \" -f 1`" ]
+    void $ liftIO $ waitForProcess middlePh
+    -- TODO check if middleware has failed
 
 copyMiddleTraceBack :: MiddleSetup -> Action ()
 copyMiddleTraceBack MiddleSetup{..} =

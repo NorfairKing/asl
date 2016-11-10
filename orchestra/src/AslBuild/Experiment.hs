@@ -20,7 +20,6 @@ import           Control.Concurrent
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.List                  (intercalate)
-import           System.Process
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -73,7 +72,7 @@ serverStartTime :: Int
 serverStartTime = startTime
 
 middleStartTime :: Int
-middleStartTime = startTime
+middleStartTime = 2 * startTime
 
 shutdownTime :: Int
 shutdownTime = 1
@@ -143,8 +142,7 @@ runOneExperiment es@ExperimentSetup{..} = do
     waitForClients clientPhs
 
     -- Shut down the middleware
-    shutdownMiddle middleSetup
-    void $ liftIO $ waitForProcess middlePh
+    shutdownMiddle middleSetup middlePh
 
     -- Shut down the servers
     shutdownServers serverSetups
@@ -277,7 +275,7 @@ genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
                     sPrivate
                     (memcachedPort sMemcachedFlags))
             (zip servers sers)
-        , mwTraceFile = experimentRemoteTmpDir ecf </> traceFileName <.> csvExt
+        , mwTraceFile = experimentRemoteTmpDir ecf </> "traces" </> traceFileName <.> csvExt
         , mwVerbosity = LogOff
         , mwReadSampleRate = Just 1000
         , mwWriteSampleRate = Just 1000
@@ -302,10 +300,14 @@ genClientSetup ecf cls middle signGlobally runtime = flip map (indexed cls) $ \(
     in ClientSetup
         { cRemoteLogin = cLogin
         , cIndex = cix
-        , cLocalLog = experimentLocalTmpDir ecf </> sign "client-local-log"
-        , cRemoteLog = experimentRemoteTmpDir ecf </> sign "memaslap-remote-log"
-        , cResultsFile = experimentResultsDir ecf </> sign "client-results"
-        , cLocalMemaslapConfigFile = experimentLocalTmpDir ecf </> sign "memaslap-config"
+        , cLocalLog
+            = experimentLocalTmpDir ecf </> "local-client-logs" </> sign "client-local-log"
+        , cRemoteLog
+            = experimentRemoteTmpDir ecf </> sign "memaslap-remote-log"
+        , cResultsFile
+            = experimentResultsDir ecf </> "client-results" </> sign "client-results"
+        , cLocalMemaslapConfigFile
+            = experimentLocalTmpDir ecf </> "memaslap-configs" </> sign "memaslap-config"
         , cMemaslapSettings = MemaslapSettings
             { msConfig = defaultMemaslapConfig
                 { setProportion = 0.05
@@ -335,8 +337,10 @@ genExperimentSetup
     -> ExperimentSetup
 genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentSetup
     { esRuntime = runtime
-    , esResultsSummaryFile = experimentResultsDir ecf </> signGlobally "summary" <.> jsonExt
-    , esSetupFile = experimentResultsDir ecf </> signGlobally "setup" <.> jsonExt
+    , esResultsSummaryFile
+        = experimentResultsDir ecf </> "summaries" </> signGlobally "summary" <.> jsonExt
+    , esSetupFile
+        = experimentResultsDir ecf </> "setups" </> signGlobally "setup" <.> jsonExt
     , clientSetups = clients
     , middleSetup = middle
     , serverSetups = servers

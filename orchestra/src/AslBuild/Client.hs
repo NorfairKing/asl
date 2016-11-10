@@ -4,7 +4,11 @@ module AslBuild.Client
     , module AslBuild.Client.Types
     ) where
 
+import           Control.Monad
+import           Data.List
+import           Data.Maybe
 import           System.Directory
+import           System.Timeout
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -53,17 +57,36 @@ copyClientLogsBack clientSetups = do
         rsyncFrom cRemoteLogin cRemoteLog cLocalLog
 
 shutdownClients :: [ClientSetup] -> Action ()
-shutdownClients cs = phPar cs $ \ClientSetup{..} ->
+shutdownClients cs = phPar (nub $ map cRemoteLogin cs) $ \cRemoteLogin ->
     scriptAt cRemoteLogin $ script [unwords ["killall", "memaslap", "||", "true"]]
 
 waitForClients :: [ProcessHandle] -> Action ()
-waitForClients phs = forP_ (indexed phs) $ \(cix, ph) -> do
-    ec <- liftIO $ waitForProcess ph
-    case ec of
-        ExitSuccess -> return ()
-        ExitFailure e -> fail $ unwords
-            [ "Client"
-            , show cix
-            , "failed with exit code"
-            , show e
-            ]
+waitForClients phs = go
+  where
+    go = do
+        mecs <- forP phs $ liftIO . getProcessExitCode
+        printMecs mecs
+        checkAnyFailure mecs
+        unless (all isJust mecs) $ do
+            void $ liftIO $
+                timeout (5 * 1000 * 1000) $
+                    forM_ phs waitForProcess
+            go
+
+    checkAnyFailure mecs = forM_ (indexed mecs) $ \(cix, mec) ->
+        case mec of
+            Nothing -> return ()
+            Just ExitSuccess -> return ()
+            Just (ExitFailure e) -> fail $ unwords
+                [ "Client"
+                , show cix
+                , "failed with exit code"
+                , show e
+                ]
+
+    printMecs mecs =
+        unless (all isNothing mecs) $
+            putLoud $ unwords $ map (\mec -> "[" ++ showMec mec ++ "]") mecs
+    showMec Nothing = " "
+    showMec (Just ExitSuccess) = "✓"
+    showMec (Just (ExitFailure _)) = "X"

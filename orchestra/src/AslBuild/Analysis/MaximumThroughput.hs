@@ -3,15 +3,21 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.MaximumThroughput where
 
+import           Control.Monad
+import           Data.List
 import           Data.Maybe
+import           Data.Monoid
 import           GHC.Generics
 
 import           Development.Shake
 import           Development.Shake.FilePath
 
 import           Data.Csv
+import qualified Data.Vector                            as V
+import           Statistics.Sample
 
 import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.Utils
 import           AslBuild.Client
 import           AslBuild.Constants
@@ -32,7 +38,8 @@ maximumThroughputAnalysisRules = do
     maximumThroughputAnalysisRule ~> need rs
 
 maximumThroughputRuleFor :: MaximumThroughputCfg -> String
-maximumThroughputRuleFor mtc = experimentTarget mtc ++ "-maximum-throughput-analysis"
+maximumThroughputRuleFor mtc
+    = experimentTarget mtc ++ "-maximum-throughput-analysis"
 
 maximumThroughputPlotsFor :: MaximumThroughputCfg -> [FilePath]
 maximumThroughputPlotsFor mtc = [maximumThroughputPrefixFor mtc <.> pngExt]
@@ -41,13 +48,16 @@ simplifiedCsvFor :: MaximumThroughputCfg -> FilePath
 simplifiedCsvFor mtc = experimentAnalysisDir mtc </> "simplified.csv"
 
 maximumThroughputPrefixFor :: MaximumThroughputCfg -> String
-maximumThroughputPrefixFor mtc = experimentAnalysisDir mtc </> experimentTarget mtc ++ "-maximum-throughput"
+maximumThroughputPrefixFor mtc
+    = experimentAnalysisDir mtc </> experimentTarget mtc ++ "-maximum-throughput"
 
 useMaximumThroughputPlotsInReport :: MaximumThroughputCfg -> Int -> Rules ()
-useMaximumThroughputPlotsInReport stc = usePlotsInReport $ maximumThroughputPlotsFor stc
+useMaximumThroughputPlotsInReport stc
+    = usePlotsInReport $ maximumThroughputPlotsFor stc
 
 dependOnMaximumThroughputPlotsForReport :: MaximumThroughputCfg -> Int -> Action ()
-dependOnMaximumThroughputPlotsForReport stc = dependOnPlotsForReport $ maximumThroughputPlotsFor stc
+dependOnMaximumThroughputPlotsForReport stc
+    = dependOnPlotsForReport $ maximumThroughputPlotsFor stc
 
 rulesForMaximumThroughputExperiment :: MaximumThroughputCfg -> Rules (Maybe String)
 rulesForMaximumThroughputExperiment mtc = onlyIfResultsExist mtc $ do
@@ -56,29 +66,64 @@ rulesForMaximumThroughputExperiment mtc = onlyIfResultsExist mtc $ do
     let simpleCsv = simplifiedCsvFor mtc
     simpleCsv %> \_ -> do
         summaryPaths <- readResultsSummaryLocations $ resultSummariesLocationFile mtc
-        ls <- forP summaryPaths $ \summaryPath -> do
+        eels <- forP summaryPaths $ \summaryPath -> do
             ExperimentResultSummary{..} <- readResultsSummary summaryPath
-            ExperimentSetup{..} <- readExperimentSetup erSetupFile
-            let mts = mwNrThreads $ mMiddlewareFlags middleSetup
-            let ccs = maximum $ map (msConcurrency . msFlags . cMemaslapSettings) clientSetups
+            es <- readExperimentSetup erSetupFile
             crs <- forP erClientResultsFiles readClientResults
-            let totalThroughput = sum $ map (finalTps . finalStats . crLog) crs
-            return MTSimpleLine
-                { middleThreads = mts
-                , clientConcurrencies = ccs
-                , throughput = totalThroughput
-                }
+            return $ simplifiedCsvLine es crs
 
-        writeCSV simpleCsv ls
+        case sequence eels of
+            Left err -> fail $ "Failed to make simplified csv file: " ++ err
+            Right ls -> writeCSV simpleCsv ls
 
     plots &%> \_ -> do
         need [maximumThroughputAnalysisScript, simpleCsv]
         need [rBin]
-        rScript maximumThroughputAnalysisScript simpleCsv $ maximumThroughputPrefixFor mtc
+        rScript maximumThroughputAnalysisScript simpleCsv $
+            maximumThroughputPrefixFor mtc
 
     let analysisTarget = maximumThroughputRuleFor mtc
     analysisTarget ~> need plots
     return analysisTarget
+
+zipCombineLists :: Monoid a => [[a]] -> [a]
+zipCombineLists = map mconcat . transpose
+
+maybeToEither :: a -> Maybe b -> Either a b
+maybeToEither dv Nothing = Left dv
+maybeToEither _ (Just v) = Right v
+
+simplifiedCsvLine
+    :: ExperimentSetup
+    -> [ClientResults]
+    -> Either String MTSimpleLine
+simplifiedCsvLine ExperimentSetup{..} crs = do
+    -- Each client should have a TPS value per second of runtime.
+    -- First we add those up per client, as if there was just one big client.
+    tss <- forM logs $ \MemaslapLog{..} ->
+        forM triples $ \triple -> do
+            gStats <- maybeToEither "Get stats not found" $ getStats triple
+            let stats = periodStats gStats
+            return $ Sum $ tps stats
+
+    when (length (nub tss) /= length tss) $
+        Left $ "Triples did not match up: " ++ show (map length tss)
+
+    let tpss = map getSum $ zipCombineLists tss
+    let tpsDoubleVector = V.fromList $ map fromIntegral tpss
+    let avgTps = floor $ mean tpsDoubleVector
+    let stdDevTps = floor $ stdDev tpsDoubleVector
+
+    pure MTSimpleLine
+        { middleThreads = mts
+        , clientConcurrencies = ccs
+        , throughput = avgTps
+        , standardDeviation = stdDevTps
+        }
+  where
+    mts = mwNrThreads $ mMiddlewareFlags middleSetup
+    ccs = sum $ map (msConcurrency . msFlags . cMemaslapSettings) clientSetups
+    logs = map crLog crs
 
 maximumThroughputAnalysisScript :: FilePath
 maximumThroughputAnalysisScript = analysisDir </> "analyze_maximum_throughput.r"
@@ -87,8 +132,23 @@ data MTSimpleLine
     = MTSimpleLine
     { middleThreads       :: Int
     , clientConcurrencies :: Int
-    , throughput          :: Int -- TODO show standard deviation as well.
+    , throughput          :: Int
+    , standardDeviation   :: Int
     } deriving (Show, Eq, Generic)
 
 instance ToNamedRecord MTSimpleLine where
-instance DefaultOrdered MTSimpleLine
+    toNamedRecord MTSimpleLine{..} = namedRecord
+        [ "threads" .= middleThreads
+        , "conc" .= clientConcurrencies
+        , "avgTps" .= throughput
+        , "stdTps" .= standardDeviation
+        ]
+
+instance DefaultOrdered MTSimpleLine where
+    headerOrder _ = header
+        [ "threads"
+        , "conc"
+        , "avgTps"
+        , "stdTps"
+        ]
+
