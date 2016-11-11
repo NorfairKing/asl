@@ -72,13 +72,16 @@ remoteMaximumThroughput = MaximumThroughputCfg
     { hlConfig = HighLevelConfig
         { target = remoteMaximumThroughputRule
         , nrServers = 5
-        , nrClients = 3
+        , nrClients = 1
         , location = Remote
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        middleThreads <- [1, 3 .. 15]
-        concurrencies <- [1 .. 15]
+        middleThreads <- [1, 5 .. 24]
+        concurrencies <-
+            scanl (+) 1 $
+                concatMap (uncurry replicate)
+                [(9, 1), (5, 2), (3, 3), (2, 4)]
         return (middleThreads, concurrencies)
-    , mtRuntime = Minutes 2
+    , mtRuntime = Minutes 1
     }
