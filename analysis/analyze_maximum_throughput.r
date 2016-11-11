@@ -1,18 +1,14 @@
 library(ggplot2)
 args <- commandArgs(trailingOnly=TRUE)
 
-if (length(args) < 2) {
-  stop("Usage analyze_maximum_thoughput.r <input.csv> <outputprefix>")
+if (length(args) < 3) {
+  stop("Usage analyze_maximum_thoughput.r <common.r> <input.csv> <outputprefix>")
 }
 
-inFile <- args[1] 
-outFile <- args[2]
-
-startPng <- function(file) {
-    png(paste(file, ".png", sep=""), height=450, width=900, bg="white")
-    base2 = rgb(0xB5/256, 0x89/256, 0x00/256, 0.1)
-    par(bg=base2)
-}
+common <- args[1]
+source(common)
+inFile <- args[2] 
+outFile <- args[3]
 
 startPng(outFile)
 

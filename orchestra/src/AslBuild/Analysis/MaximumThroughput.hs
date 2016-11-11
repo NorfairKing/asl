@@ -77,9 +77,9 @@ rulesForMaximumThroughputExperiment mtc = onlyIfResultsExist mtc $ do
             Right ls -> writeCSV simpleCsv ls
 
     plots &%> \_ -> do
-        need [maximumThroughputAnalysisScript, simpleCsv]
+        need [maximumThroughputAnalysisScript, simpleCsv, commonRLib]
         need [rBin]
-        rScript maximumThroughputAnalysisScript simpleCsv $
+        rScript maximumThroughputAnalysisScript commonRLib simpleCsv $
             maximumThroughputPrefixFor mtc
 
     let analysisTarget = maximumThroughputRuleFor mtc

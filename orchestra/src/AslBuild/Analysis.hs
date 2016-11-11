@@ -5,7 +5,6 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Baseline
 import           AslBuild.Analysis.BuildR
-import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.MaximumThroughput
 import           AslBuild.Analysis.StabilityTrace
 import           AslBuild.Analysis.TraceSlice
