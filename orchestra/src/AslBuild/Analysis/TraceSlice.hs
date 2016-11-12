@@ -105,7 +105,7 @@ rulesForTraceSliceAnalysis tsa@TraceSliceAnalysisCfg{..} = do
             dFile %> \outFile -> do
                 size <- liftIO $ withFile erMiddleResultsFile ReadMode hFileSize
                 let totalLines = (size - 90) `div` 95 -- 90 characters in the header line, then 95 characters per line
-                let window = min 250 (totalLines `div` 20) -- A maximum of 250 so that this isn't too slow.
+                let window = totalLines `div` 20
 
                 putLoud $ unwords
                     [ "Distilling trace slice data from"
