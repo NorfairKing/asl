@@ -14,7 +14,7 @@ cleanReportsRule = "clean-reports"
 
 reportRules :: Rules ()
 reportRules = do
-    let reportNrs = [1..2]
+    let reportNrs = [2]
     reportsRule ~> need (map reportRule reportNrs)
 
     phony cleanReportsRule $ need $ map reportCleanRule reportNrs

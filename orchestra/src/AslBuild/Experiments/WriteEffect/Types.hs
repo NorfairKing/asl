@@ -18,6 +18,7 @@ data WriteEffectCfg
     { hlConfig         :: HighLevelConfig
     , writePercentages :: [Double]
     , serverCounts     :: [Int]
+    , weRuntime        :: TimeUnit
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   WriteEffectCfg
@@ -26,32 +27,36 @@ instance FromJSON WriteEffectCfg
 instance ExperimentConfig WriteEffectCfg where
     highLevelConfig = hlConfig
     genExperimentSetups stc@WriteEffectCfg{..} = do
-        let runtime = Seconds 5
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
 
         let setups = do
+                writePercentage <- writePercentages
                 curNrServers <- serverCounts
                 replicationFactor <- nub [1, curNrServers]
-                writePercentage <- writePercentages
                 let signGlobally f = intercalate "-" [f, show curNrServers, show replicationFactor, show writePercentage]
                 let servers = take curNrServers $ genServerSetups sers
+
+                let rSampleRate = 1000
+                let wSampleRate = floor $ writePercentage * fromIntegral rSampleRate
 
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
                 let middle = defaultMiddle
                         { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
                             { mwReplicationFactor = replicationFactor
+                            , mwReadSampleRate = Just rSampleRate
+                            , mwWriteSampleRate = Just wSampleRate
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls middle signGlobally runtime
+                let defaultClients = genClientSetup stc cls middle signGlobally weRuntime
                 let clients = flip map defaultClients $ \cs -> cs
                         { cMemaslapSettings = (cMemaslapSettings cs)
-                            { msConfig = defaultMemaslapConfig
+                            { msConfig = (msConfig $ cMemaslapSettings cs)
                                 { setProportion = writePercentage
                                 }
                             }
                         }
 
-                return $ genExperimentSetup stc runtime clients middle servers signGlobally
+                return $ genExperimentSetup stc weRuntime clients middle servers signGlobally
         return (setups, vmsNeeded)

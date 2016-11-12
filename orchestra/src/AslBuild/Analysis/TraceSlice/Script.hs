@@ -5,33 +5,33 @@ module AslBuild.Analysis.TraceSlice.Script
     , traceSliceAnalysisOf
     ) where
 
-import           Development.Shake                  hiding (doesFileExist)
+import           Development.Shake          hiding (doesFileExist)
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
 import           AslBuild.Analysis.Common
-import           AslBuild.Analysis.TraceSlice.Types
+import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
 
 traceSliceAnalysisScript :: FilePath
 traceSliceAnalysisScript = analysisDir </> "analyze_trace_slice.r"
 
-traceSlicePlotsForSingleExperiment :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> [FilePath]
-traceSlicePlotsForSingleExperiment tsa ers = do
+traceSlicePlotsForSingleExperiment :: ExperimentConfig a => a ->ExperimentResultSummary -> [FilePath]
+traceSlicePlotsForSingleExperiment ecf ers = do
     postfix <- ["absolute", "relative"]
-    traceSlicePlotsWithPrefix $ traceSlicePlotPrefix tsa ers postfix
+    traceSlicePlotsWithPrefix $ traceSlicePlotPrefix ecf ers postfix
 
-traceSlicePlotPrefix :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath -> FilePath
-traceSlicePlotPrefix TraceSliceAnalysisCfg{..} ExperimentResultSummary{..} postfix
-    = analysisOutDir </> dropExtensions (takeFileName erMiddleResultsFile) ++ "-" ++ postfix
+traceSlicePlotPrefix :: ExperimentConfig a => a -> ExperimentResultSummary -> FilePath -> FilePath
+traceSlicePlotPrefix ecf ExperimentResultSummary{..} postfix
+    = experimentPlotsDir ecf </> dropExtensions (takeFileName erMiddleResultsFile) ++ "-" ++ postfix
 
 traceSlicePlotsWithPrefix :: FilePath -> [FilePath]
 traceSlicePlotsWithPrefix prefix = [dropExtensions prefix ++ "-slice" <.> pngExt]
 
-traceSliceAnalysisOf :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath -> FilePath -> Rules [FilePath]
-traceSliceAnalysisOf tsa ers inFile postfix = do
-    let prefix = traceSlicePlotPrefix tsa ers postfix
+traceSliceAnalysisOf :: ExperimentConfig a => a -> ExperimentResultSummary -> FilePath -> FilePath -> Rules [FilePath]
+traceSliceAnalysisOf ecf ers inFile postfix = do
+    let prefix = traceSlicePlotPrefix ecf ers postfix
     let plots = traceSlicePlotsWithPrefix prefix
 
     plots &%> \_ -> do

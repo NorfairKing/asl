@@ -26,13 +26,13 @@ analysisRules = do
     baselineAnalysisRules
     stabilityTraceAnalysisRules
     traceSliceAnalysisRules
-    maximumThroughputAnalysisRules
+    throughputAnalysisRules
 
     analysisRule ~> need
         [ baselineAnalysisRule
         , stabilityTraceAnalysisRule
         , traceSliceAnalysisRule
-        , maximumThroughputAnalysisRule
+        , throughputAnalysisRule
         ]
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]

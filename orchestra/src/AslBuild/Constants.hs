@@ -125,12 +125,6 @@ resultsDir = aslDir </> "results"
 analysisDir :: FilePath
 analysisDir = aslDir </> "analysis"
 
-analysisPlotsDir :: FilePath
-analysisPlotsDir = tmpDir </> "plots"
-
-analysisTmpDir :: FilePath
-analysisTmpDir = tmpDir </> "analysis"
-
 reportsDir :: FilePath
 reportsDir = aslDir </> reports
 

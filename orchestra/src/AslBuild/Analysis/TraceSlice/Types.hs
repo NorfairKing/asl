@@ -11,13 +11,6 @@ import           Data.Csv
 
 import           AslBuild.Types
 
-data TraceSliceAnalysisCfg
-    = TraceSliceAnalysisCfg
-    { analysisTarget       :: String
-    , summaryLocationsPath :: FilePath
-    , analysisOutDir       :: FilePath
-    } deriving (Show, Eq)
-
 data Durations
     = Durations
     { reqKind            :: RequestKind

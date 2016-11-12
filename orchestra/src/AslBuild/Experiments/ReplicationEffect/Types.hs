@@ -18,6 +18,7 @@ data ReplicationEffectCfg
     { hlConfig           :: HighLevelConfig
     , serverCounts       :: [Int]
     , replicationFactors :: [Double]
+    , reRuntime          :: TimeUnit
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ReplicationEffectCfg
@@ -26,32 +27,37 @@ instance FromJSON ReplicationEffectCfg
 instance ExperimentConfig ReplicationEffectCfg where
     highLevelConfig = hlConfig
     genExperimentSetups stc@ReplicationEffectCfg{..} = do
-        let runtime = Seconds 5
         let HighLevelConfig{..} = hlConfig
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
 
         let setups = do
                 curNrServers <- serverCounts
                 replicationFactor <- replicationFactors
-                let signGlobally f = intercalate "-" [f, show curNrServers, show replicationFactor]
+                let signGlobally f = intercalate "-" [f, show replicationFactor, show curNrServers]
 
                 let servers = take curNrServers $ genServerSetups sers
+
+                let setProp = 0.05
+                let rSampleRate = 1000
+                let wSampleRate = floor $ setProp * fromIntegral rSampleRate
 
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
                 let middle = defaultMiddle
                         { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
                             { mwReplicationFactor = max 1 $ ceiling $ fromIntegral (length servers) * replicationFactor
+                            , mwReadSampleRate = Just rSampleRate
+                            , mwWriteSampleRate = Just wSampleRate
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls middle signGlobally runtime
+                let defaultClients = genClientSetup stc cls middle signGlobally reRuntime
                 let clients = flip map defaultClients $ \cs -> cs
                         { cMemaslapSettings = (cMemaslapSettings cs)
-                            { msConfig = defaultMemaslapConfig
-                                { setProportion = 0.05
+                            { msConfig = (msConfig $ cMemaslapSettings cs)
+                                { setProportion = setProp
                                 }
                             }
                         }
 
-                return $ genExperimentSetup stc runtime clients middle servers signGlobally
+                return $ genExperimentSetup stc reRuntime clients middle servers signGlobally
         return (setups, vmsNeeded)

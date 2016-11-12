@@ -24,7 +24,7 @@ baselinePrefixFor bac = B.target bac ++ "-baseline-analysis"
 
 plotsForBaseline :: BaselineExperimentRuleCfg -> [FilePath]
 plotsForBaseline bac = map
-    (\f -> analysisPlotsDir </> intercalate "-" [baselinePrefixFor bac, f] <.> pngExt)
+    (\f -> tmpDir </> B.target bac </> intercalate "-" [baselinePrefixFor bac, f] <.> pngExt)
         [ "avg"
         , "tps"
         ]
@@ -58,7 +58,7 @@ baselineAnalysisRulesFor bac = do
             need [rBin]
             needRLibs ["pkgmaker"]
             needRLibs ["igraph"]
-            unit $ rScript baselineAnalysisScript results prefix analysisPlotsDir
+            unit $ rScript baselineAnalysisScript results prefix (tmpDir </> B.target bac)
 
         let thisTarget = baselineAnalysisRuleFor bac
         thisTarget ~> need plotsForThisBaseline

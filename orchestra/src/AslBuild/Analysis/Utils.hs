@@ -1,5 +1,7 @@
 module AslBuild.Analysis.Utils where
 
+import           Data.Maybe
+
 import           Development.Shake
 import           Development.Shake.FilePath
 
@@ -14,3 +16,18 @@ experimentAnalysisDir
     :: ExperimentConfig a
     => a -> FilePath
 experimentAnalysisDir a = experimentLocalTmpDir a </> "analysis"
+
+experimentPlotsDir
+    :: ExperimentConfig a
+    => a -> FilePath
+experimentPlotsDir a = experimentAnalysisDir a </> "plots"
+
+experimentAnalysisTmpDir
+    :: ExperimentConfig a
+    => a -> FilePath
+experimentAnalysisTmpDir a = experimentAnalysisDir a </> "tmp"
+
+subRules :: (a -> Rules (Maybe String)) -> String -> [a] -> Rules ()
+subRules func subRule ls = do
+    rs <- catMaybes <$> mapM func ls
+    subRule ~> need rs

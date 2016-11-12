@@ -2,6 +2,7 @@ module AslBuild.Utils where
 
 import           Control.Monad
 import           Control.Monad.IO.Class
+import           Data.List
 
 import           Data.Aeson                 (FromJSON, ToJSON)
 import qualified Data.Aeson                 as A
@@ -67,3 +68,11 @@ maybeFlag c (Just v) = ['-' : c : ' ' : show v]
 
 writeCSV :: (MonadIO m, DefaultOrdered a, ToNamedRecord a) => FilePath -> [a] -> m ()
 writeCSV file entries = liftIO $ LB.writeFile file $ CSV.encodeDefaultOrderedByName entries
+
+zipCombineLists :: Monoid a => [[a]] -> [a]
+zipCombineLists = map mconcat . transpose
+
+maybeToEither :: a -> Maybe b -> Either a b
+maybeToEither dv Nothing = Left dv
+maybeToEither _ (Just v) = Right v
+

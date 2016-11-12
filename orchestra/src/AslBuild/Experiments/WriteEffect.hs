@@ -39,6 +39,7 @@ localWriteEffect = remoteWriteEffect
     { hlConfig = (hlConfig remoteWriteEffect)
         { target = localWriteEffectRule
         , location = Local
+        , resultsPersistence = Volatile
         }
     }
 
@@ -56,6 +57,7 @@ smallRemoteWriteEffect = WriteEffectCfg
         }
     , serverCounts = [1]
     , writePercentages = [0.01]
+    , weRuntime = Seconds 10
     }
 
 
@@ -67,10 +69,11 @@ remoteWriteEffect = WriteEffectCfg
     { hlConfig = HighLevelConfig
         { target = remoteWriteEffectRule
         , nrServers = 7
-        , nrClients = 3
+        , nrClients = 1
         , location = Remote
         , resultsPersistence = Persistent
         }
-    , serverCounts = [3, 5, 7]
+    , serverCounts = [3 .. 7]
     , writePercentages = [0.01, 0.05, 0.1]
+    , weRuntime = Minutes 1
     }

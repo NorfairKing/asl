@@ -5,7 +5,6 @@ module AslBuild.Analysis.MaximumThroughput where
 
 import           Control.Monad
 import           Data.List
-import           Data.Maybe
 import           Data.Monoid
 import           GHC.Generics
 
@@ -23,45 +22,72 @@ import           AslBuild.Client
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
+import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Reports.Common
 import           AslBuild.Utils
 
-maximumThroughputAnalysisRule :: String
-maximumThroughputAnalysisRule = "maximum-throughput-analysis"
+throughputAnalysisRule :: String
+throughputAnalysisRule = "throughput-analysis"
 
-maximumThroughputAnalysisRules :: Rules ()
-maximumThroughputAnalysisRules = do
-    rs <- catMaybes <$> mapM rulesForMaximumThroughputExperiment allMaximumThroughputExperiments
-    maximumThroughputAnalysisRule ~> need rs
+throughputAnalysisRules :: Rules ()
+throughputAnalysisRules = do
+    throughputAnalysisRule ~> need
+        [ ruleForMaximumThroughputs
+        , ruleForWriteEffects
+        , ruleForReplicationEffects
+        , ruleForStabilityTraces
+        ]
 
-maximumThroughputRuleFor :: MaximumThroughputCfg -> String
-maximumThroughputRuleFor mtc
-    = experimentTarget mtc ++ "-maximum-throughput-analysis"
+    let throughputAnalysisSubrules :: ExperimentConfig a => String -> [a] -> Rules ()
+        throughputAnalysisSubrules = subRules rulesForThroughputAnalysis
 
-maximumThroughputPlotsFor :: MaximumThroughputCfg -> [FilePath]
-maximumThroughputPlotsFor mtc = [maximumThroughputPrefixFor mtc <.> pngExt]
+    throughputAnalysisSubrules ruleForStabilityTraces allStabilityTraceExperiments
+    throughputAnalysisSubrules ruleForMaximumThroughputs allMaximumThroughputExperiments
+    throughputAnalysisSubrules ruleForWriteEffects allWriteEffectExperiments
+    throughputAnalysisSubrules ruleForReplicationEffects allReplicationEffectExperiments
 
-simplifiedCsvFor :: MaximumThroughputCfg -> FilePath
-simplifiedCsvFor mtc = experimentAnalysisDir mtc </> "simplified.csv"
+ruleForMaximumThroughputs :: String
+ruleForMaximumThroughputs = "maximum-throughput-throughput-analysis"
 
-maximumThroughputPrefixFor :: MaximumThroughputCfg -> String
+ruleForWriteEffects :: String
+ruleForWriteEffects = "write-effect-throughput-analysis"
+
+ruleForReplicationEffects :: String
+ruleForReplicationEffects = "replication-effect-throughput-analysis"
+
+ruleForStabilityTraces :: String
+ruleForStabilityTraces = "stability-trace-throughput-analysis"
+
+ruleForThroughputAnalysis :: ExperimentConfig a => a -> String
+ruleForThroughputAnalysis mtc
+    = experimentTarget mtc ++ "-throughput-analysis"
+
+throughputAnalysisPlotsFor :: ExperimentConfig a => a -> [FilePath]
+throughputAnalysisPlotsFor mtc = [maximumThroughputPrefixFor mtc <.> pngExt]
+
+simplifiedCsvFor :: ExperimentConfig a => a -> FilePath
+simplifiedCsvFor mtc = experimentAnalysisTmpDir mtc </> "simplified.csv"
+
+maximumThroughputPrefixFor :: ExperimentConfig a => a -> String
 maximumThroughputPrefixFor mtc
-    = experimentAnalysisDir mtc </> experimentTarget mtc ++ "-maximum-throughput"
+    = experimentPlotsDir mtc </> experimentTarget mtc ++ "-maximum-throughput"
 
-useMaximumThroughputPlotsInReport :: MaximumThroughputCfg -> Int -> Rules ()
-useMaximumThroughputPlotsInReport stc
-    = usePlotsInReport $ maximumThroughputPlotsFor stc
+useThroughputAnalysisPlotsInReport :: ExperimentConfig a => a -> Int -> Rules ()
+useThroughputAnalysisPlotsInReport stc
+    = usePlotsInReport $ throughputAnalysisPlotsFor stc
 
-dependOnMaximumThroughputPlotsForReport :: MaximumThroughputCfg -> Int -> Action ()
-dependOnMaximumThroughputPlotsForReport stc
-    = dependOnPlotsForReport $ maximumThroughputPlotsFor stc
+dependOnThroughputAnalysisPlotsForReport :: ExperimentConfig a => a -> Int -> Action ()
+dependOnThroughputAnalysisPlotsForReport stc
+    = dependOnPlotsForReport $ throughputAnalysisPlotsFor stc
 
-rulesForMaximumThroughputExperiment :: MaximumThroughputCfg -> Rules (Maybe String)
-rulesForMaximumThroughputExperiment mtc = onlyIfResultsExist mtc $ do
-    let plots = maximumThroughputPlotsFor mtc
+rulesForThroughputAnalysis :: ExperimentConfig a => a -> Rules (Maybe String)
+rulesForThroughputAnalysis mtc = onlyIfResultsExist mtc $ do
+    let plots = throughputAnalysisPlotsFor mtc
 
     let simpleCsv = simplifiedCsvFor mtc
     simpleCsv %> \_ -> do
@@ -82,16 +108,9 @@ rulesForMaximumThroughputExperiment mtc = onlyIfResultsExist mtc $ do
         rScript maximumThroughputAnalysisScript commonRLib simpleCsv $
             maximumThroughputPrefixFor mtc
 
-    let analysisTarget = maximumThroughputRuleFor mtc
+    let analysisTarget = ruleForThroughputAnalysis mtc
     analysisTarget ~> need plots
     return analysisTarget
-
-zipCombineLists :: Monoid a => [[a]] -> [a]
-zipCombineLists = map mconcat . transpose
-
-maybeToEither :: a -> Maybe b -> Either a b
-maybeToEither dv Nothing = Left dv
-maybeToEither _ (Just v) = Right v
 
 simplifiedCsvLine
     :: ExperimentSetup

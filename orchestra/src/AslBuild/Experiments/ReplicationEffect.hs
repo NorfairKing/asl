@@ -39,6 +39,7 @@ localReplicationEffect = remoteReplicationEffect
     { hlConfig = (hlConfig remoteReplicationEffect)
         { target = localReplicationEffectRule
         , location = Local
+        , resultsPersistence = Volatile
         }
     }
 
@@ -56,6 +57,7 @@ smallRemoteReplicationEffect = ReplicationEffectCfg
         }
     , serverCounts = [1]
     , replicationFactors = [0]
+    , reRuntime = Seconds 5
     }
 
 
@@ -67,10 +69,11 @@ remoteReplicationEffect = ReplicationEffectCfg
     { hlConfig = HighLevelConfig
         { target = remoteReplicationEffectRule
         , nrServers = 7
-        , nrClients = 3
+        , nrClients = 1
         , location = Remote
         , resultsPersistence = Persistent
         }
     , serverCounts = [3, 5, 7]
     , replicationFactors = [0, 0.5, 1]
+    , reRuntime = Minutes 2
     }

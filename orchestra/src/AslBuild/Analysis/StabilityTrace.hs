@@ -30,7 +30,7 @@ stabilityTraceAnalysisRule = "stability-trace-analysis"
 plotsForStabilityTrace :: StabilityTraceCfg -> [FilePath]
 plotsForStabilityTrace stc = do
     kind <- ["resp", "tps"]
-    return $ analysisPlotsDir </> intercalate "-" [stabilityTracePrefixFor stc, kind] <.> pngExt
+    return $ experimentPlotsDir stc </> intercalate "-" [stabilityTracePrefixFor stc, kind] <.> pngExt
 
 stabilityTracePrefixFor :: StabilityTraceCfg -> FilePath
 stabilityTracePrefixFor stc = experimentTarget stc ++ "-stability-trace-analysis"
@@ -84,7 +84,7 @@ stabilityTraceAnalysisRulesFor stc = onlyIfResultsExist stc $ do
         needRLibs ["pkgmaker"]
         needRLibs ["caTools"]
 
-        rScript stabilityTraceAnalysisScript simpleCsvFile (stabilityTracePrefixFor stc) analysisPlotsDir
+        rScript stabilityTraceAnalysisScript simpleCsvFile (stabilityTracePrefixFor stc) (experimentPlotsDir stc)
 
 
     let rule = stabilityTraceAnalysisRuleFor stc

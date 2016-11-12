@@ -11,9 +11,9 @@ report2Rules :: Rules ()
 report2Rules = report 2 texPreAction customRules
   where
     customRules = do
-        useMaximumThroughputPlotsInReport remoteMaximumThroughput 2
+        useThroughputAnalysisPlotsInReport remoteMaximumThroughput 2
         useTraceSlicePlotsInReport remoteMaximumThroughput 2
 
     texPreAction = do
-        dependOnMaximumThroughputPlotsForReport remoteMaximumThroughput 2
+        dependOnThroughputAnalysisPlotsForReport remoteMaximumThroughput 2
         dependOnTraceSlicePlotsForReport remoteMaximumThroughput 2
