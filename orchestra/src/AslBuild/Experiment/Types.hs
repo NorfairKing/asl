@@ -43,8 +43,9 @@ data ExperimentSetup
     , esResultsSummaryFile :: FilePath
     , esSetupFile          :: FilePath
     , clientSetups         :: [ClientSetup]
-    , middleSetup          :: MiddleSetup
-    , serverSetups         :: [ServerSetup]
+    , backendSetup
+        :: Either ServerSetup (MiddleSetup, [ServerSetup])
+        -- ^ Left if it's a baseline experiment, right otherwise
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ExperimentSetup

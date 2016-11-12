@@ -119,17 +119,25 @@ runOneExperiment es@ExperimentSetup{..} = do
     -- Get the clients configs set up
     setupClientConfigs clientSetups
 
+    let serverSetups = case backendSetup of
+            Left serverSetup -> [serverSetup]
+            Right (_, ss) -> ss
+
     -- Start the servers
     startServersOn serverSetups
 
     -- Wait for the servers to get started
     wait serverStartTime
 
-    -- Start the middleware
-    middlePh <- startMiddleOn middleSetup
+    mMiddle <- case backendSetup of
+        Left _ -> return Nothing
+        Right (middleSetup, _) -> do
+            -- Start the middleware
+            middlePh <- startMiddleOn middleSetup
 
-    -- Wait for the middleware to get started
-    wait middleStartTime
+            -- Wait for the middleware to get started
+            wait middleStartTime
+            return $ Just (middleSetup, middlePh)
 
     -- Start the clients
     clientPhs <- startClientsOn clientSetups
@@ -142,14 +150,20 @@ runOneExperiment es@ExperimentSetup{..} = do
     -- Wait for memaslap to stop running. (This should not be long now, but who knows.)
     waitForClients clientPhs
 
-    -- Shut down the middleware
-    shutdownMiddle middleSetup middlePh
+    case mMiddle of
+        Nothing -> return ()
+        Just (middleSetup, middlePh) ->
+            -- Shut down the middleware
+            shutdownMiddle middleSetup middlePh
 
     -- Shut down the servers
     shutdownServers serverSetups
 
-    -- Copy the middleware logs back
-    copyMiddleTraceBack middleSetup
+    case mMiddle of
+        Nothing -> return ()
+        Just (middleSetup, _) ->
+            -- Copy the middleware logs back
+            copyMiddleTraceBack middleSetup
 
     -- Shut down the memaslap instances
     shutdownClients clientSetups
@@ -166,7 +180,7 @@ runOneExperiment es@ExperimentSetup{..} = do
     -- Make the result record
     let results = ExperimentResultSummary
             { erClientResultsFiles = map cResultsFile clientSetups
-            , merMiddleResultsFile = Just $ mLocalTrace middleSetup
+            , merMiddleResultsFile = (mLocalTrace . fst) <$> mMiddle
             , erSetupFile = esSetupFile
             }
 
@@ -343,8 +357,9 @@ genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentS
     , esSetupFile
         = experimentResultsDir ecf </> "setups" </> signGlobally "setup" <.> jsonExt
     , clientSetups = clients
-    , middleSetup = middle
-    , serverSetups = servers
+    , backendSetup = Right (middle, servers)
+    -- , middleSetup = middle
+    -- , serverSetups = servers
     }
 
 readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [FilePath]

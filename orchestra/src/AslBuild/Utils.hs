@@ -76,3 +76,12 @@ maybeToEither :: a -> Maybe b -> Either a b
 maybeToEither dv Nothing = Left dv
 maybeToEither _ (Just v) = Right v
 
+fromLeft :: Either a b -> a
+fromLeft (Left a) = a
+fromLeft _ = error "fromLeft: does not work for 'Right'"
+
+fromRight :: Either a b -> b
+fromRight (Right b) = b
+fromRight _ = error "fromRight: does not work for 'Left'"
+
+

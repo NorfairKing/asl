@@ -140,7 +140,9 @@ simplifiedCsvLine ExperimentSetup{..} crs = do
         , standardDeviation = stdDevTps
         }
   where
-    mts = mwNrThreads $ mMiddlewareFlags middleSetup
+    mts = case backendSetup of
+        Left _ -> 0
+        Right (middleSetup, _) -> mwNrThreads $ mMiddlewareFlags middleSetup
     ccs = sum $ map (msConcurrency . msFlags . cMemaslapSettings) clientSetups
     logs = map crLog crs
 
