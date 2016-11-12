@@ -2,11 +2,9 @@
 \usepackage[a4paper, portrait, margin=1in]{geometry}
 
 \usepackage{mathtools}
-\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\usepackage{float}
 
 \input{../common.tex}
-
-\setlength{\parindent}{0pt}
 
 \begin{document}
 
@@ -41,7 +39,22 @@ Milestone}
     \includegraphics[width=0.5\textwidth]{\plot{remote-maximum-throughput-maximum-throughput.png}}
   \end{center}
   \caption{Maximum Throughput}
-  \label{fig:architecturegraph}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-1-slice.png}}
+    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-29-slice.png}}
+  \end{center}
+  \caption{Maximum Throughput Trace Slice}
+\end{figure}
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-1-slice.png}}
+    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-29-slice.png}}
+  \end{center}
+  \caption{Maximum Throughput Trace Slice}
 \end{figure}
 
 

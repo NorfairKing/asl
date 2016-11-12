@@ -7,6 +7,7 @@ module AslBuild.Experiment
     , genServerSetups
     , getVmsForExperiments
     , resultSummariesLocationFile
+    , readResultsSummaryLocationsForCfg
     , readResultsSummaryLocations
     , readResultsSummary
     , readExperimentSetup
@@ -345,6 +346,9 @@ genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentS
     , middleSetup = middle
     , serverSetups = servers
     }
+
+readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [FilePath]
+readResultsSummaryLocationsForCfg = readResultsSummaryLocations . resultSummariesLocationFile
 
 readResultsSummaryLocations :: MonadIO m => FilePath -> m [FilePath]
 readResultsSummaryLocations = readJSON

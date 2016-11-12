@@ -49,13 +49,13 @@ smallRemoteWriteEffect :: WriteEffectCfg
 smallRemoteWriteEffect = WriteEffectCfg
     { hlConfig = HighLevelConfig
         { target = smallRemoteWriteEffectRule
-        , nrServers = 2
+        , nrServers = 1
         , nrClients = 1
         , location = Remote
         , resultsPersistence = Volatile
         }
-    , serverCounts = [1, 2]
-    , writePercentages = [0.01, 0.1]
+    , serverCounts = [1]
+    , writePercentages = [0.01]
     }
 
 

@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.TraceSlice.Script
-    ( traceSliceAnalysisOf
+    ( traceSlicePlotsForSingleExperiment
+    , traceSliceAnalysisOf
     ) where
 
 import           Development.Shake                  hiding (doesFileExist)
@@ -15,6 +16,9 @@ import           AslBuild.Experiment
 traceSliceAnalysisScript :: FilePath
 traceSliceAnalysisScript = analysisDir </> "analyze_trace_slice.r"
 
+traceSlicePlotsForSingleExperiment :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> [FilePath]
+traceSlicePlotsForSingleExperiment tsa ers = traceSlicePlotsWithPrefix $ traceSlicePlotPrefix tsa ers
+
 traceSlicePlotPrefix :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath
 traceSlicePlotPrefix TraceSliceAnalysisCfg{..} ExperimentResultSummary{..}
     = analysisOutDir </> dropExtensions (takeFileName erMiddleResultsFile)
@@ -25,7 +29,7 @@ traceSlicePlotsWithPrefix prefix = [dropExtensions prefix ++ "-slice" <.> pngExt
 traceSliceAnalysisOf :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath -> Rules [FilePath]
 traceSliceAnalysisOf tsa ers inFile = do
     let prefix = traceSlicePlotPrefix tsa ers
-    let plots = traceSlicePlotsWithPrefix prefix
+    let plots = traceSlicePlotsForSingleExperiment tsa ers
 
     plots &%> \_ -> do
         need [traceSliceAnalysisScript, inFile]

@@ -29,28 +29,31 @@ preCommitRule = "pre-commit"
 preCommitRules :: Rules ()
 preCommitRules = do
     preCommitRule ~> do
-        need [outputJarFile]
-        need [orcBin]
-        need [memcachedBin]
-        need [memaslapBin]
+        mapM_ (need . (:[]))
+            [ outputJarFile
+            , orcBin
+            , memcachedBin
+            , memaslapBin
 
-        need [codeHealthRule]
+            , codeHealthRule
 
-        need [testRule, localLogTestRule]
+            , testRule
+            , localLogTestRule
 
-        need [localMiddlewareTestsRule]
+            , localMiddlewareTestsRule
 
-        need [smallLocalBaselineExperimentRule]
-        need [smallLocalStabilityTraceRule]
-        need [smallLocalMaximumThroughputRule]
-        need [smallLocalMinimumThroughputRule]
-        need [smallLocalReplicationEffectRule]
-        need [smallLocalWriteEffectRule]
+            , smallLocalBaselineExperimentRule
+            , smallLocalStabilityTraceRule
+            , smallLocalMaximumThroughputRule
+            , smallLocalMinimumThroughputRule
+            , smallLocalReplicationEffectRule
+            , smallLocalWriteEffectRule
 
-        need [analysisRule]
-        need [reportsRule]
+            , analysisRule
+            , reportsRule
 
-        need [formatClientRule]
+            , formatClientRule
+            ]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.
 
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"

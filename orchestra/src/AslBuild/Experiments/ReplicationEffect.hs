@@ -49,13 +49,13 @@ smallRemoteReplicationEffect :: ReplicationEffectCfg
 smallRemoteReplicationEffect = ReplicationEffectCfg
     { hlConfig = HighLevelConfig
         { target = smallRemoteReplicationEffectRule
-        , nrServers = 2
+        , nrServers = 1
         , nrClients = 1
         , location = Remote
         , resultsPersistence = Volatile
         }
-    , serverCounts = [1, 2]
-    , replicationFactors = [0, 1]
+    , serverCounts = [1]
+    , replicationFactors = [0]
     }
 
 

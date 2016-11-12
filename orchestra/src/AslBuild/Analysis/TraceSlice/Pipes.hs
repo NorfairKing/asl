@@ -4,9 +4,14 @@ module AslBuild.Analysis.TraceSlice.Pipes where
 
 import           Control.Monad
 
-import           Pipes                              (Pipe)
-import qualified Pipes                              as P
+import qualified Data.Vector                        as V
 
+import           Pipes                              (Pipe, (>->))
+import qualified Pipes                              as P
+import qualified Pipes.Prelude                      as P
+import qualified Statistics.Sample                  as S
+
+import           AslBuild.Analysis.PipeUtils
 import           AslBuild.Analysis.TraceSlice.Types
 import           AslBuild.Experiment
 import           AslBuild.Types
@@ -31,28 +36,23 @@ timeTransformer = do
 
 -- Chunk size
 meanTransformer :: Monad m => Integer -> Pipe Durations Durations m v
-meanTransformer chunkSize = do
-    initData <- replicateM (fromIntegral chunkSize) P.await
-    recurse initData
+meanTransformer chunkSize = windows chunkSize >-> P.map durMean
   where
-    recurse dats = do
-        let mean :: (Durations -> Integer) -> Integer
-            mean func = sum (map func dats) `div` chunkSize
-        P.yield Durations
-            { reqKind = READ -- Fixme
-            , arrivalTime        = arrivalTime $ head dats
-            , untilParsedTime    = mean untilParsedTime
-            , untilEnqueuedTime  = mean untilEnqueuedTime
-            , untilDequeuedTime  = mean untilDequeuedTime
-            , untilAskedTime     = mean untilAskedTime
-            , untilRepliedTime   = mean untilRepliedTime
-            , untilRespondedTime = mean untilRespondedTime
-            }
-
-        newdat <- P.await
-        let newdats = tail dats ++ [newdat]
-        recurse newdats
-
+    durMean :: [Durations] -> Durations
+    durMean dats = Durations
+        { reqKind = READ -- Fixme
+        , arrivalTime        = arrivalTime $ head dats
+        , untilParsedTime    = mean untilParsedTime
+        , untilEnqueuedTime  = mean untilEnqueuedTime
+        , untilDequeuedTime  = mean untilDequeuedTime
+        , untilAskedTime     = mean untilAskedTime
+        , untilRepliedTime   = mean untilRepliedTime
+        , untilRespondedTime = mean untilRespondedTime
+        }
+      where
+        vdats = V.fromList dats
+        mean :: (Durations -> Integer) -> Integer
+        mean func = floor $ S.mean $ V.map (fromIntegral . func) vdats
 
 lineTransformer :: Monad m => Pipe Durations DurationsLine m v
 lineTransformer = forever $ do
@@ -70,4 +70,12 @@ lineTransformer = forever $ do
         , row "query"     untilAskedTime
         , row "response"  untilRepliedTime
         , row "finalized" untilRespondedTime
+        , row "total"     $ sum
+            [ untilParsedTime
+            , untilEnqueuedTime
+            , untilDequeuedTime
+            , untilAskedTime
+            , untilRepliedTime
+            , untilRespondedTime
+            ]
         ]
