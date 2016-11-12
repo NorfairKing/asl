@@ -26,7 +26,9 @@ import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
+import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Reports.Common
 
 traceSliceAnalysisRule :: String
@@ -36,6 +38,9 @@ traceSliceAnalysisRules :: Rules ()
 traceSliceAnalysisRules = do
     traceSliceAnalysisRule ~> need
         [ ruleForStabilityTraces
+        , ruleForMaximumThroughputs
+        , ruleForWriteEffects
+        , ruleForReplicationEffects
         ]
 
     rulesForStabilityTraces
@@ -52,6 +57,21 @@ traceSliceAnalysisRules = do
         , remoteMaximumThroughput
         ]
 
+    rulesForWriteEffect
+        [ smallLocalWriteEffect
+        , localWriteEffect
+        , smallRemoteWriteEffect
+        , remoteWriteEffect
+        ]
+
+    rulesForReplicationEffect
+        [ smallLocalReplicationEffect
+        , localReplicationEffect
+        , smallRemoteReplicationEffect
+        , remoteReplicationEffect
+        ]
+
+
 ruleForStabilityTraces :: String
 ruleForStabilityTraces = "stability-trace-trace-slice-analysis"
 
@@ -67,6 +87,22 @@ rulesForMaximumThroughput :: [MaximumThroughputCfg] -> Rules ()
 rulesForMaximumThroughput stcs = do
     rs <- catMaybes <$> mapM (rulesForTraceSliceAnalysis . experimentTraceSliceAnalysisConfig) stcs
     ruleForMaximumThroughputs ~> need rs
+
+ruleForWriteEffects :: String
+ruleForWriteEffects = "write-effect-trace-slice-analysis"
+
+rulesForWriteEffect :: [WriteEffectCfg] -> Rules ()
+rulesForWriteEffect stcs = do
+    rs <- catMaybes <$> mapM (rulesForTraceSliceAnalysis . experimentTraceSliceAnalysisConfig) stcs
+    ruleForWriteEffects ~> need rs
+
+ruleForReplicationEffects :: String
+ruleForReplicationEffects = "replication-effect-trace-slice-analysis"
+
+rulesForReplicationEffect :: [ReplicationEffectCfg] -> Rules ()
+rulesForReplicationEffect stcs = do
+    rs <- catMaybes <$> mapM (rulesForTraceSliceAnalysis . experimentTraceSliceAnalysisConfig) stcs
+    ruleForReplicationEffects ~> need rs
 
 experimentAnalysisCfgRule :: ExperimentConfig a => a -> String
 experimentAnalysisCfgRule cfg = experimentTarget cfg ++ "-trace-slice-analysis"
@@ -121,7 +157,7 @@ rulesForTraceSliceAnalysis tsa@TraceSliceAnalysisCfg{..} = do
                         withFile outFile WriteMode $ \outHandle ->
                             P.runEffect $
                                     P.decodeByName (PB.fromHandle inHandle)
-                                >-> errorLogger
+                                >-> errorIgnorer
                                 >-> timeTransformer
                                 >-> meanTransformer window
                                 >-> lineTransformer

@@ -16,6 +16,13 @@ errorLogger = forever $ do
         Left err -> liftIO $ putStrLn err
         Right res -> P.yield res
 
+errorIgnorer :: MonadIO m => Pipe (Either String a) a m v
+errorIgnorer = forever $ do
+    eea <- P.await
+    case eea of
+        Left _ -> return ()
+        Right res -> P.yield res
+
 class Mean a where
     combines :: [a] -> a
     divide :: Integral i => a -> i -> a

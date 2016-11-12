@@ -9,6 +9,7 @@ import           Development.Shake                  hiding (doesFileExist)
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.TraceSlice.Types
 import           AslBuild.Constants
 import           AslBuild.Experiment
@@ -32,9 +33,9 @@ traceSliceAnalysisOf tsa ers inFile = do
     let plots = traceSlicePlotsForSingleExperiment tsa ers
 
     plots &%> \_ -> do
-        need [traceSliceAnalysisScript, inFile]
+        need [commonRLib, traceSliceAnalysisScript, inFile]
         need [rBin]
         needRLibs ["ggplot2"]
-        rScript traceSliceAnalysisScript inFile prefix
+        rScript traceSliceAnalysisScript commonRLib inFile prefix
 
     return plots

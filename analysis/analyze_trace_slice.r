@@ -2,21 +2,19 @@ library(ggplot2)
 args <- commandArgs(trailingOnly=TRUE)
 
 if (length(args) < 2) {
-  stop("Usage analyze_trace_slice.r <input.csv> <outputprefix>")
+  stop("Usage analyze_trace_slice.r <common.r> <input.csv> <outputprefix>")
 }
 
-inFile <- args[1] 
-outFile <- args[2]
+common <- args[1]
+source(common)
+inFile <- args[2] 
+outFile <- args[3]
 
-startPng <- function(file) {
-    png(paste(file, "-slice.png", sep=""), height=450, width=900, bg="white")
-    base2 = rgb(0xB5/256, 0x89/256, 0x00/256, 0.1)
-    par(bg=base2)
-}
-
-startPng(outFile)
+startPng(paste(outFile, "slice", sep="-"))
 
 res = read.csv(inFile, header=TRUE)
+
+res <- res[res$category != 'total',] # Don't plot total as a seperate category
 
 at <- res$aTime
 cat <- res$category

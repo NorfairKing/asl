@@ -41,6 +41,7 @@ instance ExperimentConfig MaximumThroughputCfg where
                             { mwReplicationFactor = 1
                             , mwNrThreads = curMiddleThreads
                             , mwWriteSampleRate = Just 0
+                            , mwReadSampleRate = Just 100
                             }
                         }
 
