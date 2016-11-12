@@ -30,6 +30,17 @@ data Durations
     , untilRespondedTime :: Integer
     } deriving (Show, Eq, Generic)
 
+instance FromNamedRecord Durations where
+    parseNamedRecord m = Durations
+        <$> m .: "reqKind"
+        <*> m .: "arrivalTime"
+        <*> m .: "untilParsed"
+        <*> m .: "untilEnqueued"
+        <*> m .: "untilDequeued"
+        <*> m .: "untilAsked"
+        <*> m .: "untilReplied"
+        <*> m .: "untilResponded"
+
 instance ToNamedRecord Durations where
     toNamedRecord Durations{..} =
         namedRecord
@@ -43,27 +54,27 @@ instance ToNamedRecord Durations where
             , "untilResponded" .= untilRespondedTime
             ]
 
-durationsHeader :: Header
-durationsHeader = header
-    [ "reqKind"
-    , "arrivalTime"
-    , "untilParsed"
-    , "untilEnqueued"
-    , "untilDequeued"
-    , "untilAsked"
-    , "untilReplied"
-    , "untilResponded"
-    ]
+instance DefaultOrdered Durations where
+    headerOrder _ = header
+        [ "reqKind"
+        , "arrivalTime"
+        , "untilParsed"
+        , "untilEnqueued"
+        , "untilDequeued"
+        , "untilAsked"
+        , "untilReplied"
+        , "untilResponded"
+        ]
 
-data DurationsLine
+data DurationsLine a
     = DurationsLine
     { rKind    :: RequestKind
     , aTime    :: Integer
     , category :: String
-    , value    :: Integer
+    , value    :: a
     } deriving (Show, Eq, Generic)
 
-instance ToNamedRecord DurationsLine where
+instance ToField a => ToNamedRecord (DurationsLine a) where
     toNamedRecord DurationsLine{..} =
         namedRecord
             [ "rKind" .= rKind
@@ -72,11 +83,11 @@ instance ToNamedRecord DurationsLine where
             , "value" .= value
             ]
 
-durationsLineHeader :: Header
-durationsLineHeader = header
-    [ "rKind"
-    , "aTime"
-    , "category"
-    , "value"
-    ]
+instance DefaultOrdered (DurationsLine a) where
+    headerOrder _ = header
+        [ "rKind"
+        , "aTime"
+        , "category"
+        , "value"
+        ]
 

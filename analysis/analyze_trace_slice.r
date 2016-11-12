@@ -14,8 +14,6 @@ startPng(paste(outFile, "slice", sep="-"))
 
 res = read.csv(inFile, header=TRUE)
 
-res <- res[res$category != 'total',] # Don't plot total as a seperate category
-
 at <- res$aTime
 cat <- res$category
 val <- res$value

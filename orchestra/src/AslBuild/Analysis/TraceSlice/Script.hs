@@ -18,19 +18,21 @@ traceSliceAnalysisScript :: FilePath
 traceSliceAnalysisScript = analysisDir </> "analyze_trace_slice.r"
 
 traceSlicePlotsForSingleExperiment :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> [FilePath]
-traceSlicePlotsForSingleExperiment tsa ers = traceSlicePlotsWithPrefix $ traceSlicePlotPrefix tsa ers
+traceSlicePlotsForSingleExperiment tsa ers = do
+    postfix <- ["absolute", "relative"]
+    traceSlicePlotsWithPrefix $ traceSlicePlotPrefix tsa ers postfix
 
-traceSlicePlotPrefix :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath
-traceSlicePlotPrefix TraceSliceAnalysisCfg{..} ExperimentResultSummary{..}
-    = analysisOutDir </> dropExtensions (takeFileName erMiddleResultsFile)
+traceSlicePlotPrefix :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath -> FilePath
+traceSlicePlotPrefix TraceSliceAnalysisCfg{..} ExperimentResultSummary{..} postfix
+    = analysisOutDir </> dropExtensions (takeFileName erMiddleResultsFile) ++ "-" ++ postfix
 
 traceSlicePlotsWithPrefix :: FilePath -> [FilePath]
 traceSlicePlotsWithPrefix prefix = [dropExtensions prefix ++ "-slice" <.> pngExt]
 
-traceSliceAnalysisOf :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath -> Rules [FilePath]
-traceSliceAnalysisOf tsa ers inFile = do
-    let prefix = traceSlicePlotPrefix tsa ers
-    let plots = traceSlicePlotsForSingleExperiment tsa ers
+traceSliceAnalysisOf :: TraceSliceAnalysisCfg -> ExperimentResultSummary -> FilePath -> FilePath -> Rules [FilePath]
+traceSliceAnalysisOf tsa ers inFile postfix = do
+    let prefix = traceSlicePlotPrefix tsa ers postfix
+    let plots = traceSlicePlotsWithPrefix prefix
 
     plots &%> \_ -> do
         need [commonRLib, traceSliceAnalysisScript, inFile]

@@ -42,8 +42,11 @@ pad c l s
     | length s < l = replicate (l - length s) c ++ s
     | otherwise = s
 
+pad0 :: Int -> String -> String
+pad0 = pad '0'
+
 padMOrS :: Int -> String
-padMOrS = pad '0' 2 . show
+padMOrS = pad0 2 . show
 
 
 readJSON :: (MonadIO m, FromJSON a) => FilePath -> m a

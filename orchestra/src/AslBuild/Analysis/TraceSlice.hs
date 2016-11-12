@@ -14,9 +14,6 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           Pipes                                  ((>->))
-import qualified Pipes                                  as P
-import qualified Pipes.ByteString                       as PB
-import qualified Pipes.Csv                              as P
 
 import           AslBuild.Analysis.PipeUtils
 import           AslBuild.Analysis.TraceSlice.Pipes
@@ -137,10 +134,14 @@ rulesForTraceSliceAnalysis tsa@TraceSliceAnalysisCfg{..} = do
         pss <- forM summaryPaths $ \summaryPath -> do
             ers@ExperimentResultSummary{..} <- readResultsSummary summaryPath
             let dFile = durationsFile erMiddleResultsFile
+                adFile = absDurationsFile erMiddleResultsFile
+                rdFile = relDurationsFile erMiddleResultsFile
 
             dFile %> \outFile -> do
+                need [erMiddleResultsFile]
                 size <- liftIO $ withFile erMiddleResultsFile ReadMode hFileSize
-                let totalLines = (size - 90) `div` 95 -- 90 characters in the header line, then 95 characters per line
+                -- 90 characters in the header line, then 95 characters per line
+                let totalLines = (size - 90) `div` 95
                 let window = totalLines `div` 20
 
                 putLoud $ unwords
@@ -151,24 +152,42 @@ rulesForTraceSliceAnalysis tsa@TraceSliceAnalysisCfg{..} = do
                     , "with window size"
                     , show window
                     ]
+                transformCsvFileAction erMiddleResultsFile outFile $
+                        timeTransformer
+                    >-> meanTransformer window
 
-                liftIO $
-                    withFile erMiddleResultsFile ReadMode $ \inHandle ->
-                        withFile outFile WriteMode $ \outHandle ->
-                            P.runEffect $
-                                    P.decodeByName (PB.fromHandle inHandle)
-                                >-> errorIgnorer
-                                >-> timeTransformer
-                                >-> meanTransformer window
-                                >-> lineTransformer
-                                >-> P.encodeByName durationsLineHeader
-                                >-> PB.toHandle outHandle
+            adFile %> \outFile -> do
+                need [dFile]
+                putLoud $ unwords
+                    [ "Gathering absolute trace slice data from"
+                    , dFile
+                    , "into"
+                    , outFile
+                    ]
+                transformCsvFileAction dFile outFile absLineTransformer
 
+            rdFile %> \outFile -> do
+                need [dFile]
+                putLoud $ unwords
+                    [ "Gathering relative trace slice data from"
+                    , dFile
+                    , "into"
+                    , outFile
+                    ]
+                transformCsvFileAction dFile outFile relLineTransformer
 
-            traceSliceAnalysisOf tsa ers dFile
+            aplots <- traceSliceAnalysisOf tsa ers adFile "absolute"
+            rplots <- traceSliceAnalysisOf tsa ers rdFile "relative"
+            return $ aplots ++ rplots
 
         analysisTarget ~> need (concat pss)
         return analysisTarget
 
 durationsFile :: FilePath -> FilePath
 durationsFile f = analysisTmpDir </> dropExtensions (takeFileName f) ++ "-durations" <.> csvExt
+
+absDurationsFile :: FilePath -> FilePath
+absDurationsFile f = analysisTmpDir </> dropExtensions (takeFileName f) ++ "-absolute-durations" <.> csvExt
+
+relDurationsFile :: FilePath -> FilePath
+relDurationsFile f = analysisTmpDir </> dropExtensions (takeFileName f) ++ "-relative-durations" <.> csvExt

@@ -83,8 +83,8 @@ instance Mean Durations where
             , untilRespondedTime = s untilRespondedTime
             }
 
-lineTransformer :: Monad m => Pipe Durations DurationsLine m v
-lineTransformer = forever $ do
+absLineTransformer :: Monad m => Pipe Durations (DurationsLine Integer) m v
+absLineTransformer = forever $ do
     Durations{..} <- P.await
     let row cat val = DurationsLine
             { rKind = reqKind
@@ -99,13 +99,33 @@ lineTransformer = forever $ do
         , row "query"     untilAskedTime
         , row "response"  untilRepliedTime
         , row "finalized" untilRespondedTime
-        , row "total"     $ sum
-            [ untilParsedTime
-            , untilEnqueuedTime
-            , untilDequeuedTime
-            , untilAskedTime
-            , untilRepliedTime
-            , untilRespondedTime
+        ]
+
+relLineTransformer :: Monad m => Pipe Durations (DurationsLine Float) m v
+relLineTransformer = forever $ do
+    d <- P.await
+    let total = sum
+            [ untilParsedTime     d
+            , untilEnqueuedTime   d
+            , untilDequeuedTime   d
+            , untilAskedTime      d
+            , untilRepliedTime    d
+            , untilRespondedTime  d
             ]
+    let row cat val = DurationsLine
+            { rKind = reqKind d
+            , aTime = arrivalTime d
+            , category = cat
+            , value = val
+            }
+    let rel :: (Durations -> Integer) -> Float
+        rel func = (fromIntegral (func d) / fromIntegral total) * 100
+    mapM_ P.yield
+        [ row "parsing"   $ rel untilParsedTime
+        , row "enqueue"   $ rel untilEnqueuedTime
+        , row "inqueue"   $ rel untilDequeuedTime
+        , row "query"     $ rel untilAskedTime
+        , row "response"  $ rel untilRepliedTime
+        , row "finalized" $ rel untilRespondedTime
         ]
 
