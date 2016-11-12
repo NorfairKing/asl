@@ -1,0 +1,163 @@
+{
+    "middleSetup": {
+        "mRemoteLogin": {
+            "remoteUser": "syd",
+            "remoteHost": "sydforaslvms11.westeurope.cloudapp.azure.com"
+        },
+        "mMiddlewareFlags": {
+            "mwReadSampleRate": 1000,
+            "mwServers": [
+                {
+                    "serverPort": 12345,
+                    "serverUrl": "10.0.0.11"
+                },
+                {
+                    "serverPort": 12346,
+                    "serverUrl": "10.0.0.7"
+                },
+                {
+                    "serverPort": 12347,
+                    "serverUrl": "10.0.0.4"
+                },
+                {
+                    "serverPort": 12348,
+                    "serverUrl": "10.0.0.9"
+                },
+                {
+                    "serverPort": 12349,
+                    "serverUrl": "10.0.0.12"
+                }
+            ],
+            "mwTraceFile": "/tmp/asl/tmp/remote-maximum-throughput/traces/remote-maximum-throughput-trace-13-16.csv",
+            "mwNrThreads": 13,
+            "mwReplicationFactor": 1,
+            "mwWriteSampleRate": 0,
+            "mwPort": 23456,
+            "mwIp": "10.0.0.10",
+            "mwVerbosity": "LogOff"
+        },
+        "mLocalTrace": "results/remote-maximum-throughput/remote-maximum-throughput-trace-13-16.csv"
+    },
+    "esResultsSummaryFile": "results/remote-maximum-throughput/summaries/summary-13-16.json",
+    "esSetupFile": "results/remote-maximum-throughput/setups/setup-13-16.json",
+    "esRuntime": {
+        "tag": "Minutes",
+        "contents": 1
+    },
+    "clientSetups": [
+        {
+            "cResultsFile": "results/remote-maximum-throughput/client-results/remote-maximum-throughput-0-client-results-13-16",
+            "cLocalLog": "/home/syd/.asl/tmp/remote-maximum-throughput/local-client-logs/remote-maximum-throughput-0-client-local-log-13-16",
+            "cIndex": 0,
+            "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/remote-maximum-throughput/memaslap-configs/remote-maximum-throughput-0-memaslap-config-13-16",
+            "cRemoteLog": "/tmp/asl/tmp/remote-maximum-throughput/remote-maximum-throughput-0-memaslap-remote-log-13-16",
+            "cRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms1.westeurope.cloudapp.azure.com"
+            },
+            "cMemaslapSettings": {
+                "msConfig": {
+                    "valueDistributions": [
+                        {
+                            "distrMax": 128,
+                            "distrMin": 128,
+                            "distrProp": 1
+                        }
+                    ],
+                    "keysizeDistributions": [
+                        {
+                            "distrMax": 16,
+                            "distrMin": 16,
+                            "distrProp": 1
+                        }
+                    ],
+                    "setProportion": 0
+                },
+                "msFlags": {
+                    "msStatFreq": {
+                        "tag": "Seconds",
+                        "contents": 1
+                    },
+                    "msWindowSize": {
+                        "tag": "Kilo",
+                        "contents": 1
+                    },
+                    "msConfigFile": "/tmp/asl/tmp/remote-maximum-throughput/remote-maximum-throughput-0-memaslapcfg-13-16",
+                    "msWorkload": {
+                        "tag": "WorkFor",
+                        "contents": {
+                            "tag": "Minutes",
+                            "contents": 1
+                        }
+                    },
+                    "msOverwrite": 0.9,
+                    "msServers": [
+                        {
+                            "serverPort": 23456,
+                            "serverUrl": "10.0.0.10"
+                        }
+                    ],
+                    "msConcurrency": 16,
+                    "msThreads": 1
+                }
+            }
+        }
+    ],
+    "serverSetups": [
+        {
+            "sIndex": 0,
+            "sMemcachedFlags": {
+                "memcachedAsDaemon": true,
+                "memcachedPort": 12345
+            },
+            "sRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms2.westeurope.cloudapp.azure.com"
+            }
+        },
+        {
+            "sIndex": 1,
+            "sMemcachedFlags": {
+                "memcachedAsDaemon": true,
+                "memcachedPort": 12346
+            },
+            "sRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms3.westeurope.cloudapp.azure.com"
+            }
+        },
+        {
+            "sIndex": 2,
+            "sMemcachedFlags": {
+                "memcachedAsDaemon": true,
+                "memcachedPort": 12347
+            },
+            "sRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms4.westeurope.cloudapp.azure.com"
+            }
+        },
+        {
+            "sIndex": 3,
+            "sMemcachedFlags": {
+                "memcachedAsDaemon": true,
+                "memcachedPort": 12348
+            },
+            "sRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms5.westeurope.cloudapp.azure.com"
+            }
+        },
+        {
+            "sIndex": 4,
+            "sMemcachedFlags": {
+                "memcachedAsDaemon": true,
+                "memcachedPort": 12349
+            },
+            "sRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms6.westeurope.cloudapp.azure.com"
+            }
+        }
+    ]
+}

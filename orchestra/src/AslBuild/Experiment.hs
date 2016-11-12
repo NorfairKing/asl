@@ -263,7 +263,7 @@ genMiddleSetup
     -> MiddleSetup
 genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
     { mRemoteLogin = mLogin
-    , mLocalTrace = experimentResultsDir ecf </> traceFileName <.> csvExt
+    , mLocalTrace = experimentResultsDir ecf </> "traces" </> traceFileName <.> csvExt
     , mMiddlewareFlags = MiddlewareFlags
         { mwIp = mPrivate
         , mwPort = middlePort
@@ -275,7 +275,7 @@ genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
                     sPrivate
                     (memcachedPort sMemcachedFlags))
             (zip servers sers)
-        , mwTraceFile = experimentRemoteTmpDir ecf </> "traces" </> traceFileName <.> csvExt
+        , mwTraceFile = experimentRemoteTmpDir ecf </> traceFileName <.> csvExt
         , mwVerbosity = LogOff
         , mwReadSampleRate = Just 1000
         , mwWriteSampleRate = Just 1000
