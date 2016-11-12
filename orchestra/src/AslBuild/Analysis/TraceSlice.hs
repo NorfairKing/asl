@@ -82,52 +82,55 @@ rulesForTraceSliceAnalysis ecf = onlyIfResultsExist ecf $ do
     summaryPaths <- readResultsSummaryLocationsForCfg ecf
     pss <- forM summaryPaths $ \summaryPath -> do
         ers@ExperimentResultSummary{..} <- readResultsSummary summaryPath
-        let dFile = durationsFile ecf erMiddleResultsFile
-            adFile = absDurationsFile ecf erMiddleResultsFile
-            rdFile = relDurationsFile ecf erMiddleResultsFile
+        case merMiddleResultsFile of
+            Nothing -> return []
+            Just erMiddleResultsFile -> do
+                let dFile = durationsFile ecf erMiddleResultsFile
+                    adFile = absDurationsFile ecf erMiddleResultsFile
+                    rdFile = relDurationsFile ecf erMiddleResultsFile
 
-        dFile %> \outFile -> do
-            need [erMiddleResultsFile]
-            size <- liftIO $ withFile erMiddleResultsFile ReadMode hFileSize
-            -- 90 characters in the header line, then 95 characters per line
-            let totalLines = (size - 90) `div` 95
-            let window = max 1 $ totalLines `div` 20
+                dFile %> \outFile -> do
+                    need [erMiddleResultsFile]
+                    size <- liftIO $ withFile erMiddleResultsFile ReadMode hFileSize
+                    -- 90 characters in the header line, then 95 characters per line
+                    let totalLines = (size - 90) `div` 95
+                    let window = max 1 $ totalLines `div` 20
 
-            putLoud $ unwords
-                [ "Distilling trace slice data from"
-                , erMiddleResultsFile
-                , "into"
-                , outFile
-                , "with window size"
-                , show window
-                ]
-            transformCsvFileAction erMiddleResultsFile outFile $
-                    timeTransformer
-                >-> meanTransformer window
+                    putLoud $ unwords
+                        [ "Distilling trace slice data from"
+                        , erMiddleResultsFile
+                        , "into"
+                        , outFile
+                        , "with window size"
+                        , show window
+                        ]
+                    transformCsvFileAction erMiddleResultsFile outFile $
+                            timeTransformer
+                        >-> meanTransformer window
 
-        adFile %> \outFile -> do
-            need [dFile]
-            putLoud $ unwords
-                [ "Gathering absolute trace slice data from"
-                , dFile
-                , "into"
-                , outFile
-                ]
-            transformCsvFileAction dFile outFile absLineTransformer
+                adFile %> \outFile -> do
+                    need [dFile]
+                    putLoud $ unwords
+                        [ "Gathering absolute trace slice data from"
+                        , dFile
+                        , "into"
+                        , outFile
+                        ]
+                    transformCsvFileAction dFile outFile absLineTransformer
 
-        rdFile %> \outFile -> do
-            need [dFile]
-            putLoud $ unwords
-                [ "Gathering relative trace slice data from"
-                , dFile
-                , "into"
-                , outFile
-                ]
-            transformCsvFileAction dFile outFile relLineTransformer
+                rdFile %> \outFile -> do
+                    need [dFile]
+                    putLoud $ unwords
+                        [ "Gathering relative trace slice data from"
+                        , dFile
+                        , "into"
+                        , outFile
+                        ]
+                    transformCsvFileAction dFile outFile relLineTransformer
 
-        aplots <- traceSliceAnalysisOf ecf ers adFile "absolute"
-        rplots <- traceSliceAnalysisOf ecf ers rdFile "relative"
-        return $ aplots ++ rplots
+                aplots <- traceSliceAnalysisOf ecf ers adFile "absolute"
+                rplots <- traceSliceAnalysisOf ecf ers rdFile "relative"
+                return $ aplots ++ rplots
 
     let analysisTarget = experimentAnalysisCfgRule ecf
     analysisTarget ~> need (concat pss)

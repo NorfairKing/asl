@@ -166,7 +166,7 @@ runOneExperiment es@ExperimentSetup{..} = do
     -- Make the result record
     let results = ExperimentResultSummary
             { erClientResultsFiles = map cResultsFile clientSetups
-            , erMiddleResultsFile = mLocalTrace middleSetup
+            , merMiddleResultsFile = Just $ mLocalTrace middleSetup
             , erSetupFile = esSetupFile
             }
 

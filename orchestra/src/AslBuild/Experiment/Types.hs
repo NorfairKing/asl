@@ -53,14 +53,14 @@ instance FromJSON ExperimentSetup
 data ExperimentResultSummary
     = ExperimentResultSummary
     { erClientResultsFiles :: [FilePath]
-    , erMiddleResultsFile  :: FilePath
+    , merMiddleResultsFile :: Maybe FilePath
     , erSetupFile          :: FilePath
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ExperimentResultSummary where
     toJSON ExperimentResultSummary{..} = object
         [ "client-results-files" .= erClientResultsFiles
-        , "middle-results-file" .= erMiddleResultsFile
+        , "middle-results-file" .= merMiddleResultsFile
         , "setup" .= erSetupFile
         ]
 

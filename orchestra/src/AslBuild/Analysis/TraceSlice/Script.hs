@@ -5,6 +5,8 @@ module AslBuild.Analysis.TraceSlice.Script
     , traceSliceAnalysisOf
     ) where
 
+import           Data.Maybe
+
 import           Development.Shake          hiding (doesFileExist)
 import           Development.Shake.FilePath
 
@@ -17,14 +19,14 @@ import           AslBuild.Experiment
 traceSliceAnalysisScript :: FilePath
 traceSliceAnalysisScript = analysisDir </> "analyze_trace_slice.r"
 
-traceSlicePlotsForSingleExperiment :: ExperimentConfig a => a ->ExperimentResultSummary -> [FilePath]
+traceSlicePlotsForSingleExperiment :: ExperimentConfig a => a -> ExperimentResultSummary -> [FilePath]
 traceSlicePlotsForSingleExperiment ecf ers = do
     postfix <- ["absolute", "relative"]
     traceSlicePlotsWithPrefix $ traceSlicePlotPrefix ecf ers postfix
 
 traceSlicePlotPrefix :: ExperimentConfig a => a -> ExperimentResultSummary -> FilePath -> FilePath
 traceSlicePlotPrefix ecf ExperimentResultSummary{..} postfix
-    = experimentPlotsDir ecf </> dropExtensions (takeFileName erMiddleResultsFile) ++ "-" ++ postfix
+    = experimentPlotsDir ecf </> dropExtensions (takeFileName $ fromJust merMiddleResultsFile) ++ "-" ++ postfix
 
 traceSlicePlotsWithPrefix :: FilePath -> [FilePath]
 traceSlicePlotsWithPrefix prefix = [dropExtensions prefix ++ "-slice" <.> pngExt]
