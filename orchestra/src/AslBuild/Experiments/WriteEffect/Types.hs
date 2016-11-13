@@ -28,7 +28,7 @@ instance ExperimentConfig WriteEffectCfg where
     highLevelConfig = hlConfig
     genExperimentSetups stc@WriteEffectCfg{..} = do
         let HighLevelConfig{..} = hlConfig
-        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
+        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc True
 
         let setups = do
                 writePercentage <- writePercentages
@@ -49,7 +49,7 @@ instance ExperimentConfig WriteEffectCfg where
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls middle signGlobally weRuntime
+                let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally weRuntime
                 let clients = flip map defaultClients $ \cs -> cs
                         { cMemaslapSettings = (cMemaslapSettings cs)
                             { msConfig = (msConfig $ cMemaslapSettings cs)

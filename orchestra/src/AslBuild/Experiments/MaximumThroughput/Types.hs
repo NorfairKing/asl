@@ -26,9 +26,8 @@ instance FromJSON MaximumThroughputCfg
 instance ExperimentConfig MaximumThroughputCfg where
     highLevelConfig = hlConfig
     genExperimentSetups stc@MaximumThroughputCfg{..} = do
-        let runtime = mtRuntime
         let HighLevelConfig{..} = hlConfig
-        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
+        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc True
 
         let setups = do
                 (curMiddleThreads, curConcurrency) <- threadConcTups
@@ -45,7 +44,7 @@ instance ExperimentConfig MaximumThroughputCfg where
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls middle signGlobally runtime
+                let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally mtRuntime
                 let clients = flip map defaultClients $ \cs ->
                         let sets = cMemaslapSettings cs
                             config = msConfig sets
@@ -61,5 +60,5 @@ instance ExperimentConfig MaximumThroughputCfg where
                             }
                         }
 
-                return $ genExperimentSetup stc runtime clients middle servers signGlobally
+                return $ genExperimentSetup stc mtRuntime clients middle servers signGlobally
         return (setups, vmsNeeded)

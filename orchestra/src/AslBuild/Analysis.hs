@@ -3,7 +3,6 @@ module AslBuild.Analysis where
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           AslBuild.Analysis.Baseline
 import           AslBuild.Analysis.BuildR
 import           AslBuild.Analysis.MaximumThroughput
 import           AslBuild.Analysis.StabilityTrace
@@ -23,14 +22,12 @@ analysisRules :: Rules ()
 analysisRules = do
     buildRRules
 
-    baselineAnalysisRules
     stabilityTraceAnalysisRules
     traceSliceAnalysisRules
     throughputAnalysisRules
 
     analysisRule ~> need
-        [ baselineAnalysisRule
-        , stabilityTraceAnalysisRule
+        [ stabilityTraceAnalysisRule
         , traceSliceAnalysisRule
         , throughputAnalysisRule
         ]

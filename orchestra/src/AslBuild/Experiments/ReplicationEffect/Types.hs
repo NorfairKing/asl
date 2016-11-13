@@ -28,7 +28,7 @@ instance ExperimentConfig ReplicationEffectCfg where
     highLevelConfig = hlConfig
     genExperimentSetups stc@ReplicationEffectCfg{..} = do
         let HighLevelConfig{..} = hlConfig
-        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
+        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc True
 
         let setups = do
                 curNrServers <- serverCounts
@@ -50,7 +50,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls middle signGlobally reRuntime
+                let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally reRuntime
                 let clients = flip map defaultClients $ \cs -> cs
                         { cMemaslapSettings = (cMemaslapSettings cs)
                             { msConfig = (msConfig $ cMemaslapSettings cs)

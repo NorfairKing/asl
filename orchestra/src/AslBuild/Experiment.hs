@@ -12,6 +12,7 @@ module AslBuild.Experiment
     , readResultsSummary
     , readExperimentSetup
     , readClientResults
+    , experimentResultsDir
     , experimentLocalTmpDir
     , module AslBuild.Experiment.Types
     ) where
@@ -240,18 +241,20 @@ waitNicely is = do
 getVmsForExperiments
     :: ExperimentConfig a
     => a
+    -> Bool
     -> Action ([(RemoteLogin, String)], [(RemoteLogin, String)], [(RemoteLogin, String)], [VmData])
-getVmsForExperiments ecf = do
+getVmsForExperiments ecf useMiddle = do
     let HighLevelConfig{..} = highLevelConfig ecf
+    let nrMiddles = if useMiddle then 1 else 0
     case location of
         Local -> do
             let localLogin = RemoteLogin Nothing localhostIp
             let localPrivate = localhostIp
             let localTup = (localLogin, localPrivate)
             let locals = repeat localTup
-            return (take nrClients locals, take 1 locals, take nrServers locals, [])
+            return (take nrClients locals, take nrMiddles locals, take nrServers locals, [])
         Remote -> do
-            (cs, ms, ss) <- getVms nrClients 1 nrServers
+            (cs, ms, ss) <- getVms nrClients nrMiddles nrServers
             let login VmData{..} = RemoteLogin (Just vmAdmin) vmFullUrl
             let private VmData{..} = vmPrivateIp
             let tups = map (login &&& private)
@@ -302,14 +305,14 @@ genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
     traceFileName = signGlobally (target ++ "-trace")
 
 genClientSetup
-    :: ExperimentConfig a
+    :: (ExperimentConfig a)
     => a
     -> [(RemoteLogin, String)]
-    -> MiddleSetup
+    -> RemoteServerUrl
     -> (String -> FilePath)
     -> TimeUnit
     -> [ClientSetup]
-genClientSetup ecf cls middle signGlobally runtime = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
+genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
     let target = experimentTarget ecf
         sign f = signGlobally $ intercalate "-" [target, show cix, f]
     in ClientSetup
@@ -328,7 +331,7 @@ genClientSetup ecf cls middle signGlobally runtime = flip map (indexed cls) $ \(
                 { setProportion = 0.05
                 }
             , msFlags = MemaslapFlags
-                { msServers = [middleRemoteServer middle]
+                { msServers = [surl]
                 , msThreads = 1
                 , msConcurrency = 15
                 , msOverwrite = 0.9
@@ -358,8 +361,6 @@ genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentS
         = experimentResultsDir ecf </> "setups" </> signGlobally "setup" <.> jsonExt
     , clientSetups = clients
     , backendSetup = Right (middle, servers)
-    -- , middleSetup = middle
-    -- , serverSetups = servers
     }
 
 readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [FilePath]

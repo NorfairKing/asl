@@ -26,7 +26,7 @@ instance ExperimentConfig StabilityTraceCfg where
     highLevelConfig = hlConfig
     genExperimentSetups stc@StabilityTraceCfg{..} = do
         let HighLevelConfig{..} = hlConfig
-        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
+        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc True
 
         let servers = genServerSetups sers
 
@@ -41,7 +41,7 @@ instance ExperimentConfig StabilityTraceCfg where
                     }
                 }
 
-        let defaultClients = genClientSetup stc cls middle signGlobally runtime
+        let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally runtime
         let clients = flip map defaultClients $ \cs -> cs
                 { cMemaslapSettings = (cMemaslapSettings cs)
                     { msConfig = defaultMemaslapConfig

@@ -3,111 +3,83 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Experiments.Baseline.Types where
 
-import           Data.Aeson            (FromJSON, ToJSON)
-import qualified Data.ByteString.Lazy  as LB
-import           Data.Csv
+import           Data.Aeson                 (FromJSON, ToJSON)
+import           Data.List
 import           GHC.Generics
 
+import           Development.Shake.FilePath
+
 import           AslBuild.Client.Types
+import           AslBuild.Constants
+import           AslBuild.Experiment
 import           AslBuild.Memaslap
-import           AslBuild.Server.Types
+import           AslBuild.Memcached
+import           AslBuild.Server
 import           AslBuild.Types
 
 
 data BaselineExperimentRuleCfg
     = BaselineExperimentRuleCfg
-    { target           :: String
-    , csvOutFile       :: FilePath
-    , localLogfile     :: FilePath
-    , maxNrClients     :: Int
-    , baselineLocation :: Location
-    , baselineSetup    :: BaseLineSetup
+    { hlConfig      :: HighLevelConfig
+    , concurrencies :: [Int]
+    , blRuntime     :: TimeUnit
+    , repetitions   :: Int
     } deriving (Show, Eq, Generic)
 
-data BaseLineSetup
-    = BaseLineSetup
-    { repetitions         :: Int
-    , runtime             :: Int
-    , maxNrVirtualClients :: Int
-    } deriving (Show, Eq, Generic)
+instance ToJSON   BaselineExperimentRuleCfg
+instance FromJSON BaselineExperimentRuleCfg
 
-data BaselineExperimentSetup
-    = BaselineExperimentSetup
-    { repetition   :: Int
-    , clientSetups :: [ClientSetup]
-    , serverSetup  :: ServerSetup
-    } deriving (Show, Eq, Generic)
+instance ExperimentConfig BaselineExperimentRuleCfg where
+    highLevelConfig = hlConfig
+    genExperimentSetups ecf@BaselineExperimentRuleCfg{..} = do
+        let HighLevelConfig{..} = hlConfig
+        (cls, [], sers@[(_, serPrivateIp)], vmsNeeded) <- getVmsForExperiments ecf False
+        let setups = do
+                curConcurrency <- concurrencies
+                let signGlobally f = intercalate "-" [f, show curConcurrency]
 
-instance ToJSON   BaselineExperimentSetup
-instance FromJSON BaselineExperimentSetup
+                let [server] = genServerSetups sers
+                let defaultClients = genClientSetup
+                        ecf
+                        cls
+                        (RemoteServerUrl serPrivateIp $ memcachedPort $ sMemcachedFlags server)
+                        signGlobally
+                        blRuntime
+                let clients = flip map defaultClients $ \cs ->
+                        let sets = cMemaslapSettings cs
+                            config = msConfig sets
+                            flags = msFlags sets
+                        in cs
+                        { cMemaslapSettings = sets
+                            { msConfig = config
+                                { setProportion = 0
+                                }
+                            , msFlags = flags
+                                { msConcurrency = curConcurrency
+                                }
+                            }
+                        }
+                return $ genBaselineExperimentSetup ecf blRuntime clients server signGlobally
+        return (setups, vmsNeeded)
 
-data ExperimentResults
-    = ExperimentResults
-    { erSetup       :: BaselineExperimentSetup
-    , erClientSetup :: ClientSetup
-    , erMemaslapLog :: MemaslapLog
-    , erClientIndex :: Int
-    } deriving (Show, Eq, Generic)
-
-instance ToJSON   ExperimentResults
-instance FromJSON ExperimentResults
-
-data ExperimentLogLine
-    = ExperimentLogLine
-    { eNrClients   :: Int
-    , eClientIndex :: Int
-    , eRep         :: Int
-    , eThreads     :: Int
-    , eConcurrency :: Int
-    , eAvg         :: Int
-    , eStd         :: Double
-    , eTps         :: Int
-    } deriving (Show, Eq, Generic)
-
-instance ToJSON ExperimentLogLine
-instance FromJSON ExperimentLogLine
-
-resultsCsv :: [ExperimentLogLine] -> LB.ByteString
-resultsCsv = encodeByName $ header
-    [ "nrClients"
-    , "clientIndex"
-    , "rep"
-    , "threads"
-    , "concurrency"
-    , "avg"
-    , "std"
-    , "tps"
-    ]
-
-instance ToNamedRecord ExperimentLogLine where
-    toNamedRecord ExperimentLogLine{..} =
-        namedRecord
-            [ "nrClients" .= eNrClients
-            , "clientIndex" .= eClientIndex
-            , "rep" .= eRep
-            , "threads" .= eThreads
-            , "concurrency" .= eConcurrency
-            , "avg" .= eAvg
-            , "std" .= eStd
-            , "tps" .= eTps
-            ]
+-- TODO Unify with the same thing in 'AslBuild.Experiment'
+genBaselineExperimentSetup
+    :: ExperimentConfig a
+    => a
+    -> TimeUnit
+    -> [ClientSetup]
+    -> ServerSetup
+    -> (String -> FilePath)
+    -> ExperimentSetup
+genBaselineExperimentSetup ecf runtime clients server signGlobally = ExperimentSetup
+    { esRuntime = runtime
+    , esResultsSummaryFile
+        = experimentResultsDir ecf </> "summaries" </> signGlobally "summary" <.> jsonExt
+    , esSetupFile
+        = experimentResultsDir ecf </> "setups" </> signGlobally "setup" <.> jsonExt
+    , clientSetups = clients
+    , backendSetup = Left server
+    }
 
 
-makeLogLine :: ExperimentResults -> Maybe ExperimentLogLine
-makeLogLine ExperimentResults{..} = do
-    let BaselineExperimentSetup{..} = erSetup
-        ClientSetup{..} = erClientSetup
-        MemaslapSettings{..} = cMemaslapSettings
-        MemaslapFlags{..} = msFlags
-        MemaslapLog{..} = erMemaslapLog
-    TotalStats{..} <- totalBothStats <$> totalStatsTrip
-    return ExperimentLogLine
-        { eNrClients = length clientSetups
-        , eClientIndex = erClientIndex
-        , eRep = repetition
-        , eThreads = msThreads
-        , eConcurrency = msConcurrency
-        , eAvg = totalAvg
-        , eStd = totalStd
-        , eTps = finalTps finalStats
-        }
+

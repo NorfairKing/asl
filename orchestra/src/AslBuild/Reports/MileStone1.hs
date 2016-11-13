@@ -3,7 +3,7 @@ module AslBuild.Reports.MileStone1 where
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           AslBuild.Analysis.Baseline
+import           AslBuild.Analysis.MaximumThroughput
 import           AslBuild.Analysis.StabilityTrace
 import           AslBuild.Constants
 import           AslBuild.Experiments.Baseline
@@ -28,12 +28,14 @@ report1Rules = report 1 texPreAction customRules
     customRules = do
         architectureGraphDot `compileDotToEps` architectureGraphEps
 
-        remoteBaselineExperiment `useBaselinePlotsInReport` 1
+        remoteBaselineExperiment `useThroughputAnalysisPlotsInReport` 1
         remoteStabilityTrace `useStabilityTracePlotsInReport` 1
 
     texPreAction = do
-        remoteBaselineExperiment `dependOnBaselinePlotsForReport` 1
+
+        remoteBaselineExperiment `dependOnThroughputAnalysisPlotsForReport` 1
         remoteStabilityTrace `dependOnStabilityTracePlotsForReport` 1
+
         need
             [ architecturePng
             , architectureGraphEps

@@ -28,7 +28,7 @@ instance ExperimentConfig MinimumThroughputCfg where
     genExperimentSetups stc@MinimumThroughputCfg{..} = do
         let runtime = mtRuntime
         let HighLevelConfig{..} = hlConfig
-        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc
+        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments stc True
 
         let setups = do
                 (curMiddleThreads, curConcurrency) <- threadConcTups
@@ -43,7 +43,7 @@ instance ExperimentConfig MinimumThroughputCfg where
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls middle signGlobally runtime
+                let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally runtime
                 let clients = flip map defaultClients $ \cs ->
                         let sets = cMemaslapSettings cs
                             config = msConfig sets

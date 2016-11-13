@@ -21,6 +21,7 @@ import           AslBuild.Analysis.TraceSlice.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
@@ -33,7 +34,8 @@ traceSliceAnalysisRule = "trace-slice-analysis"
 traceSliceAnalysisRules :: Rules ()
 traceSliceAnalysisRules = do
     traceSliceAnalysisRule ~> need
-        [ ruleForStabilityTraces
+        [ ruleForBaselines
+        , ruleForStabilityTraces
         , ruleForMaximumThroughputs
         , ruleForWriteEffects
         , ruleForReplicationEffects
@@ -42,11 +44,15 @@ traceSliceAnalysisRules = do
     let traceSliceSubrules :: ExperimentConfig a => String -> [a] -> Rules ()
         traceSliceSubrules = subRules rulesForTraceSliceAnalysis
 
+    traceSliceSubrules ruleForBaselines allBaselineExperiments
     traceSliceSubrules ruleForStabilityTraces allStabilityTraceExperiments
     traceSliceSubrules ruleForMaximumThroughputs allMaximumThroughputExperiments
     traceSliceSubrules ruleForWriteEffects allWriteEffectExperiments
     traceSliceSubrules ruleForReplicationEffects allReplicationEffectExperiments
 
+
+ruleForBaselines :: String
+ruleForBaselines = "baseline-trace-slice-analysis"
 
 ruleForStabilityTraces :: String
 ruleForStabilityTraces = "stability-trace-trace-slice-analysis"
