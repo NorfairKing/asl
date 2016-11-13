@@ -40,6 +40,6 @@ traceSliceAnalysisOf ecf ers inFile postfix = do
         need [commonRLib, traceSliceAnalysisScript, inFile]
         need [rBin]
         needRLibs ["ggplot2"]
-        rScript traceSliceAnalysisScript commonRLib inFile prefix
+        rScript traceSliceAnalysisScript commonRLib inFile prefix postfix
 
     return plots

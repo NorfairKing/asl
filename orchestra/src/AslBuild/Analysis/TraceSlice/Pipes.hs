@@ -86,19 +86,19 @@ instance Mean Durations where
 absLineTransformer :: Monad m => Pipe Durations (DurationsLine Integer) m v
 absLineTransformer = forever $ do
     Durations{..} <- P.await
-    let row cat val = DurationsLine
+    let row val cat = DurationsLine
             { rKind = reqKind
             , aTime = arrivalTime
             , category = cat
             , value = val
             }
     mapM_ P.yield
-        [ row "parsing"   untilParsedTime
-        , row "enqueue"   untilEnqueuedTime
-        , row "inqueue"   untilDequeuedTime
-        , row "query"     untilAskedTime
-        , row "response"  untilRepliedTime
-        , row "finalized" untilRespondedTime
+        [ row untilParsedTime     "Parsing"
+        , row untilEnqueuedTime   "Waiting to be put onto queue"
+        , row untilDequeuedTime   "In queue"
+        , row untilAskedTime      "Querying first server"
+        , row untilRepliedTime    "Interacting with server"
+        , row untilRespondedTime  "Finalisation"
         ]
 
 relLineTransformer :: Monad m => Pipe Durations (DurationsLine Float) m v
@@ -112,20 +112,20 @@ relLineTransformer = forever $ do
             , untilRepliedTime    d
             , untilRespondedTime  d
             ]
-    let row cat val = DurationsLine
+    let rel :: (Durations -> Integer) -> Float
+        rel func = (fromIntegral (func d) / fromIntegral total) * 100
+    let row val cat = DurationsLine
             { rKind = reqKind d
             , aTime = arrivalTime d
             , category = cat
-            , value = val
+            , value = rel val
             }
-    let rel :: (Durations -> Integer) -> Float
-        rel func = (fromIntegral (func d) / fromIntegral total) * 100
     mapM_ P.yield
-        [ row "parsing"   $ rel untilParsedTime
-        , row "enqueue"   $ rel untilEnqueuedTime
-        , row "inqueue"   $ rel untilDequeuedTime
-        , row "query"     $ rel untilAskedTime
-        , row "response"  $ rel untilRepliedTime
-        , row "finalized" $ rel untilRespondedTime
+        [ row untilParsedTime     "Parsing"
+        , row untilEnqueuedTime   "Waiting to be put onto queue"
+        , row untilDequeuedTime   "In queue"
+        , row untilAskedTime      "Querying first server"
+        , row untilRepliedTime    "Interacting with server"
+        , row untilRespondedTime  "Finalisation"
         ]
 

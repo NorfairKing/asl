@@ -77,7 +77,7 @@ remoteMaximumThroughput = MaximumThroughputCfg
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        middleThreads <- [1, 5 .. 24]
+        middleThreads <- [1..6]
         concurrencies <-
             scanl (+) 1 $
                 concatMap (uncurry replicate)
