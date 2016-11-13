@@ -49,6 +49,13 @@ pad0 = pad '0'
 padMOrS :: Int -> String
 padMOrS = pad0 2 . show
 
+flatPercent :: Double -> String
+flatPercent = go
+  where
+    go d
+        | d == 0 = "0"
+        | d > 1 = show (floor d :: Integer)
+        | otherwise = '0' : go (10 * d)
 
 readJSON :: (MonadIO m, FromJSON a) => FilePath -> m a
 readJSON file = do

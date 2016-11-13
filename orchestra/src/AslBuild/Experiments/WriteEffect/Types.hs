@@ -12,6 +12,7 @@ import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Types
+import           AslBuild.Utils
 
 data WriteEffectCfg
     = WriteEffectCfg
@@ -34,7 +35,7 @@ instance ExperimentConfig WriteEffectCfg where
                 writePercentage <- writePercentages
                 curNrServers <- serverCounts
                 replicationFactor <- nub [1, curNrServers]
-                let signGlobally f = intercalate "-" [f, show curNrServers, show replicationFactor, show writePercentage]
+                let signGlobally f = intercalate "-" [f, show curNrServers, show replicationFactor, flatPercent writePercentage]
                 let servers = take curNrServers $ genServerSetups sers
 
                 let rSampleRate = 1000

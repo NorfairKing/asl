@@ -12,6 +12,7 @@ import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Types
+import           AslBuild.Utils
 
 data ReplicationEffectCfg
     = ReplicationEffectCfg
@@ -33,7 +34,7 @@ instance ExperimentConfig ReplicationEffectCfg where
         let setups = do
                 curNrServers <- serverCounts
                 replicationFactor <- replicationFactors
-                let signGlobally f = intercalate "-" [f, show replicationFactor, show curNrServers]
+                let signGlobally f = intercalate "-" [f, flatPercent replicationFactor, show curNrServers]
 
                 let servers = take curNrServers $ genServerSetups sers
 
