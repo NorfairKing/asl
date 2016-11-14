@@ -4,7 +4,7 @@ module AslBuild.Analysis.TraceSlice.Pipes where
 
 import           Control.Monad
 
-import           Pipes                              (Pipe)
+import           Pipes                              (Pipe, (>->))
 import qualified Pipes                              as P
 import qualified Pipes.Prelude                      as P
 
@@ -17,79 +17,76 @@ import           AslBuild.Middleware.Types
 import           AslBuild.Utils
 
 
-timeTransformer :: Monad m => Pipe MiddleResultLine Durations m v
+timeTransformer :: Monad m => Pipe MiddleResultLine MiddleDurationsLine m v
 timeTransformer = do
     mrl <- P.await
     let startTime = requestReceivedTime mrl
     forever $ do
         MiddleResultLine{..} <- P.await
-        P.yield Durations
+        P.yield MiddleDurationsLine
             { reqKind = requestKind
-            , arrivalTime        = requestReceivedTime   - startTime
-            , untilParsedTime    = requestParsedTime     - requestReceivedTime
-            , untilEnqueuedTime  = requestEnqueuedTime   - requestParsedTime
-            , untilDequeuedTime  = requestDequeuedTime   - requestEnqueuedTime
-            , untilAskedTime     = requestAskedTime      - requestDequeuedTime
-            , untilRepliedTime   = requestRepliedTime    - requestRepliedTime
-            , untilRespondedTime = requestRespondedTime  - requestRespondedTime
+            , arrivalTime = requestReceivedTime   - startTime
+            , durations = Durations
+                { untilParsedTime    = requestParsedTime     - requestReceivedTime
+                , untilEnqueuedTime  = requestEnqueuedTime   - requestParsedTime
+                , untilDequeuedTime  = requestDequeuedTime   - requestEnqueuedTime
+                , untilAskedTime     = requestAskedTime      - requestDequeuedTime
+                , untilRepliedTime   = requestRepliedTime    - requestRepliedTime
+                , untilRespondedTime = requestRespondedTime  - requestRespondedTime
+                }
             }
 
-absLineTransformer :: Monad m => Pipe DurTup (DurationsLine Integer) m v
-absLineTransformer = forever $ do
+durTupLineTrans :: Monad m => Pipe (DurTup a) (DurationsLine a) m v
+durTupLineTrans = forever $ do
     DurTup{..} <- P.await
     let row val cat = DurationsLine
             { nrCls = nrCs
             , middleThds = middleTds
             , category = cat
-            , value = val
+            , value = val durs
             }
     mapM_ P.yield
-        [ row tilParsedTime     "Parsing"
-        , row tilEnqueuedTime   "Waiting to be put onto queue"
-        , row tilDequeuedTime   "In queue"
-        , row tilAskedTime      "Querying first server"
-        , row tilRepliedTime    "Interacting with server"
-        , row tilRespondedTime  "Finalisation"
+        [ row untilParsedTime     "Parsing"
+        , row untilEnqueuedTime   "Waiting to be put onto queue"
+        , row untilDequeuedTime   "In queue"
+        , row untilAskedTime      "Querying first server"
+        , row untilRepliedTime    "Interacting with server"
+        , row untilRespondedTime  "Finalisation"
         ]
 
-relLineTransformer :: Monad m => Pipe DurTup (DurationsLine Float) m v
-relLineTransformer = forever $ do
-    d <- P.await
-    let total = sum
-            [ tilParsedTime     d
-            , tilEnqueuedTime   d
-            , tilDequeuedTime   d
-            , tilAskedTime      d
-            , tilRepliedTime    d
-            , tilRespondedTime  d
-            ]
-    let rel :: (DurTup -> Integer) -> Float
-        rel func = (fromIntegral (func d) / fromIntegral total) * 100
-    let row val cat = DurationsLine
-            { nrCls = nrCs d
-            , middleThds = middleTds d
-            , category = cat
-            , value = rel val
-            }
-    mapM_ P.yield
-        [ row tilParsedTime     "Parsing"
-        , row tilEnqueuedTime   "Waiting to be put onto queue"
-        , row tilDequeuedTime   "In queue"
-        , row tilAskedTime      "Querying first server"
-        , row tilRepliedTime    "Interacting with server"
-        , row tilRespondedTime  "Finalisation"
+relDurTup :: DurTup Integer -> DurTup Float
+relDurTup dt = dt { durs = relDur $ durs dt }
+
+relDur :: Durations Integer -> Durations Float
+relDur d = Durations
+    { untilParsedTime    = rel untilParsedTime
+    , untilEnqueuedTime  = rel untilEnqueuedTime
+    , untilDequeuedTime  = rel untilDequeuedTime
+    , untilAskedTime     = rel untilAskedTime
+    , untilRepliedTime   = rel untilRepliedTime
+    , untilRespondedTime = rel untilRespondedTime
+    }
+  where
+    rel func = fromIntegral (func d) / fromIntegral (total d)
+    total Durations{..} = sum
+        [ untilParsedTime
+        , untilEnqueuedTime
+        , untilDequeuedTime
+        , untilAskedTime
+        , untilRepliedTime
+        , untilRespondedTime
         ]
 
+absLineTransformer :: Monad m => Pipe (DurTup Integer) (DurationsLine Integer) m v
+absLineTransformer = durTupLineTrans
 
-durtupTransformer :: Monad m => Pipe (ExperimentSetup, Durations) DurTup m v
+relLineTransformer :: Monad m => Pipe (DurTup Integer) (DurationsLine Float) m v
+relLineTransformer = P.map relDurTup >-> durTupLineTrans
+
+durtupTransformer :: Monad m => Pipe (ExperimentSetup, Durations a) (DurTup a) m v
 durtupTransformer = P.map tr
-  where tr (ExperimentSetup{..}, Durations{..}) = DurTup
+  where tr (ExperimentSetup{..}, durations) = DurTup
             { nrCs             = sum $ map (msConcurrency . msFlags . cMemaslapSettings) clientSetups
             , middleTds        = mwNrThreads $ mMiddlewareFlags $ fst $ fromRight backendSetup
-            , tilParsedTime    = untilParsedTime
-            , tilEnqueuedTime  = untilEnqueuedTime
-            , tilDequeuedTime  = untilDequeuedTime
-            , tilAskedTime     = untilAskedTime
-            , tilRepliedTime   = untilRepliedTime
-            , tilRespondedTime = untilRespondedTime
+            , durs             = durations
             }

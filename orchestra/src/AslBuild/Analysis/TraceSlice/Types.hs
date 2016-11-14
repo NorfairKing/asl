@@ -8,6 +8,7 @@ import           GHC.Generics
 import qualified Pipes.Csv      as P
 
 import           Data.Csv
+import           Data.Monoid
 
 import           AslBuild.Types
 
@@ -16,35 +17,56 @@ class Monoid a => Mean a where
     divide :: Integral i => a -> i -> a
     uncombine :: a -> a -> a
 
-data Durations
-    = Durations
-    { reqKind            :: RequestKind
-    , arrivalTime        :: Integer
-    , untilParsedTime    :: Integer
-    , untilEnqueuedTime  :: Integer
-    , untilDequeuedTime  :: Integer
-    , untilAskedTime     :: Integer
-    , untilRepliedTime   :: Integer
-    , untilRespondedTime :: Integer
+data MiddleDurationsLine
+    = MiddleDurationsLine
+    { reqKind     :: RequestKind
+    , arrivalTime :: Integer
+    , durations   :: Durations Integer
     } deriving (Show, Eq, Generic)
 
-instance FromNamedRecord Durations where
-    parseNamedRecord m = Durations
+instance FromNamedRecord MiddleDurationsLine where
+    parseNamedRecord m = MiddleDurationsLine
         <$> m .: "reqKind"
         <*> m .: "arrivalTime"
-        <*> m .: "untilParsed"
+        <*> parseNamedRecord m
+
+instance ToNamedRecord MiddleDurationsLine where
+    toNamedRecord MiddleDurationsLine{..} =
+        namedRecord
+            [ "reqKind" .= reqKind
+            , "arrivalTime" .= arrivalTime
+            ]
+        <> toNamedRecord durations
+
+instance DefaultOrdered MiddleDurationsLine where
+    headerOrder _ = header
+        [ "reqKind"
+        , "arrivalTime"
+        ] <> headerOrder (undefined :: Durations Integer)
+
+data Durations a
+    = Durations
+    { untilParsedTime    :: a
+    , untilEnqueuedTime  :: a
+    , untilDequeuedTime  :: a
+    , untilAskedTime     :: a
+    , untilRepliedTime   :: a
+    , untilRespondedTime :: a
+    } deriving (Show, Eq, Generic)
+
+instance FromField a => FromNamedRecord (Durations a) where
+    parseNamedRecord m = Durations
+        <$> m .: "untilParsed"
         <*> m .: "untilEnqueued"
         <*> m .: "untilDequeued"
         <*> m .: "untilAsked"
         <*> m .: "untilReplied"
         <*> m .: "untilResponded"
 
-instance ToNamedRecord Durations where
+instance ToField a => ToNamedRecord (Durations a) where
     toNamedRecord Durations{..} =
         namedRecord
-            [ "reqKind" .= reqKind
-            , "arrivalTime" .= arrivalTime
-            , "untilParsed" .= untilParsedTime
+            [ "untilParsed" .= untilParsedTime
             , "untilEnqueued" .= untilEnqueuedTime
             , "untilDequeued" .= untilDequeuedTime
             , "untilAsked" .= untilAskedTime
@@ -52,11 +74,9 @@ instance ToNamedRecord Durations where
             , "untilResponded" .= untilRespondedTime
             ]
 
-instance DefaultOrdered Durations where
+instance DefaultOrdered (Durations a) where
     headerOrder _ = header
-        [ "reqKind"
-        , "arrivalTime"
-        , "untilParsed"
+        [ "untilParsed"
         , "untilEnqueued"
         , "untilDequeued"
         , "untilAsked"
@@ -65,11 +85,9 @@ instance DefaultOrdered Durations where
         ]
 
 
-instance Monoid Durations where
+instance Num a => Monoid (Durations a) where
     mempty = Durations
-        { reqKind = READ -- Fixme
-        , arrivalTime        = 0
-        , untilParsedTime    = 0
+        { untilParsedTime    = 0
         , untilEnqueuedTime  = 0
         , untilDequeuedTime  = 0
         , untilAskedTime     = 0
@@ -79,9 +97,7 @@ instance Monoid Durations where
     mappend d1 d2 =
         let s func = func d1 + func d2
         in Durations
-            { reqKind = READ -- Fixme
-            , arrivalTime        = arrivalTime d2
-            , untilParsedTime    = s untilParsedTime
+            { untilParsedTime    = s untilParsedTime
             , untilEnqueuedTime  = s untilEnqueuedTime
             , untilDequeuedTime  = s untilDequeuedTime
             , untilAskedTime     = s untilAskedTime
@@ -89,13 +105,11 @@ instance Monoid Durations where
             , untilRespondedTime = s untilRespondedTime
             }
 
-instance Mean Durations where
+instance (Num a, Divisive a) => Mean (Durations a) where
     combines ds =
         let s func = sum $ map func ds
         in Durations
-            { reqKind = READ -- Fixme
-            , arrivalTime        = arrivalTime $ last ds
-            , untilParsedTime    = s untilParsedTime
+            { untilParsedTime    = s untilParsedTime
             , untilEnqueuedTime  = s untilEnqueuedTime
             , untilDequeuedTime  = s untilDequeuedTime
             , untilAskedTime     = s untilAskedTime
@@ -103,11 +117,9 @@ instance Mean Durations where
             , untilRespondedTime = s untilRespondedTime
             }
     divide d i =
-        let s func = func d `div` fromIntegral i
+        let s func = func d `divi` i
         in Durations
-            { reqKind = READ -- Fixme
-            , arrivalTime        = arrivalTime d
-            , untilParsedTime    = s untilParsedTime
+            { untilParsedTime    = s untilParsedTime
             , untilEnqueuedTime  = s untilEnqueuedTime
             , untilDequeuedTime  = s untilDequeuedTime
             , untilAskedTime     = s untilAskedTime
@@ -117,9 +129,7 @@ instance Mean Durations where
     uncombine d1 d2 =
         let s func = func d1 - func d2
         in Durations
-            { reqKind = READ -- Fixme
-            , arrivalTime        = arrivalTime d1
-            , untilParsedTime    = s untilParsedTime
+            { untilParsedTime    = s untilParsedTime
             , untilEnqueuedTime  = s untilEnqueuedTime
             , untilDequeuedTime  = s untilDequeuedTime
             , untilAskedTime     = s untilAskedTime
@@ -127,54 +137,42 @@ instance Mean Durations where
             , untilRespondedTime = s untilRespondedTime
             }
 
+class Divisive a where
+    divi :: Integral i => a -> i -> a
 
-data DurTup
+instance Divisive Integer where
+    divi a i = a `div` fromIntegral i
+
+instance Divisive Float where
+    divi a i = a / fromIntegral i
+
+data DurTup a
     = DurTup
-    { nrCs             :: Int
-    , middleTds        :: Int
-    , tilParsedTime    :: Integer
-    , tilEnqueuedTime  :: Integer
-    , tilDequeuedTime  :: Integer
-    , tilAskedTime     :: Integer
-    , tilRepliedTime   :: Integer
-    , tilRespondedTime :: Integer
-    }
+    { nrCs      :: Int
+    , middleTds :: Int
+    , durs      :: Durations a
+    } deriving (Show, Eq, Generic)
 
-instance FromNamedRecord DurTup where
+instance FromField a => FromNamedRecord (DurTup a) where
     parseNamedRecord m = DurTup
         <$> m .: "nrClients"
         <*> m .: "middleThreads"
-        <*> m .: "untilParsed"
-        <*> m .: "untilEnqueued"
-        <*> m .: "untilDequeued"
-        <*> m .: "untilAsked"
-        <*> m .: "untilReplied"
-        <*> m .: "untilResponded"
+        <*> parseNamedRecord m
 
-instance ToNamedRecord DurTup where
+instance ToField a => ToNamedRecord (DurTup a) where
     toNamedRecord DurTup{..} =
         namedRecord
             [ "nrClients" .= nrCs
             , "middleThreads" .= middleTds
-            , "untilParsed" .= tilParsedTime
-            , "untilEnqueued" .= tilEnqueuedTime
-            , "untilDequeued" .= tilDequeuedTime
-            , "untilAsked" .= tilAskedTime
-            , "untilReplied" .= tilRepliedTime
-            , "untilResponded" .= tilRespondedTime
             ]
+        <> toNamedRecord durs
 
-instance DefaultOrdered DurTup where
+instance DefaultOrdered (DurTup a) where
     headerOrder _ = header
         [ "nrClients"
         , "middleThreads"
-        , "untilParsed"
-        , "untilEnqueued"
-        , "untilDequeued"
-        , "untilAsked"
-        , "untilReplied"
-        , "untilResponded"
         ]
+        <> headerOrder (undefined :: Durations Integer)
 
 data DurationsLine a
     = DurationsLine
