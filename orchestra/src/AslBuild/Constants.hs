@@ -128,6 +128,9 @@ analysisDir = aslDir </> "analysis"
 reportsDir :: FilePath
 reportsDir = aslDir </> reports
 
+reportsTmpDir :: FilePath
+reportsTmpDir = tmpDir </> "reports"
+
 codeSrcDir :: FilePath
 codeSrcDir = aslDir </> asl
 

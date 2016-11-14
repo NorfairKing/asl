@@ -16,6 +16,7 @@ import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareTests
 import           AslBuild.Orc
 import           AslBuild.Reports
+import           AslBuild.Reports.ExperimentFormat
 import           AslBuild.Test
 import           AslBuild.Utils
 
@@ -47,6 +48,8 @@ preCommitRules = do
             , smallLocalWriteEffectRule
 
             , analysisRule
+
+            , experimentTablesRule
             , reportsRule
 
             , formatClientRule

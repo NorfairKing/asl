@@ -3,6 +3,7 @@ module AslBuild.Reports where
 import           Development.Shake
 
 import           AslBuild.Reports.Common
+import           AslBuild.Reports.ExperimentFormat
 import           AslBuild.Reports.MileStone1
 import           AslBuild.Reports.MileStone2
 
@@ -19,6 +20,7 @@ reportRules = do
 
     phony cleanReportsRule $ need $ map reportCleanRule reportNrs
 
+    experimentTablesRules
     report1Rules
     report2Rules
 
