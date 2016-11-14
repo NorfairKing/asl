@@ -16,11 +16,10 @@ import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
 import           AslBuild.Server.Types
 import           AslBuild.Types
-import           AslBuild.Vm.Types
 
 class ExperimentConfig a where
     highLevelConfig :: a -> HighLevelConfig
-    genExperimentSetups :: a -> Action ([ExperimentSetup], [VmData])
+    genExperimentSetups :: a -> Action ([ExperimentSetup], [RemoteLogin])
 
 experimentTarget :: ExperimentConfig a => a -> String
 experimentTarget = target . highLevelConfig

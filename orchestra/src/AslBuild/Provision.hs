@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 module AslBuild.Provision where
 
 import           Control.Monad
@@ -16,7 +15,6 @@ import           AslBuild.Orc
 import           AslBuild.Types
 import           AslBuild.Utils
 import           AslBuild.Vm.Data
-import           AslBuild.Vm.Types
 
 provisionRules :: Rules ()
 provisionRules = do
@@ -117,9 +115,6 @@ provisionVmsRules = do
     provisionVmsMiddlewareRule ~> (getVmLogins >>= provisionVmsMiddleware)
 
     clearVmsRule ~> (getVmLogins >>= clearVms)
-
-provisionVmsFromData :: [VmData] -> Action ()
-provisionVmsFromData = provisionVms . nub . map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmPublicIp)
 
 provisionVms :: [RemoteLogin] -> Action ()
 provisionVms = postNub $ \rls -> do

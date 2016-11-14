@@ -58,7 +58,7 @@ generateTargetFor ecf = do
 
         (eSetups, vmsNeeded) <- genExperimentSetups ecf
 
-        provisionVmsFromData vmsNeeded
+        provisionVms vmsNeeded
 
         -- Intentionally no parallelism here.
         forM_ (indexed eSetups) $ \(ix, es) -> do
@@ -242,7 +242,7 @@ getVmsForExperiments
     :: ExperimentConfig a
     => a
     -> Bool
-    -> Action ([(RemoteLogin, String)], [(RemoteLogin, String)], [(RemoteLogin, String)], [VmData])
+    -> Action ([(RemoteLogin, String)], [(RemoteLogin, String)], [(RemoteLogin, String)], [RemoteLogin])
 getVmsForExperiments ecf useMiddle = do
     let HighLevelConfig{..} = highLevelConfig ecf
     let nrMiddles = if useMiddle then 1 else 0
@@ -258,7 +258,7 @@ getVmsForExperiments ecf useMiddle = do
             let login VmData{..} = RemoteLogin (Just vmAdmin) vmFullUrl
             let private VmData{..} = vmPrivateIp
             let tups = map (login &&& private)
-            return (tups cs, tups ms, tups ss, cs ++ ms ++ ss)
+            return (tups cs, tups ms, tups ss, map login $ cs ++ ms ++ ss)
 
 genServerSetups :: [(RemoteLogin, String)] -> [ServerSetup]
 genServerSetups sers = flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSetup
