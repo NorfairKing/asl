@@ -11,6 +11,11 @@ import           Data.Csv
 
 import           AslBuild.Types
 
+class Monoid a => Mean a where
+    combines :: [a] -> a
+    divide :: Integral i => a -> i -> a
+    uncombine :: a -> a -> a
+
 data Durations
     = Durations
     { reqKind            :: RequestKind
@@ -58,6 +63,70 @@ instance DefaultOrdered Durations where
         , "untilReplied"
         , "untilResponded"
         ]
+
+
+instance Monoid Durations where
+    mempty = Durations
+        { reqKind = READ -- Fixme
+        , arrivalTime        = 0
+        , untilParsedTime    = 0
+        , untilEnqueuedTime  = 0
+        , untilDequeuedTime  = 0
+        , untilAskedTime     = 0
+        , untilRepliedTime   = 0
+        , untilRespondedTime = 0
+        }
+    mappend d1 d2 =
+        let s func = func d1 + func d2
+        in Durations
+            { reqKind = READ -- Fixme
+            , arrivalTime        = arrivalTime d2
+            , untilParsedTime    = s untilParsedTime
+            , untilEnqueuedTime  = s untilEnqueuedTime
+            , untilDequeuedTime  = s untilDequeuedTime
+            , untilAskedTime     = s untilAskedTime
+            , untilRepliedTime   = s untilRepliedTime
+            , untilRespondedTime = s untilRespondedTime
+            }
+
+instance Mean Durations where
+    combines ds =
+        let s func = sum $ map func ds
+        in Durations
+            { reqKind = READ -- Fixme
+            , arrivalTime        = arrivalTime $ last ds
+            , untilParsedTime    = s untilParsedTime
+            , untilEnqueuedTime  = s untilEnqueuedTime
+            , untilDequeuedTime  = s untilDequeuedTime
+            , untilAskedTime     = s untilAskedTime
+            , untilRepliedTime   = s untilRepliedTime
+            , untilRespondedTime = s untilRespondedTime
+            }
+    divide d i =
+        let s func = func d `div` fromIntegral i
+        in Durations
+            { reqKind = READ -- Fixme
+            , arrivalTime        = arrivalTime d
+            , untilParsedTime    = s untilParsedTime
+            , untilEnqueuedTime  = s untilEnqueuedTime
+            , untilDequeuedTime  = s untilDequeuedTime
+            , untilAskedTime     = s untilAskedTime
+            , untilRepliedTime   = s untilRepliedTime
+            , untilRespondedTime = s untilRespondedTime
+            }
+    uncombine d1 d2 =
+        let s func = func d1 - func d2
+        in Durations
+            { reqKind = READ -- Fixme
+            , arrivalTime        = arrivalTime d1
+            , untilParsedTime    = s untilParsedTime
+            , untilEnqueuedTime  = s untilEnqueuedTime
+            , untilDequeuedTime  = s untilDequeuedTime
+            , untilAskedTime     = s untilAskedTime
+            , untilRepliedTime   = s untilRepliedTime
+            , untilRespondedTime = s untilRespondedTime
+            }
+
 
 data DurTup
     = DurTup

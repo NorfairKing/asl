@@ -10,8 +10,6 @@ import           Development.Shake
 import           Data.Csv               (DefaultOrdered (..),
                                          FromNamedRecord (..), ToNamedRecord)
 import qualified Data.Csv               as CSV
-import           Data.Dequeue           (BankersDequeue, Dequeue (..))
-import qualified Data.Dequeue           as D
 
 import           Pipes                  (Pipe, (>->))
 import qualified Pipes                  as P
@@ -31,28 +29,6 @@ errorIgnorer = forever $ do
     case eea of
         Left _ -> return ()
         Right res -> P.yield res
-
-class Monoid a => Mean a where
-    combines :: [a] -> a
-    divide :: Integral i => a -> i -> a
-    uncombine :: a -> a -> a
-
-slidingMean :: (Integral i, Monad m, Mean a) => i -> Pipe a a m ()
-slidingMean windowSize = do
-    initData <- replicateM (fromIntegral windowSize) P.await
-    let initSum = combines initData
-    recurse ((D.fromList :: [b] -> BankersDequeue b) initData) initSum
-  where
-    recurse :: (Monad m, Dequeue d, Mean a) => d a -> a -> Pipe a a m ()
-    recurse dats s = do
-        P.yield $ s `divide` windowSize
-        case popFront dats of
-            Nothing -> return ()
-            Just (oldDat, restQ) -> do
-                newdat <- P.await
-                let newSum = (s `uncombine` oldDat) `mappend` newdat
-                let newQ = pushBack restQ newdat
-                recurse newQ newSum
 
 filterMaybes :: Monad m => Pipe (Maybe a) a m r
 filterMaybes = forever $ do

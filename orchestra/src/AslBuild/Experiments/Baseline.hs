@@ -58,7 +58,7 @@ smallRemoteBaselineExperiment = BaselineExperimentRuleCfg
         , resultsPersistence = Volatile
         }
     , blRuntime = Seconds 5
-    , concurrencies = [1, 2]
+    , concurrencies = [1]
     , repetitions = 1
     }
 
