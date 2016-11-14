@@ -7,8 +7,8 @@ import           System.IO
 
 import           Development.Shake
 
-import           Data.Csv               (DefaultOrdered (..), FromNamedRecord,
-                                         ToNamedRecord)
+import           Data.Csv               (DefaultOrdered (..),
+                                         FromNamedRecord (..), ToNamedRecord)
 import qualified Data.Csv               as CSV
 import           Data.Dequeue           (BankersDequeue, Dequeue (..))
 import qualified Data.Dequeue           as D
@@ -32,18 +32,10 @@ errorIgnorer = forever $ do
         Left _ -> return ()
         Right res -> P.yield res
 
-class Mean a where
+class Monoid a => Mean a where
     combines :: [a] -> a
     divide :: Integral i => a -> i -> a
-    combine :: a -> a -> a
-    combine a1 a2 = combines [a1, a2]
     uncombine :: a -> a -> a
-
-instance Mean Integer where
-    combines = sum
-    divide i1 i2 = i1 `div` fromIntegral i2
-    combine = (+)
-    uncombine = (-)
 
 slidingMean :: (Integral i, Monad m, Mean a) => i -> Pipe a a m ()
 slidingMean windowSize = do
@@ -58,7 +50,7 @@ slidingMean windowSize = do
             Nothing -> return ()
             Just (oldDat, restQ) -> do
                 newdat <- P.await
-                let newSum = (s `uncombine` oldDat) `combine` newdat
+                let newSum = (s `uncombine` oldDat) `mappend` newdat
                 let newQ = pushBack restQ newdat
                 recurse newQ newSum
 

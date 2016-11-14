@@ -1,11 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.TraceSlice.Script
     ( traceSlicePlotsForSingleExperiment
     , traceSliceAnalysisOf
     ) where
-
-import           Data.Maybe
 
 import           Development.Shake          hiding (doesFileExist)
 import           Development.Shake.FilePath
@@ -19,21 +16,21 @@ import           AslBuild.Experiment
 traceSliceAnalysisScript :: FilePath
 traceSliceAnalysisScript = analysisDir </> "analyze_trace_slice.r"
 
-traceSlicePlotsForSingleExperiment :: ExperimentConfig a => a -> ExperimentResultSummary -> [FilePath]
-traceSlicePlotsForSingleExperiment ecf ers = do
+traceSlicePlotsForSingleExperiment :: ExperimentConfig a => a -> [FilePath]
+traceSlicePlotsForSingleExperiment ecf = do
     postfix <- ["absolute", "relative"]
-    traceSlicePlotsWithPrefix $ traceSlicePlotPrefix ecf ers postfix
+    traceSlicePlotsWithPrefix $ traceSlicePlotPrefix ecf postfix
 
-traceSlicePlotPrefix :: ExperimentConfig a => a -> ExperimentResultSummary -> FilePath -> FilePath
-traceSlicePlotPrefix ecf ExperimentResultSummary{..} postfix
-    = experimentPlotsDir ecf </> dropExtensions (takeFileName $ fromJust merMiddleResultsFile) ++ "-" ++ postfix
+traceSlicePlotPrefix :: ExperimentConfig a => a -> FilePath -> FilePath
+traceSlicePlotPrefix ecf postfix
+    = experimentPlotsDir ecf </> dropExtensions (takeFileName $ resultSummariesLocationFile ecf) ++ "-" ++ postfix
 
 traceSlicePlotsWithPrefix :: FilePath -> [FilePath]
 traceSlicePlotsWithPrefix prefix = [dropExtensions prefix ++ "-slice" <.> pngExt]
 
-traceSliceAnalysisOf :: ExperimentConfig a => a -> ExperimentResultSummary -> FilePath -> FilePath -> Rules [FilePath]
-traceSliceAnalysisOf ecf ers inFile postfix = do
-    let prefix = traceSlicePlotPrefix ecf ers postfix
+traceSliceAnalysisOf :: ExperimentConfig a => a -> FilePath -> FilePath -> Rules [FilePath]
+traceSliceAnalysisOf ecf inFile postfix = do
+    let prefix = traceSlicePlotPrefix ecf postfix
     let plots = traceSlicePlotsWithPrefix prefix
 
     plots &%> \_ -> do

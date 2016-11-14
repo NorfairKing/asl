@@ -10,6 +10,7 @@ module AslBuild.Experiment
     , readResultsSummaryLocationsForCfg
     , readResultsSummaryLocations
     , readResultsSummary
+    , readExperimentSetupForSummary
     , readExperimentSetup
     , readClientResults
     , experimentResultsDir
@@ -366,9 +367,14 @@ readResultsSummaryLocationsForCfg = readResultsSummaryLocations . resultSummarie
 readResultsSummaryLocations :: MonadIO m => FilePath -> m [FilePath]
 readResultsSummaryLocations = readJSON
 
+{-# DEPRECATED #-}
 readResultsSummary :: MonadIO m => FilePath -> m ExperimentResultSummary
 readResultsSummary = readJSON
 
+readExperimentSetupForSummary :: MonadIO m => ExperimentResultSummary -> m ExperimentSetup
+readExperimentSetupForSummary = readExperimentSetup . erSetupFile
+
+{-# DEPRECATED #-}
 readExperimentSetup :: MonadIO m => FilePath -> m ExperimentSetup
 readExperimentSetup = readJSON
 

@@ -30,7 +30,6 @@ preCommitRules = do
     preCommitRule ~> do
         mapM_ (need . (:[]))
             [ outputJarFile
-            , orcBin
             , memcachedBin
             , memaslapBin
 

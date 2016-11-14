@@ -17,7 +17,7 @@ if (postfix != 'absolute' && postfix != 'relative') {
 
 isabs <- postfix == 'absolute'
 
-xl = "Elapsed time (seconds)"
+xl = "Virtual clients (no unit)"
 
 if(isabs){
   title = "Absolute time spent in middleware per request"
@@ -31,17 +31,17 @@ startPng(paste(outFile, "slice", sep="-"))
 
 res = read.csv(inFile, header=TRUE)
 
-at <- res$aTime / 1000 / 1000 / 1000 # Convert to seconds
+nrc <- res$nrClients
 cat <- res$category
 val <- res$value
 if(isabs) { val <- val / 1000 } # Convert to microseconds
 
-d <- data.frame(at, cat, val)
+d <- data.frame(nrc, cat, val)
 
 d$cat <- factor(d$cat, levels=cat[1:6])
 
-gg <- ggplot(d, aes(x=at, y=val, fill=cat))
-gg <- gg + geom_area(aes(colour=cat, fill=cat))
+gg <- ggplot(d, aes(x=nrc, y=val, fill=cat))
+gg <- gg + geom_bar(stat='identity')
 gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
 gg <- gg + theme(legend.title=element_blank())
 gg

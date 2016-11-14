@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.TraceSlice
     ( module AslBuild.Analysis.TraceSlice
     , module AslBuild.Analysis.TraceSlice.Types
@@ -7,26 +6,33 @@ module AslBuild.Analysis.TraceSlice
 
 import           Control.Monad
 import           Control.Monad.IO.Class
+import           Data.Maybe
 import           System.IO
 
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import qualified Data.Csv                               as CSV
+
 import           Pipes                                  ((>->))
+import qualified Pipes                                  as P
+import qualified Pipes.ByteString                       as PB
+import qualified Pipes.Csv                              as P
+import qualified Pipes.Prelude                          as P
 
 import           AslBuild.Analysis.PipeUtils
 import           AslBuild.Analysis.TraceSlice.Pipes
 import           AslBuild.Analysis.TraceSlice.Script
 import           AslBuild.Analysis.TraceSlice.Types
+import           AslBuild.Analysis.TraceSlice.Utils
 import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
-import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.MaximumThroughput
-import           AslBuild.Experiments.ReplicationEffect
-import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Experiments.WriteEffect
+import           AslBuild.Middle.Types
+import           AslBuild.Middleware.Types
 import           AslBuild.Reports.Common
+import           AslBuild.Utils
 
 traceSliceAnalysisRule :: String
 traceSliceAnalysisRule = "trace-slice-analysis"
@@ -34,37 +40,16 @@ traceSliceAnalysisRule = "trace-slice-analysis"
 traceSliceAnalysisRules :: Rules ()
 traceSliceAnalysisRules = do
     traceSliceAnalysisRule ~> need
-        [ ruleForBaselines
-        , ruleForStabilityTraces
-        , ruleForMaximumThroughputs
-        , ruleForWriteEffects
-        , ruleForReplicationEffects
+        [ ruleForMaximumThroughputs
         ]
 
-    let traceSliceSubrules :: ExperimentConfig a => String -> [a] -> Rules ()
-        traceSliceSubrules = subRules rulesForTraceSliceAnalysis
-
-    traceSliceSubrules ruleForBaselines allBaselineExperiments
-    traceSliceSubrules ruleForStabilityTraces allStabilityTraceExperiments
-    traceSliceSubrules ruleForMaximumThroughputs allMaximumThroughputExperiments
-    traceSliceSubrules ruleForWriteEffects allWriteEffectExperiments
-    traceSliceSubrules ruleForReplicationEffects allReplicationEffectExperiments
-
-
-ruleForBaselines :: String
-ruleForBaselines = "baseline-trace-slice-analysis"
-
-ruleForStabilityTraces :: String
-ruleForStabilityTraces = "stability-trace-trace-slice-analysis"
+    subRules
+        rulesForTraceSliceAnalysis
+        ruleForMaximumThroughputs
+        allMaximumThroughputExperiments
 
 ruleForMaximumThroughputs :: String
 ruleForMaximumThroughputs = "maximum-throughput-trace-slice-analysis"
-
-ruleForWriteEffects :: String
-ruleForWriteEffects = "write-effect-trace-slice-analysis"
-
-ruleForReplicationEffects :: String
-ruleForReplicationEffects = "replication-effect-trace-slice-analysis"
 
 experimentAnalysisCfgRule :: ExperimentConfig a => a -> String
 experimentAnalysisCfgRule cfg = experimentTarget cfg ++ "-trace-slice-analysis"
@@ -78,75 +63,64 @@ dependOnTraceSlicePlotsForReport ecf i
     = traceSlicePlotsFor ecf >>= (`dependOnPlotsForReport` i)
 
 traceSlicePlotsFor :: (MonadIO m, ExperimentConfig a) => a -> m [FilePath]
-traceSlicePlotsFor ecf = do
-    slocs <- readResultsSummaryLocationsForCfg ecf
-    summaries <- mapM readResultsSummary slocs
-    return $ concatMap (traceSlicePlotsForSingleExperiment ecf) summaries
+traceSlicePlotsFor = return . traceSlicePlotsForSingleExperiment
 
 rulesForTraceSliceAnalysis :: ExperimentConfig a => a -> Rules (Maybe String)
 rulesForTraceSliceAnalysis ecf = onlyIfResultsExist ecf $ do
     summaryPaths <- readResultsSummaryLocationsForCfg ecf
-    pss <- forM summaryPaths $ \summaryPath -> do
-        ers@ExperimentResultSummary{..} <- readResultsSummary summaryPath
-        case merMiddleResultsFile of
-            Nothing -> return []
-            Just erMiddleResultsFile -> do
-                let dFile = durationsFile ecf erMiddleResultsFile
-                    adFile = absDurationsFile ecf erMiddleResultsFile
-                    rdFile = relDurationsFile ecf erMiddleResultsFile
+    let dFile = durationsFile ecf
+        adFile = absDurationsFile ecf
+        rdFile = relDurationsFile ecf
+    dFile %> \outFile -> do
+        durTups <- (catMaybes <$>) $ forM summaryPaths $ \summaryPath -> do
+            ers <- readResultsSummary summaryPath
+            case merMiddleResultsFile ers of
+                Nothing -> return Nothing
+                Just erMiddleResultsFile -> do
+                    setup <- readExperimentSetupForSummary ers
+                    avgDur <- avgDurations erMiddleResultsFile
+                    return $ Just (setup, avgDur)
 
-                dFile %> \outFile -> do
-                    need [erMiddleResultsFile]
-                    size <- liftIO $ withFile erMiddleResultsFile ReadMode hFileSize
-                    -- 90 characters in the header line, then 95 characters per line
-                    let totalLines = (size - 90) `div` 95
-                    let window = max 1 $ totalLines `div` 20
+        liftIO $ withFile outFile WriteMode $ \outHandle ->
+            P.runEffect $
+                    P.each durTups
+                >-> P.filter ((==1) . mwNrThreads . mMiddlewareFlags . fst . fromRight . backendSetup . fst)
+                >-> durtupTransformer
+                >-> P.encodeByName (CSV.headerOrder (undefined :: DurTup))
+                >-> PB.toHandle outHandle
 
-                    putLoud $ unwords
-                        [ "Distilling trace slice data from"
-                        , erMiddleResultsFile
-                        , "into"
-                        , outFile
-                        , "with window size"
-                        , show window
-                        ]
-                    transformCsvFileAction erMiddleResultsFile outFile $
-                            timeTransformer
-                        >-> meanTransformer window
+    adFile %> \outFile -> do
+        need [dFile]
+        putLoud $ unwords
+            [ "Gathering absolute trace slice data from"
+            , dFile
+            , "into"
+            , outFile
+            ]
+        transformCsvFileAction dFile outFile absLineTransformer
 
-                adFile %> \outFile -> do
-                    need [dFile]
-                    putLoud $ unwords
-                        [ "Gathering absolute trace slice data from"
-                        , dFile
-                        , "into"
-                        , outFile
-                        ]
-                    transformCsvFileAction dFile outFile absLineTransformer
+    rdFile %> \outFile -> do
+        need [dFile]
+        putLoud $ unwords
+            [ "Gathering relative trace slice data from"
+            , dFile
+            , "into"
+            , outFile
+            ]
+        transformCsvFileAction dFile outFile relLineTransformer
 
-                rdFile %> \outFile -> do
-                    need [dFile]
-                    putLoud $ unwords
-                        [ "Gathering relative trace slice data from"
-                        , dFile
-                        , "into"
-                        , outFile
-                        ]
-                    transformCsvFileAction dFile outFile relLineTransformer
-
-                aplots <- traceSliceAnalysisOf ecf ers adFile "absolute"
-                rplots <- traceSliceAnalysisOf ecf ers rdFile "relative"
-                return $ aplots ++ rplots
+    aplots <- traceSliceAnalysisOf ecf adFile "absolute"
+    rplots <- traceSliceAnalysisOf ecf rdFile "relative"
 
     let analysisTarget = experimentAnalysisCfgRule ecf
-    analysisTarget ~> need (concat pss)
+    analysisTarget ~> need (aplots ++ rplots)
     return analysisTarget
 
-durationsFile :: ExperimentConfig a => a -> FilePath -> FilePath
-durationsFile ecf f = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName f) ++ "-durations" <.> csvExt
+durationsFile :: ExperimentConfig a => a -> FilePath
+durationsFile ecf = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName (resultSummariesLocationFile ecf)) ++ "-durations" <.> csvExt
 
-absDurationsFile :: ExperimentConfig a => a -> FilePath -> FilePath
-absDurationsFile ecf f = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName f) ++ "-absolute-durations" <.> csvExt
+absDurationsFile :: ExperimentConfig a => a -> FilePath
+absDurationsFile ecf = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName (resultSummariesLocationFile ecf)) ++ "-absolute-durations" <.> csvExt
 
-relDurationsFile :: ExperimentConfig a => a -> FilePath -> FilePath
-relDurationsFile ecf f = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName f) ++ "-relative-durations" <.> csvExt
+relDurationsFile :: ExperimentConfig a => a -> FilePath
+relDurationsFile ecf = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName (resultSummariesLocationFile ecf)) ++ "-relative-durations" <.> csvExt

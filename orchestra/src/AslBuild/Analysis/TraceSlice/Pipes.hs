@@ -6,10 +6,13 @@ import           Control.Monad
 
 import           Pipes                              (Pipe)
 import qualified Pipes                              as P
+import qualified Pipes.Prelude                      as P
 
 import           AslBuild.Analysis.PipeUtils
 import           AslBuild.Analysis.TraceSlice.Types
+import           AslBuild.Client.Types
 import           AslBuild.Experiment
+import           AslBuild.Memaslap.Types
 import           AslBuild.Types
 
 
@@ -32,6 +35,30 @@ timeTransformer = do
 
 meanTransformer :: Monad m => Integer -> Pipe Durations Durations m ()
 meanTransformer = slidingMean
+
+instance Monoid Durations where
+    mempty = Durations
+        { reqKind = READ -- Fixme
+        , arrivalTime        = 0
+        , untilParsedTime    = 0
+        , untilEnqueuedTime  = 0
+        , untilDequeuedTime  = 0
+        , untilAskedTime     = 0
+        , untilRepliedTime   = 0
+        , untilRespondedTime = 0
+        }
+    mappend d1 d2 =
+        let s func = func d1 + func d2
+        in Durations
+            { reqKind = READ -- Fixme
+            , arrivalTime        = arrivalTime d2
+            , untilParsedTime    = s untilParsedTime
+            , untilEnqueuedTime  = s untilEnqueuedTime
+            , untilDequeuedTime  = s untilDequeuedTime
+            , untilAskedTime     = s untilAskedTime
+            , untilRepliedTime   = s untilRepliedTime
+            , untilRespondedTime = s untilRespondedTime
+            }
 
 instance Mean Durations where
     combines ds =
@@ -70,62 +97,60 @@ instance Mean Durations where
             , untilRepliedTime   = s untilRepliedTime
             , untilRespondedTime = s untilRespondedTime
             }
-    combine d1 d2 =
-        let s func = func d1 + func d2
-        in Durations
-            { reqKind = READ -- Fixme
-            , arrivalTime        = arrivalTime d2
-            , untilParsedTime    = s untilParsedTime
-            , untilEnqueuedTime  = s untilEnqueuedTime
-            , untilDequeuedTime  = s untilDequeuedTime
-            , untilAskedTime     = s untilAskedTime
-            , untilRepliedTime   = s untilRepliedTime
-            , untilRespondedTime = s untilRespondedTime
-            }
 
-absLineTransformer :: Monad m => Pipe Durations (DurationsLine Integer) m v
+absLineTransformer :: Monad m => Pipe DurTup (DurationsLine Integer) m v
 absLineTransformer = forever $ do
-    Durations{..} <- P.await
+    DurTup{..} <- P.await
     let row val cat = DurationsLine
-            { rKind = reqKind
-            , aTime = arrivalTime
+            { nrCls = nrCs
             , category = cat
             , value = val
             }
     mapM_ P.yield
-        [ row untilParsedTime     "Parsing"
-        , row untilEnqueuedTime   "Waiting to be put onto queue"
-        , row untilDequeuedTime   "In queue"
-        , row untilAskedTime      "Querying first server"
-        , row untilRepliedTime    "Interacting with server"
-        , row untilRespondedTime  "Finalisation"
+        [ row tilParsedTime     "Parsing"
+        , row tilEnqueuedTime   "Waiting to be put onto queue"
+        , row tilDequeuedTime   "In queue"
+        , row tilAskedTime      "Querying first server"
+        , row tilRepliedTime    "Interacting with server"
+        , row tilRespondedTime  "Finalisation"
         ]
 
-relLineTransformer :: Monad m => Pipe Durations (DurationsLine Float) m v
+relLineTransformer :: Monad m => Pipe DurTup (DurationsLine Float) m v
 relLineTransformer = forever $ do
     d <- P.await
     let total = sum
-            [ untilParsedTime     d
-            , untilEnqueuedTime   d
-            , untilDequeuedTime   d
-            , untilAskedTime      d
-            , untilRepliedTime    d
-            , untilRespondedTime  d
+            [ tilParsedTime     d
+            , tilEnqueuedTime   d
+            , tilDequeuedTime   d
+            , tilAskedTime      d
+            , tilRepliedTime    d
+            , tilRespondedTime  d
             ]
-    let rel :: (Durations -> Integer) -> Float
+    let rel :: (DurTup -> Integer) -> Float
         rel func = (fromIntegral (func d) / fromIntegral total) * 100
     let row val cat = DurationsLine
-            { rKind = reqKind d
-            , aTime = arrivalTime d
+            { nrCls = nrCs d
             , category = cat
             , value = rel val
             }
     mapM_ P.yield
-        [ row untilParsedTime     "Parsing"
-        , row untilEnqueuedTime   "Waiting to be put onto queue"
-        , row untilDequeuedTime   "In queue"
-        , row untilAskedTime      "Querying first server"
-        , row untilRepliedTime    "Interacting with server"
-        , row untilRespondedTime  "Finalisation"
+        [ row tilParsedTime     "Parsing"
+        , row tilEnqueuedTime   "Waiting to be put onto queue"
+        , row tilDequeuedTime   "In queue"
+        , row tilAskedTime      "Querying first server"
+        , row tilRepliedTime    "Interacting with server"
+        , row tilRespondedTime  "Finalisation"
         ]
 
+
+durtupTransformer :: Monad m => Pipe (ExperimentSetup, Durations) DurTup m v
+durtupTransformer = P.map tr
+  where tr (ExperimentSetup{..}, Durations{..}) = DurTup
+            { nrCs             = sum $ map (msConcurrency . msFlags . cMemaslapSettings) clientSetups
+            , tilParsedTime    = untilParsedTime
+            , tilEnqueuedTime  = untilEnqueuedTime
+            , tilDequeuedTime  = untilDequeuedTime
+            , tilAskedTime     = untilAskedTime
+            , tilRepliedTime   = untilRepliedTime
+            , tilRespondedTime = untilRespondedTime
+            }

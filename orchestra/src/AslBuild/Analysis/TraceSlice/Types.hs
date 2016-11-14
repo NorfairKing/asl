@@ -59,10 +59,53 @@ instance DefaultOrdered Durations where
         , "untilResponded"
         ]
 
+data DurTup
+    = DurTup
+    { nrCs             :: Int
+    , tilParsedTime    :: Integer
+    , tilEnqueuedTime  :: Integer
+    , tilDequeuedTime  :: Integer
+    , tilAskedTime     :: Integer
+    , tilRepliedTime   :: Integer
+    , tilRespondedTime :: Integer
+    }
+
+instance FromNamedRecord DurTup where
+    parseNamedRecord m = DurTup
+        <$> m .: "nrClients"
+        <*> m .: "untilParsed"
+        <*> m .: "untilEnqueued"
+        <*> m .: "untilDequeued"
+        <*> m .: "untilAsked"
+        <*> m .: "untilReplied"
+        <*> m .: "untilResponded"
+
+instance ToNamedRecord DurTup where
+    toNamedRecord DurTup{..} =
+        namedRecord
+            [ "nrClients" .= nrCs
+            , "untilParsed" .= tilParsedTime
+            , "untilEnqueued" .= tilEnqueuedTime
+            , "untilDequeued" .= tilDequeuedTime
+            , "untilAsked" .= tilAskedTime
+            , "untilReplied" .= tilRepliedTime
+            , "untilResponded" .= tilRespondedTime
+            ]
+
+instance DefaultOrdered DurTup where
+    headerOrder _ = header
+        [ "nrClients"
+        , "untilParsed"
+        , "untilEnqueued"
+        , "untilDequeued"
+        , "untilAsked"
+        , "untilReplied"
+        , "untilResponded"
+        ]
+
 data DurationsLine a
     = DurationsLine
-    { rKind    :: RequestKind
-    , aTime    :: Integer
+    { nrCls    :: Int
     , category :: String
     , value    :: a
     } deriving (Show, Eq, Generic)
@@ -70,16 +113,14 @@ data DurationsLine a
 instance ToField a => ToNamedRecord (DurationsLine a) where
     toNamedRecord DurationsLine{..} =
         namedRecord
-            [ "rKind" .= rKind
-            , "aTime" .= aTime
+            [ "nrClients" .= nrCls
             , "category" .= category
             , "value" .= value
             ]
 
 instance DefaultOrdered (DurationsLine a) where
     headerOrder _ = header
-        [ "rKind"
-        , "aTime"
+        [ "nrClients"
         , "category"
         , "value"
         ]

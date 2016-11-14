@@ -8,8 +8,10 @@ import           Data.Aeson                 (FromJSON, ToJSON)
 import qualified Data.Aeson                 as A
 import qualified Data.Aeson.Encode.Pretty   as A
 import qualified Data.ByteString.Lazy       as LB
-import           Data.Csv                   (DefaultOrdered, ToNamedRecord)
+import           Data.Csv                   (DefaultOrdered, FromNamedRecord,
+                                             ToNamedRecord)
 import qualified Data.Csv                   as CSV
+import           Data.Vector                (Vector)
 import           System.Directory           (createDirectoryIfMissing)
 
 import           Development.Shake
@@ -75,6 +77,13 @@ maybeFlag c (Just v) = ['-' : c : ' ' : show v]
 
 writeCSV :: (MonadIO m, DefaultOrdered a, ToNamedRecord a) => FilePath -> [a] -> m ()
 writeCSV file entries = liftIO $ LB.writeFile file $ CSV.encodeDefaultOrderedByName entries
+
+readCSV :: (MonadIO m, FromNamedRecord a) => FilePath -> m (Vector a)
+readCSV file = do
+    contents <- liftIO $ LB.readFile file
+    case CSV.decodeByName contents of
+        Left err -> fail $ "Failed to decode CSV file: " ++ err
+        Right (_, vec) -> return vec
 
 zipCombineLists :: Monoid a => [[a]] -> [a]
 zipCombineLists = map mconcat . transpose
