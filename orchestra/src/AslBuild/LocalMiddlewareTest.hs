@@ -38,8 +38,7 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
     forM_ clientSetups $ \mss ->
         writeMemaslapConfig (msConfigFile $ msFlags mss) $ msConfig mss
 
-    serverPHs <- forM serverSetups $ \mcfs ->
-        cmd memcachedBin $ memcachedArgs mcfs
+    serverPHs <- forM serverSetups runMemcachedLocally
 
     waitMs 500
 

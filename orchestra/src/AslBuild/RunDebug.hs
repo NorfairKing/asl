@@ -61,7 +61,7 @@ runDebugRules =
 
         writeMemaslapConfig (msConfigFile $ msFlags cfs) (msConfig cfs)
 
-        serverPh <- cmd memcachedBin $ memcachedArgs mcfs
+        serverPh <- runMemcachedLocally mcfs
         waitMs 100
         middlePh <- runLocalMiddleware mwfs
         waitMs 100

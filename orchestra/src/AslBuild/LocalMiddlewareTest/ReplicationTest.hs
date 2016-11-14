@@ -67,8 +67,7 @@ localMiddlewareReplicationTestRules =
                     , mwWriteSampleRate = Nothing
                     }
 
-            serverPhs <- forP servers $ \serverFlags ->
-                command [] memcachedBin (memcachedArgs serverFlags)
+            serverPhs <- forP servers runMemcachedLocally
 
             middlePH <- command
                 []

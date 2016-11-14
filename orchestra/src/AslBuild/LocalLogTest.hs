@@ -16,6 +16,7 @@ import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Jar
 import           AslBuild.Memaslap
+import           AslBuild.Memcached
 import           AslBuild.Middleware
 import           AslBuild.Types
 import           AslBuild.Utils
@@ -27,6 +28,7 @@ data LocalLogTestSetup
     = LocalLogTestSetup
     { clients          :: [LocalLogClientSetup]
     , mmiddlewareFlags :: Maybe MiddlewareFlags
+    , serverFlags      :: MemcachedFlags
     }
 
 data LocalLogClientSetup
@@ -44,12 +46,17 @@ setups = do
     setProp <- [0, 0.5, 1]
     statsfreqSecs <- [1, 2]
     statsFreq <- [Nothing, Just $ Seconds statsfreqSecs]
-    nrClients <- [1]
+    nrClients <- [1, 2]
 
     let mPort = 11210
 
     useMiddleware <- [True, False]
     let sign f = intercalate "-" [f, show nrClients, show workloadSecs, show setProp, show statsfreqSecs, show $ isJust statsFreq, show useMiddleware]
+
+    let sfs = MemcachedFlags
+            { memcachedPort = defaultMemcachedPort
+            , memcachedAsDaemon = False
+            }
 
     let mw = MiddlewareFlags
             { mwIp = localhostIp
@@ -72,7 +79,7 @@ setups = do
             , cSets = MemaslapSettings
                 { msFlags = MemaslapFlags
                     { msServers = case mmflags of
-                        Nothing -> [RemoteServerUrl localhostIp defaultMemcachedPort]
+                        Nothing -> [RemoteServerUrl localhostIp $ memcachedPort sfs]
                         Just mflags -> [RemoteServerUrl localhostIp $ mwPort mflags]
                     , msThreads = 1
                     , msConcurrency = 32
@@ -89,9 +96,11 @@ setups = do
                     }
                 }
             }
+
     return LocalLogTestSetup
         { clients = cs
         , mmiddlewareFlags = mmflags
+        , serverFlags = sfs
         }
 
 logTestTarget :: Int -> String
@@ -139,7 +148,7 @@ localLogTestRules = do
 
             withResource runLock 1 $ do
                 -- Start memcached locally
-                serverPh <- cmd memcachedBin
+                serverPh <- runMemcachedLocally serverFlags
 
                 mmiddlePh <- case mmiddlewareFlags of
                     Nothing -> return Nothing

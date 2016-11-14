@@ -67,8 +67,7 @@ localMiddlewareMultiClientTestRules =
                     , mwWriteSampleRate = Nothing
                     }
 
-            serverPH <- command [] memcachedBin
-                    (memcachedArgs memcachedFlags)
+            serverPH <- runMemcachedLocally memcachedFlags
 
             middlePH <- runLocalMiddleware mwFlags
 
