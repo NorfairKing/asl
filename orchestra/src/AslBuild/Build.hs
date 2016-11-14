@@ -49,14 +49,3 @@ theShake  = do
     vmRules
     cleanRules
     preCommitRules
-
-    allRule ~> need
-        [ commithashRule
-        , jarRule
-        , memcachedRule
-        , reportsRule
-        , analysisRule
-        ]
-
-allRule :: String
-allRule = "all"
