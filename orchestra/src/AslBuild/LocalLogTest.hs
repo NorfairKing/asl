@@ -155,7 +155,7 @@ localLogTestRules = do
                     runMemaslaps = do
                         clientPhs <- forM clients $ \LocalLogClientSetup{..} -> do
                             let MemaslapSettings{..} = cSets
-                            command [FileStdout cLogFile] memaslapBin (memaslapArgs msFlags)
+                            command [FileStdout cLogFile] memaslapBin $ memaslapArgs msFlags
                         forM_ clientPhs $ liftIO . waitForProcess
 
                 -- Make sure to stop memcached

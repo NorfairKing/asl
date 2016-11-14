@@ -50,8 +50,7 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
 
     waitMs 500
 
-    clientPHs <- forM clientSetups $ \mss ->
-        cmd memaslapBin $ memaslapArgs $ msFlags mss
+    clientPHs <- forM clientSetups $ runMemaslapLocally . msFlags
 
     let goOn = do
             wait runtime

@@ -8,9 +8,19 @@ module AslBuild.Memaslap
 
 import           Data.List
 
+import           Development.Shake
+
+import           AslBuild.BuildMemcached
 import           AslBuild.Memaslap.LogParser
 import           AslBuild.Memaslap.Types
 import           AslBuild.Types
+
+runMemaslapLocally :: CmdResult r => MemaslapFlags -> Action r
+runMemaslapLocally flags = cmd $ memaslapCmds memaslapBin flags
+
+memaslapCmds :: FilePath -> MemaslapFlags -> [String]
+memaslapCmds path flags
+    = path : memaslapArgs flags
 
 memaslapArgs :: MemaslapFlags -> [String]
 memaslapArgs MemaslapFlags{..} =

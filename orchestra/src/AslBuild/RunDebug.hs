@@ -65,7 +65,7 @@ runDebugRules =
         waitMs 100
         middlePh <- runLocalMiddleware mwfs
         waitMs 100
-        clientPh <- cmd memaslapBin $ memaslapArgs $ msFlags cfs
+        clientPh <- runMemaslapLocally $ msFlags cfs
 
 
         actionFinally (forever $ wait 1) $ do
