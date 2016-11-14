@@ -4,8 +4,9 @@ import           Development.Shake
 
 -- import           AslBuild.Analysis.MaximumThroughput
 -- import           AslBuild.Analysis.TraceSlice
--- import           AslBuild.Experiments.MaximumThroughput
+import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Reports.Common
+import           AslBuild.Reports.ExperimentFormat
 
 report2Rules :: Rules ()
 report2Rules = report 2 texPreAction customRules
@@ -13,9 +14,9 @@ report2Rules = report 2 texPreAction customRules
     customRules =
         -- remoteMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
         -- remoteMaximumThroughput `useTraceSlicePlotsInReport` 2
-        return ()
+        remoteMaximumThroughput `useExperimentTableInReport` 2
 
     texPreAction =
         -- remoteMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
         -- remoteMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
-        return ()
+        remoteMaximumThroughput `dependOnExperimentTableForReport` 2

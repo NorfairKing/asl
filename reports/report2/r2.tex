@@ -34,34 +34,34 @@ Milestone}
 
 % Find the highest throughput of your system for 5 servers with no replication and a read-only workload configuration. What is the minimum number of threads and clients (rounded to multiple of 10) that together achieve this throughput? Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations. Provide a detailed breakdown of the time spent in the middleware for each operation type.
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=0.5\textwidth]{\plot{remote-maximum-throughput-maximum-throughput.png}}
-  \end{center}
-  \caption{Maximum Throughput}
-\end{figure}
+% \begin{figure}
+%   \begin{center}
+%     \includegraphics[width=0.5\textwidth]{\plot{remote-maximum-throughput-maximum-throughput.png}}
+%   \end{center}
+%   \caption{Maximum Throughput}
+% \end{figure}
+% 
+% \begin{figure}[H]
+%   \begin{center}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-1-absolute-slice.png}}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-37-absolute-slice.png}}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-1-relative-slice.png}}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-37-relative-slice.png}}
+%   \end{center}
+%   \caption{Maximum Throughput Trace Slice}
+% \end{figure}
+% 
+% \begin{figure}[H]
+%   \begin{center}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-1-absolute-slice.png}}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-37-absolute-slice.png}}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-1-relative-slice.png}}
+%     \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-37-relative-slice.png}}
+%   \end{center}
+%   \caption{Maximum Throughput Trace Slice}
+% \end{figure}
 
-\begin{figure}[H]
-  \begin{center}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-1-absolute-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-37-absolute-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-1-relative-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-1-37-relative-slice.png}}
-  \end{center}
-  \caption{Maximum Throughput Trace Slice}
-\end{figure}
-
-\begin{figure}[H]
-  \begin{center}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-1-absolute-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-37-absolute-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-1-relative-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{remote-maximum-throughput-trace-5-37-relative-slice.png}}
-  \end{center}
-  \caption{Maximum Throughput Trace Slice}
-\end{figure}
-
-
+\input{\genfile{remote-maximum-throughput-table.tex}}
 \section{Effect of Replication}
 
 % Explore how the behavior of your system changes for a 5\%-write workload with S=3,5 and 7 server backends and the following three replication factors:

@@ -58,7 +58,7 @@ smallRemoteMaximumThroughput = MaximumThroughputCfg
         }
     , threadConcTups = do
         middleThreads <- [1]
-        concurrencies <- [8, 16]
+        concurrencies <- [8]
         return (middleThreads, concurrencies)
     , mtRuntime = Seconds 10
     }

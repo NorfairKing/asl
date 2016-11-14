@@ -61,6 +61,9 @@ reportAssetsDir i = reportDir i </> "assets"
 reportGraphsDir :: Int -> FilePath
 reportGraphsDir i = reportDir i </> "graphs"
 
+reportGenfileDir :: Int -> FilePath
+reportGenfileDir i = reportDir i </> "genfiles"
+
 reportPlotsDir :: Int -> FilePath
 reportPlotsDir i = reportDir i </> "plots"
 
