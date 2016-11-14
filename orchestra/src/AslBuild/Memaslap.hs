@@ -16,7 +16,9 @@ import           AslBuild.Memaslap.Types
 import           AslBuild.Types
 
 runMemaslapLocally :: CmdResult r => MemaslapFlags -> Action r
-runMemaslapLocally flags = cmd $ memaslapCmds memaslapBin flags
+runMemaslapLocally flags = do
+    need [memaslapBin]
+    cmd $ memaslapCmds memaslapBin flags
 
 memaslapCmds :: FilePath -> MemaslapFlags -> [String]
 memaslapCmds path flags

@@ -63,7 +63,7 @@ localMiddlewareParseTestRules =
             (rconn, _) <- accept ssock
             return (wconn, rconn)
 
-        middlePH <- runLocalMiddleware mwFlags
+        middlePH <- runMiddlewareLocally mwFlags
 
         (wconn, rconn) <- liftIO $ connCmp >>= result
 

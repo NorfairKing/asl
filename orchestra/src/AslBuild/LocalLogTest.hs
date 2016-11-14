@@ -14,7 +14,6 @@ import           Development.Shake.FilePath
 import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
-import           AslBuild.Jar
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.Middleware
@@ -140,8 +139,6 @@ localLogTestRules = do
     runLock <- newResource "runLock" 1
     forM_ (indexed setups) $ \(ix, LocalLogTestSetup{..}) -> do
         map cLogFile clients &%> \_ -> do
-            need [memcachedBin, memaslapBin, outputJarFile]
-
             -- Write the config to a file
             forP_ (map cSets clients) $ \MemaslapSettings{..} ->
                 writeMemaslapConfig (msConfigFile msFlags) msConfig
@@ -155,7 +152,7 @@ localLogTestRules = do
                     Just middlewareFlags -> (Just <$>) $ do
                         waitMs 250
                         -- Start the middleware locally
-                        runLocalMiddleware middlewareFlags
+                        runMiddlewareLocally middlewareFlags
 
                 waitMs 250
 

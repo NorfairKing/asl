@@ -26,12 +26,10 @@ import           Data.List                  (intercalate)
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           AslBuild.BuildMemcached
 import           AslBuild.Client
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiment.Types
-import           AslBuild.Jar
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.Middle
@@ -53,7 +51,6 @@ generateTargetFor ecf = do
     experimentTarget ecf ~> need [rFile]
 
     rFile %> \_ -> do
-        need [memcachedBin, memaslapBin, outputJarFile]
         need [provisionLocalhostRule]
 
         (eSetups, vmsNeeded) <- genExperimentSetups ecf

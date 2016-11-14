@@ -85,7 +85,7 @@ localMiddlewareReplicationFailureTestRules =
                 (rconn, _) <- accept ssock
                 return (wconn, rconn)
 
-            middlePH <- runLocalMiddleware mwFlags
+            middlePH <- runMiddlewareLocally mwFlags
 
             bsconns <- liftIO $ connsCmp >>= result
             let sconns = map fst bsconns

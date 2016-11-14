@@ -12,8 +12,10 @@ import           AslBuild.Middleware.Types
 import           AslBuild.Types
 import           AslBuild.Utils
 
-runLocalMiddleware :: CmdResult r => MiddlewareFlags -> Action r
-runLocalMiddleware flags = cmd $ localMiddlewareCmd flags
+runMiddlewareLocally :: CmdResult r => MiddlewareFlags -> Action r
+runMiddlewareLocally flags = do
+    need [outputJarFile]
+    cmd $ localMiddlewareCmd flags
 
 localMiddlewareCmd :: MiddlewareFlags -> [String]
 localMiddlewareCmd = middlewareCmds outputJarFile

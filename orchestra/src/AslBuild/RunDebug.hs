@@ -7,10 +7,8 @@ import           System.Process
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
-import           AslBuild.Jar
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.Middleware
@@ -22,8 +20,6 @@ runDebugRule = "run-debug"
 runDebugRules :: Rules ()
 runDebugRules =
     runDebugRule ~> do
-        need [memcachedBin, memaslapBin, outputJarFile]
-
         let mcfs = MemcachedFlags
                 { memcachedPort = 11211
                 , memcachedAsDaemon = False
@@ -63,7 +59,7 @@ runDebugRules =
 
         serverPh <- runMemcachedLocally mcfs
         waitMs 100
-        middlePh <- runLocalMiddleware mwfs
+        middlePh <- runMiddlewareLocally mwfs
         waitMs 100
         clientPh <- runMemaslapLocally $ msFlags cfs
 
