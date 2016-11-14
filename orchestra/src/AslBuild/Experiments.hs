@@ -4,7 +4,6 @@ import           Development.Shake
 
 import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.MaximumThroughput
-import           AslBuild.Experiments.MinimumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.WriteEffect
@@ -16,4 +15,3 @@ experimentRules = do
     stabilityTraceRules
     writeEffectRules
     maximumThroughputRules
-    minimumThroughputRules
