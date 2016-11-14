@@ -18,12 +18,7 @@ import           AslBuild.Types
 startMiddleOn :: CmdResult r => MiddleSetup -> Action r
 startMiddleOn MiddleSetup{..} = scriptAt mRemoteLogin $ script
     [ "shopt -s huponexit" -- Detach process when this script dies.
-    , unwords $
-        javaCmd :
-        -- ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"]
-        ["-jar", remoteMiddleware]
-        ++ middlewareArgs mMiddlewareFlags
-        ++ ["2>&1", "&"]
+    , unwords $ middlewareCmds remoteMiddleware mMiddlewareFlags
     ]
 
 shutdownMiddle :: MiddleSetup -> ProcessHandle -> Action ()

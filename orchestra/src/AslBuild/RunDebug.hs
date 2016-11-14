@@ -63,7 +63,7 @@ runDebugRules =
 
         serverPh <- cmd memcachedBin $ memcachedArgs mcfs
         waitMs 100
-        middlePh <- cmd javaCmd "-jar" outputJarFile $ middlewareArgs mwfs
+        middlePh <- runLocalMiddleware mwfs
         waitMs 100
         clientPh <- cmd memaslapBin $ memaslapArgs $ msFlags cfs
 

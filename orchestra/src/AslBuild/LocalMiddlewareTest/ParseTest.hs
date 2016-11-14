@@ -14,7 +14,6 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Constants
-import           AslBuild.Jar
 import           AslBuild.Middleware
 import           AslBuild.Provision
 import           AslBuild.Types
@@ -64,11 +63,7 @@ localMiddlewareParseTestRules =
             (rconn, _) <- accept ssock
             return (wconn, rconn)
 
-        middlePH <- command
-            []
-            javaCmd $
-            [ "-jar", outputJarFile
-            ] ++ middlewareArgs mwFlags
+        middlePH <- runLocalMiddleware mwFlags
 
         (wconn, rconn) <- liftIO $ connCmp >>= result
 

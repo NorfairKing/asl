@@ -70,12 +70,7 @@ localMiddlewareMultiClientTestRules =
             serverPH <- command [] memcachedBin
                     (memcachedArgs memcachedFlags)
 
-            middlePH <- command
-                []
-                javaCmd $
-                [ "-jar", outputJarFile
-                ] ++ middlewareArgs mwFlags
-
+            middlePH <- runLocalMiddleware mwFlags
 
             waitMs 250
 

@@ -146,7 +146,7 @@ localLogTestRules = do
                     Just middlewareFlags -> (Just <$>) $ do
                         waitMs 250
                         -- Start the middleware locally
-                        cmd javaCmd "-jar" outputJarFile $ middlewareArgs middlewareFlags
+                        runLocalMiddleware middlewareFlags
 
                 waitMs 250
 

@@ -85,11 +85,7 @@ localMiddlewareReplicationFailureTestRules =
                 (rconn, _) <- accept ssock
                 return (wconn, rconn)
 
-            middlePH <- command
-                []
-                javaCmd $
-                [ "-jar", outputJarFile
-                ] ++ middlewareArgs mwFlags
+            middlePH <- runLocalMiddleware mwFlags
 
             bsconns <- liftIO $ connsCmp >>= result
             let sconns = map fst bsconns
