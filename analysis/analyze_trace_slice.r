@@ -27,21 +27,29 @@ if(isabs){
   yl = "Average relative time spent in middleware (percentage)"
 }
 
-startPng(paste(outFile, "slice", sep="-"))
+
 
 res = read.csv(inFile, header=TRUE)
 
-nrc <- res$nrClients
-cat <- res$category
-val <- res$value
-if(isabs) { val <- val / 1000 } # Convert to microseconds
+for (threads in unique(res$middleThreads)) {
+  file = paste(outFile, threads, "slice", sep="-")
+  startPng(file)
 
-d <- data.frame(nrc, cat, val)
+  dat <- res[res$middleThreads == threads,]
 
-d$cat <- factor(d$cat, levels=cat[1:6])
+  nrc <- dat$nrClients
+  cat <- dat$category
+  val <- dat$value
+  if(isabs) { val <- val / 1000 } # Convert to microseconds
 
-gg <- ggplot(d, aes(x=nrc, y=val, fill=cat))
-gg <- gg + geom_bar(stat='identity')
-gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
-gg <- gg + theme(legend.title=element_blank())
-gg
+  d <- data.frame(nrc, cat, val)
+
+  d$cat <- factor(d$cat, levels=cat[1:6])
+
+  gg <- ggplot(d, aes(x=nrc, y=val, fill=cat))
+  gg <- gg + geom_bar(stat='identity')
+  gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
+  gg <- gg + theme(legend.title=element_blank())
+  gg
+  print(gg)
+}

@@ -1,3 +1,4 @@
 startPng <- function(file) {
-    png(paste(file, ".png", sep=""), height=300, width=600, bg="white")
-  }
+  pngFile <- paste(file, ".png", sep="")
+  png(pngFile, height=300, width=600, bg="white")
+}

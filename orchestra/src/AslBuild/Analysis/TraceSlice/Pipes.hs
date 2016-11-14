@@ -13,7 +13,10 @@ import           AslBuild.Analysis.TraceSlice.Types
 import           AslBuild.Client.Types
 import           AslBuild.Experiment
 import           AslBuild.Memaslap.Types
+import           AslBuild.Middle.Types
+import           AslBuild.Middleware.Types
 import           AslBuild.Types
+import           AslBuild.Utils
 
 
 timeTransformer :: Monad m => Pipe MiddleResultLine Durations m v
@@ -103,6 +106,7 @@ absLineTransformer = forever $ do
     DurTup{..} <- P.await
     let row val cat = DurationsLine
             { nrCls = nrCs
+            , middleThds = middleTds
             , category = cat
             , value = val
             }
@@ -130,6 +134,7 @@ relLineTransformer = forever $ do
         rel func = (fromIntegral (func d) / fromIntegral total) * 100
     let row val cat = DurationsLine
             { nrCls = nrCs d
+            , middleThds = middleTds d
             , category = cat
             , value = rel val
             }
@@ -147,6 +152,7 @@ durtupTransformer :: Monad m => Pipe (ExperimentSetup, Durations) DurTup m v
 durtupTransformer = P.map tr
   where tr (ExperimentSetup{..}, Durations{..}) = DurTup
             { nrCs             = sum $ map (msConcurrency . msFlags . cMemaslapSettings) clientSetups
+            , middleTds        = mwNrThreads $ mMiddlewareFlags $ fst $ fromRight backendSetup
             , tilParsedTime    = untilParsedTime
             , tilEnqueuedTime  = untilEnqueuedTime
             , tilDequeuedTime  = untilDequeuedTime

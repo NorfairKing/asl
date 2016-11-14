@@ -54,6 +54,13 @@ slidingMean windowSize = do
                 let newQ = pushBack restQ newdat
                 recurse newQ newSum
 
+filterMaybes :: Monad m => Pipe (Maybe a) a m r
+filterMaybes = forever $ do
+    mv <- P.await
+    case mv of
+        Nothing -> pure ()
+        Just v -> P.yield v
+
 transformCsvFile
     :: forall m a b. (MonadIO m, FromNamedRecord a, ToNamedRecord b, DefaultOrdered b)
     => FilePath

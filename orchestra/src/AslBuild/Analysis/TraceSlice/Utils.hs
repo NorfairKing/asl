@@ -1,40 +1,57 @@
 module AslBuild.Analysis.TraceSlice.Utils where
 
+import           Control.Monad.IO.Class
 import           System.IO
 
-import qualified Data.Vector                        as V
-
-import qualified Statistics.Sample                  as S
-
-import           Pipes                              ((>->))
-import qualified Pipes.ByteString                   as PB
-import qualified Pipes.Csv                          as P
-import qualified Pipes.Prelude                      as P
+import qualified Data.Csv                               as CSV
+import           Pipes                                  ((>->))
+import qualified Pipes                                  as P
+import qualified Pipes.ByteString                       as PB
+import qualified Pipes.Csv                              as P
+import qualified Pipes.Prelude                          as P
 
 import           Development.Shake
 
 import           AslBuild.Analysis.PipeUtils
 import           AslBuild.Analysis.TraceSlice.Pipes
 import           AslBuild.Analysis.TraceSlice.Types
-import           AslBuild.Types
+import           AslBuild.Experiment
+import           AslBuild.Experiments.MaximumThroughput
 
-avgDurations :: FilePath -> Action Durations
+buildAvgDursFile :: MaximumThroughputCfg -> FilePath -> Action ()
+buildAvgDursFile ecf outFile = do
+    summaryPaths <- readResultsSummaryLocationsForCfg ecf
+    liftIO $ withFile outFile WriteMode $ \outHandle ->
+        P.runEffect $
+                P.each summaryPaths
+            >-> P.mapM oneTup
+            >-> filterMaybes
+            >-> durtupTransformer
+            >-> P.encodeByName (CSV.headerOrder (undefined :: DurTup))
+            >-> PB.toHandle outHandle
+
+oneTup :: MonadIO m => FilePath -> m (Maybe (ExperimentSetup, Durations))
+oneTup summaryPath = do
+    ers <- readResultsSummary summaryPath
+    case merMiddleResultsFile ers of
+        Nothing -> return Nothing
+        Just erMiddleResultsFile -> do
+            setup <- readExperimentSetupForSummary ers
+            avgDur <- avgDurations erMiddleResultsFile
+            return $ Just (setup, avgDur)
+
+avgDurations :: MonadIO m => FilePath -> m Durations
 avgDurations path = do
-    durs <- liftIO $ withFile path ReadMode $ \inHandle ->
-        P.toListM $
-                P.decodeByName (PB.fromHandle inHandle)
-            >-> errorIgnorer
-            >-> timeTransformer
+    liftIO $ print path
+    (sumdurs, i) <- liftIO $ withFile path ReadMode $ \inHandle -> do
+        let prod =
+                    P.decodeByName (PB.fromHandle inHandle)
+                >-> errorIgnorer
+                >-> timeTransformer
 
-    let s func = floor $ S.mean $ V.fromList $ map (fromIntegral . func) durs
-    let dur = Durations
-            { reqKind = READ -- Fixme
-            , arrivalTime        = 0
-            , untilParsedTime    = s untilParsedTime
-            , untilEnqueuedTime  = s untilEnqueuedTime
-            , untilDequeuedTime  = s untilDequeuedTime
-            , untilAskedTime     = s untilAskedTime
-            , untilRepliedTime   = s untilRepliedTime
-            , untilRespondedTime = s untilRespondedTime
-            }
-    return dur
+        let go :: (Durations, Int) -> Durations -> (Durations, Int)
+            go (s, l) d = (s `mappend` d, l + 1)
+
+        P.fold go (mempty :: Durations, 0) id prod
+
+    return $ sumdurs `divide` i

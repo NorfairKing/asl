@@ -1,10 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.TraceSlice.Script
     ( traceSlicePlotsForSingleExperiment
     , traceSliceAnalysisOf
     ) where
 
-import           Development.Shake          hiding (doesFileExist)
+import           Data.List
+
+import           Development.Shake                      hiding (doesFileExist)
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
@@ -12,26 +15,29 @@ import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.MaximumThroughput
 
 traceSliceAnalysisScript :: FilePath
 traceSliceAnalysisScript = analysisDir </> "analyze_trace_slice.r"
 
-traceSlicePlotsForSingleExperiment :: ExperimentConfig a => a -> [FilePath]
-traceSlicePlotsForSingleExperiment ecf = do
+traceSlicePlotsForSingleExperiment :: MaximumThroughputCfg -> [FilePath]
+traceSlicePlotsForSingleExperiment mtc = do
     postfix <- ["absolute", "relative"]
-    traceSlicePlotsWithPrefix $ traceSlicePlotPrefix ecf postfix
+    traceSlicePlotsWithPrefix mtc $ traceSlicePlotPrefix mtc postfix
 
-traceSlicePlotPrefix :: ExperimentConfig a => a -> FilePath -> FilePath
+traceSlicePlotPrefix :: MaximumThroughputCfg -> FilePath -> FilePath
 traceSlicePlotPrefix ecf postfix
     = experimentPlotsDir ecf </> dropExtensions (takeFileName $ resultSummariesLocationFile ecf) ++ "-" ++ postfix
 
-traceSlicePlotsWithPrefix :: FilePath -> [FilePath]
-traceSlicePlotsWithPrefix prefix = [dropExtensions prefix ++ "-slice" <.> pngExt]
+traceSlicePlotsWithPrefix :: MaximumThroughputCfg -> FilePath -> [FilePath]
+traceSlicePlotsWithPrefix MaximumThroughputCfg{..} prefix = do
+    middleThreads <- nub $ map fst threadConcTups
+    return $ dropExtensions prefix ++ "-" ++ intercalate "-" [show middleThreads, "slice"] <.> pngExt
 
-traceSliceAnalysisOf :: ExperimentConfig a => a -> FilePath -> FilePath -> Rules [FilePath]
+traceSliceAnalysisOf :: MaximumThroughputCfg -> FilePath -> FilePath -> Rules [FilePath]
 traceSliceAnalysisOf ecf inFile postfix = do
     let prefix = traceSlicePlotPrefix ecf postfix
-    let plots = traceSlicePlotsWithPrefix prefix
+    let plots = traceSlicePlotsWithPrefix ecf prefix
 
     plots &%> \_ -> do
         need [commonRLib, traceSliceAnalysisScript, inFile]

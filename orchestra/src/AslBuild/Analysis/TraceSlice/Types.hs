@@ -62,6 +62,7 @@ instance DefaultOrdered Durations where
 data DurTup
     = DurTup
     { nrCs             :: Int
+    , middleTds        :: Int
     , tilParsedTime    :: Integer
     , tilEnqueuedTime  :: Integer
     , tilDequeuedTime  :: Integer
@@ -73,6 +74,7 @@ data DurTup
 instance FromNamedRecord DurTup where
     parseNamedRecord m = DurTup
         <$> m .: "nrClients"
+        <*> m .: "middleThreads"
         <*> m .: "untilParsed"
         <*> m .: "untilEnqueued"
         <*> m .: "untilDequeued"
@@ -84,6 +86,7 @@ instance ToNamedRecord DurTup where
     toNamedRecord DurTup{..} =
         namedRecord
             [ "nrClients" .= nrCs
+            , "middleThreads" .= middleTds
             , "untilParsed" .= tilParsedTime
             , "untilEnqueued" .= tilEnqueuedTime
             , "untilDequeued" .= tilDequeuedTime
@@ -95,6 +98,7 @@ instance ToNamedRecord DurTup where
 instance DefaultOrdered DurTup where
     headerOrder _ = header
         [ "nrClients"
+        , "middleThreads"
         , "untilParsed"
         , "untilEnqueued"
         , "untilDequeued"
@@ -105,15 +109,17 @@ instance DefaultOrdered DurTup where
 
 data DurationsLine a
     = DurationsLine
-    { nrCls    :: Int
-    , category :: String
-    , value    :: a
+    { nrCls      :: Int
+    , middleThds :: Int
+    , category   :: String
+    , value      :: a
     } deriving (Show, Eq, Generic)
 
 instance ToField a => ToNamedRecord (DurationsLine a) where
     toNamedRecord DurationsLine{..} =
         namedRecord
             [ "nrClients" .= nrCls
+            , "middleThreads" .= middleThds
             , "category" .= category
             , "value" .= value
             ]
@@ -121,6 +127,7 @@ instance ToField a => ToNamedRecord (DurationsLine a) where
 instance DefaultOrdered (DurationsLine a) where
     headerOrder _ = header
         [ "nrClients"
+        , "middleThreads"
         , "category"
         , "value"
         ]
