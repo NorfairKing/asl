@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 module AslBuild.Experiment
     ( generateTargetFor
+    , defaultConcurrency
+    , defaultMiddleThreads
     , genExperimentSetup
     , genClientSetup
     , genMiddleSetup
@@ -283,7 +285,7 @@ genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
     , mMiddlewareFlags = MiddlewareFlags
         { mwIp = mPrivate
         , mwPort = middlePort
-        , mwNrThreads = 1
+        , mwNrThreads = defaultMiddleThreads
         , mwReplicationFactor = length servers
         , mwServers = map
             (\(ServerSetup{..}, (_, sPrivate)) ->
@@ -331,7 +333,7 @@ genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(ci
             , msFlags = MemaslapFlags
                 { msServers = [surl]
                 , msThreads = 1
-                , msConcurrency = 15
+                , msConcurrency = defaultConcurrency
                 , msOverwrite = 0.9
                 , msStatFreq = Just $ Seconds 1
                 , msWorkload = WorkFor runtime
@@ -340,6 +342,12 @@ genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(ci
                 }
             }
         }
+
+defaultConcurrency :: Int
+defaultConcurrency = 45
+
+defaultMiddleThreads :: Int
+defaultMiddleThreads = 1
 
 
 genExperimentSetup

@@ -62,6 +62,8 @@ Milestone}
 % \end{figure}
 
 \input{\genfile{remote-maximum-throughput-table.tex}}
+
+
 \section{Effect of Replication}
 
 % Explore how the behavior of your system changes for a 5\%-write workload with S=3,5 and 7 server backends and the following three replication factors:
@@ -74,6 +76,7 @@ Milestone}
 % Answer at least the following questions: Are \texttt{get} and \texttt{set} requests impacted the same way by different setups? If yes/no, why? Which operations become more expensive inside the middleware as the configuration changes? How does the scalability of your system compare to that of an ideal implementation? Provide the graphs and tables necessary to support your claims.
 
  
+\input{\genfile{remote-replication-effect-table.tex}}
 
 \section{Effect of Writes}
 
@@ -81,5 +84,7 @@ Milestone}
 % 
 % For what number of servers do you see the biggest impact (relative to base case) on performance? Investigate the main reason for the reduced performance and provide a detailed explanation of the behavior of the system. Provide the graphs and tables necessary to support your claims.
 
+ 
+\input{\genfile{remote-write-effect-table.tex}}
  
 \end{document}

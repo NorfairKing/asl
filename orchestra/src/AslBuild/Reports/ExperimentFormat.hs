@@ -6,6 +6,8 @@ import           Development.Shake.FilePath
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
+import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Reports.Common
 import           AslBuild.Reports.ExperimentFormat.Types
 import           AslBuild.Utils
@@ -15,14 +17,28 @@ experimentTablesRule = "experiment-tables"
 
 experimentTablesRules :: Rules ()
 experimentTablesRules = do
-    targets <- mapM experimentFormatRulesFor
+    mtTargets <- mapM experimentFormatRulesFor
         [ smallLocalMaximumThroughput
         , localMaximumThroughput
         , smallRemoteMaximumThroughput
         , remoteMaximumThroughput
         ]
 
-    experimentTablesRule ~> need targets
+    reTargets <- mapM experimentFormatRulesFor
+        [ smallLocalReplicationEffect
+        , localReplicationEffect
+        , smallRemoteReplicationEffect
+        , remoteReplicationEffect
+        ]
+
+    weTargets <- mapM experimentFormatRulesFor
+        [ smallLocalWriteEffect
+        , localWriteEffect
+        , smallRemoteWriteEffect
+        , remoteWriteEffect
+        ]
+
+    experimentTablesRule ~> need (mtTargets ++ reTargets ++ weTargets)
 
 experimentFormatRuleFor :: ExperimentConfig a => a -> String
 experimentFormatRuleFor ecf = experimentTarget ecf ++ "-table"
