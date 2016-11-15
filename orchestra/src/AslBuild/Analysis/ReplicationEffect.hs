@@ -7,8 +7,9 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.BuildR
 import           AslBuild.Analysis.Common
+import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.ReplicationEffect.Types
-import           AslBuild.Analysis.Throughput
+import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
@@ -88,12 +89,13 @@ rulesForReplicationAnalysis rec = onlyIfResultsExist rec $ do
     return analysisTarget
 
 
-simplifiedCsvLines :: ExperimentSetup -> ThroughputResults -> Action [SimplifiedCsvLine]
-simplifiedCsvLines ExperimentSetup{..} ThroughputResults{..} = do
-    gAvg <- case getThroughputResults of
+simplifiedCsvLines :: ExperimentSetup -> MemaslapClientResults -> Action [SimplifiedCsvLine]
+simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
+    let respR = respResults
+    gAvg <- case getResults respR of
         Nothing -> fail "Missing get throughput results."
         Just r -> return r
-    sAvg <- case setThroughputResults of
+    sAvg <- case setResults respR of
         Nothing -> fail "Missing set throughput results."
         Just r -> return r
     let (ms, sss) = fromRight backendSetup
@@ -101,7 +103,7 @@ simplifiedCsvLines ExperimentSetup{..} ThroughputResults{..} = do
             { nrServers = length sss
             , replicationFactor = mwReplicationFactor $ mMiddlewareFlags ms
             , kind = k
-            , tpsAvg = a
+            , respAvg = a
             }
     return
         [ line READ gAvg

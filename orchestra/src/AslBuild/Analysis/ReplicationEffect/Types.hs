@@ -8,7 +8,7 @@ import           GHC.Generics
 
 import           Data.Csv
 
-import           AslBuild.Analysis.Throughput
+import           AslBuild.Analysis.Types
 import           AslBuild.Types
 
 data SimplifiedCsvLine
@@ -16,7 +16,7 @@ data SimplifiedCsvLine
     { nrServers         :: Int
     , replicationFactor :: Int
     , kind              :: RequestKind
-    , tpsAvg            :: Avg
+    , respAvg           :: Avg
     } deriving (Show, Eq, Generic)
 
 instance ToNamedRecord SimplifiedCsvLine where
@@ -24,7 +24,7 @@ instance ToNamedRecord SimplifiedCsvLine where
         [ "nrServers" .= nrServers
         , "replicationFactor" .= replicationFactor
         , "kind" .= kind
-        ] <> toNamedRecord tpsAvg
+        ] <> toNamedRecord respAvg
 
 instance DefaultOrdered SimplifiedCsvLine where
     headerOrder _ = header

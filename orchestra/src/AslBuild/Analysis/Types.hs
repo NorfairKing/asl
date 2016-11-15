@@ -1,17 +1,18 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-module AslBuild.Analysis.Throughput.Types where
+
+module AslBuild.Analysis.Types where
 
 import           GHC.Generics
 
 import           Data.Csv
 
-data ThroughputResults
-    = ThroughputResults
-    { getThroughputResults  :: Maybe Avg
-    , setThroughputResults  :: Maybe Avg
-    , bothThroughputResults :: Avg
+data AvgResults
+    = AvgResults
+    { getResults  :: Maybe Avg
+    , setResults  :: Maybe Avg
+    , bothResults :: Avg
     } deriving (Show, Eq, Generic)
 
 data Avg
