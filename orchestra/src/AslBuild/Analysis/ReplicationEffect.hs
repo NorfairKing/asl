@@ -16,6 +16,7 @@ import           AslBuild.Experiment
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Middle
 import           AslBuild.Middleware
+import           AslBuild.Reports.Common
 import           AslBuild.Types
 import           AslBuild.Utils
 
@@ -47,19 +48,19 @@ replicationAnalysisPlotsFor rec = do
 
 simplifiedReplicationCsv :: ReplicationEffectCfg -> FilePath
 simplifiedReplicationCsv rec
-    = experimentAnalysisTmpDir rec </> experimentTarget rec ++ "simplified-replication-analysis" <.> csvExt
+    = experimentAnalysisTmpDir rec </> experimentTarget rec ++ "-simplified-replication-analysis" <.> csvExt
 
 replicationAnalysisPrefixFor :: ReplicationEffectCfg -> String
 replicationAnalysisPrefixFor rec
     = experimentPlotsDir rec </> experimentTarget rec ++ "-replication-analysis"
 
--- useReplicationAnalysisPlotsInReport :: ExperimentConfig a => a -> Int -> Rules ()
--- useReplicationAnalysisPlotsInReport stc
---     = usePlotsInReport $ replicationAnalysisPlotsFor stc
---
--- dependOnReplicationAnalysisPlotsForReport :: ExperimentConfig a => a -> Int -> Action ()
--- dependOnReplicationAnalysisPlotsForReport stc
---     = dependOnPlotsForReport $ replicationAnalysisPlotsFor stc
+useReplicationEffectPlotsInReport :: ReplicationEffectCfg -> Int -> Rules ()
+useReplicationEffectPlotsInReport stc
+    = usePlotsInReport $ replicationAnalysisPlotsFor stc
+
+dependOnReplicationEffectPlotsForReport :: ReplicationEffectCfg -> Int -> Action ()
+dependOnReplicationEffectPlotsForReport stc
+    = dependOnPlotsForReport $ replicationAnalysisPlotsFor stc
 
 replicationAnalysisScript :: FilePath
 replicationAnalysisScript = analysisDir </> "analyze_replication_effect.r"

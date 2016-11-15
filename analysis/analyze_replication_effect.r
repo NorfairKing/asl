@@ -12,18 +12,24 @@ prefix <- args[3]
 
 res = read.csv(inFile, header=TRUE)
 
+xl = "Replication factor"
+yl = "Response time (microseconds)"
+
 for (nrSers in unique(res$nrServers)) {
   dat <- res[res$nrServers == nrSers,]
+  title = paste("Response time,", nrSers, "servers")
 
   startPng(paste(prefix, nrSers, sep="-"))
 
   kind <- dat$kind
   xval <- dat$replicationFactor
-  yval <- dat$avg
+  yval <- dat$avg # / dat$avg[1]
 
   d <- data.frame(kind, xval, yval)
 
   gg <- ggplot(d, aes(factor(xval), yval, fill = kind))
+  gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
+  gg <- gg + theme(legend.title=element_blank())
   gg <- gg + geom_bar(stat="identity", position = "dodge")
   gg <- gg + scale_fill_brewer(palette = "Set1")
   print(gg)

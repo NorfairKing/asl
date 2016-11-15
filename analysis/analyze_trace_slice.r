@@ -50,6 +50,7 @@ for (threads in unique(res$middleThreads)) {
   gg <- gg + geom_bar(stat='identity')
   gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
   gg <- gg + theme(legend.title=element_blank())
+  gg <- gg + scale_fill_brewer(palette = "Set1")
   gg
   print(gg)
 }

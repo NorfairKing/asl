@@ -3,6 +3,7 @@ module AslBuild.Reports.MileStone2 where
 import           Development.Shake
 
 import           AslBuild.Analysis.MaximumThroughput
+import           AslBuild.Analysis.ReplicationEffect
 import           AslBuild.Analysis.TraceSlice
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
@@ -16,6 +17,7 @@ report2Rules = report 2 texPreAction customRules
     customRules = do
         localMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
         localMaximumThroughput `useTraceSlicePlotsInReport` 2
+        localReplicationEffect `useReplicationEffectPlotsInReport` 2
         remoteMaximumThroughput `useExperimentTableInReport` 2
         remoteReplicationEffect `useExperimentTableInReport` 2
         remoteWriteEffect `useExperimentTableInReport` 2
@@ -23,6 +25,7 @@ report2Rules = report 2 texPreAction customRules
     texPreAction = do
         localMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
         localMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
+        localReplicationEffect `dependOnReplicationEffectPlotsForReport` 2
         remoteMaximumThroughput `dependOnExperimentTableForReport` 2
         remoteReplicationEffect `dependOnExperimentTableForReport` 2
         remoteWriteEffect `dependOnExperimentTableForReport` 2
