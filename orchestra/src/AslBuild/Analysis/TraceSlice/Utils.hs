@@ -11,6 +11,8 @@ import qualified Pipes.Csv                              as P
 import qualified Pipes.Prelude                          as P
 
 import           AslBuild.Analysis.PipeUtils
+import           AslBuild.Analysis.Trace
+import           AslBuild.Analysis.Trace.Types
 import           AslBuild.Analysis.TraceSlice.Pipes
 import           AslBuild.Analysis.TraceSlice.Types
 import           AslBuild.Experiment

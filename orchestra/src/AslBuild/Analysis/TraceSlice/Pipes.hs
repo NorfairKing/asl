@@ -8,6 +8,7 @@ import           Pipes                              (Pipe, (>->))
 import qualified Pipes                              as P
 import qualified Pipes.Prelude                      as P
 
+import           AslBuild.Analysis.Trace.Types
 import           AslBuild.Analysis.TraceSlice.Types
 import           AslBuild.Client.Types
 import           AslBuild.Experiment
@@ -16,25 +17,6 @@ import           AslBuild.Middle.Types
 import           AslBuild.Middleware.Types
 import           AslBuild.Utils
 
-
-timeTransformer :: Monad m => Pipe MiddleResultLine MiddleDurationsLine m v
-timeTransformer = do
-    mrl <- P.await
-    let startTime = requestReceivedTime mrl
-    forever $ do
-        MiddleResultLine{..} <- P.await
-        P.yield MiddleDurationsLine
-            { reqKind = requestKind
-            , arrivalTime = requestReceivedTime   - startTime
-            , durations = Durations
-                { untilParsedTime    = requestParsedTime     - requestReceivedTime
-                , untilEnqueuedTime  = requestEnqueuedTime   - requestParsedTime
-                , untilDequeuedTime  = requestDequeuedTime   - requestEnqueuedTime
-                , untilAskedTime     = requestAskedTime      - requestDequeuedTime
-                , untilRepliedTime   = requestRepliedTime    - requestRepliedTime
-                , untilRespondedTime = requestRespondedTime  - requestRespondedTime
-                }
-            }
 
 durTupLineTrans :: Monad m => Pipe (DurTup a) (DurationsLine a) m v
 durTupLineTrans = forever $ do

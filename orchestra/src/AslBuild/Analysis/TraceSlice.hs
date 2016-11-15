@@ -53,7 +53,7 @@ traceSlicePlotsFor = return . traceSlicePlotsForSingleExperiment
 
 rulesForTraceSliceAnalysis :: MaximumThroughputCfg -> Rules (Maybe String)
 rulesForTraceSliceAnalysis ecf = onlyIfResultsExist ecf $ do
-    let dFile = durationsFile ecf
+    let dFile = avgDurationsFile ecf
         adFile = absDurationsFile ecf
         rdFile = relDurationsFile ecf
 
@@ -86,11 +86,11 @@ rulesForTraceSliceAnalysis ecf = onlyIfResultsExist ecf $ do
     analysisTarget ~> need (aplots ++ rplots)
     return analysisTarget
 
-durationsFile :: MaximumThroughputCfg -> FilePath
-durationsFile ecf = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName (resultSummariesLocationFile ecf)) ++ "-durations" <.> csvExt
+avgDurationsFile :: MaximumThroughputCfg -> FilePath
+avgDurationsFile ecf = experimentAnalysisTmpDir ecf </> experimentTarget ecf ++ "-avg-durations" <.> csvExt
 
 absDurationsFile :: MaximumThroughputCfg -> FilePath
-absDurationsFile ecf = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName (resultSummariesLocationFile ecf)) ++ "-absolute-durations" <.> csvExt
+absDurationsFile ecf = experimentAnalysisTmpDir ecf </> experimentTarget ecf ++ "-absolute-durations" <.> csvExt
 
 relDurationsFile :: MaximumThroughputCfg -> FilePath
-relDurationsFile ecf = experimentAnalysisTmpDir ecf </> dropExtensions (takeFileName (resultSummariesLocationFile ecf)) ++ "-relative-durations" <.> csvExt
+relDurationsFile ecf = experimentAnalysisTmpDir ecf </> experimentTarget ecf ++ "-relative-durations" <.> csvExt
