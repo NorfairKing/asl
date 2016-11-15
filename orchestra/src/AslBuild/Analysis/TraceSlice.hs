@@ -10,6 +10,7 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.PipeUtils
+import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.TraceSlice.Pipes
 import           AslBuild.Analysis.TraceSlice.Script
 import           AslBuild.Analysis.TraceSlice.Types
@@ -53,11 +54,21 @@ traceSlicePlotsFor = return . traceSlicePlotsForSingleExperiment
 
 rulesForTraceSliceAnalysis :: MaximumThroughputCfg -> Rules (Maybe String)
 rulesForTraceSliceAnalysis ecf = onlyIfResultsExist ecf $ do
+
+    summaryPaths <- readResultsSummaryLocationsForCfg ecf
+    ers <-  mapM readResultsSummary summaryPaths
+    emrs <- case mapM merMiddleResultsFile ers of
+        Nothing -> fail "should have a middleware."
+        Just emrs -> return emrs
+
     let dFile = avgDurationsFile ecf
         adFile = absDurationsFile ecf
         rdFile = relDurationsFile ecf
 
-    dFile %> \outFile -> buildAvgDursFile ecf outFile
+    -- TODO need averages
+    dFile %> \outFile -> do
+        need $ map (avgDurationFile ecf) emrs
+        buildAvgDursFile ecf outFile
 
     adFile %> \outFile -> do
         need [dFile]

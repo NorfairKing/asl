@@ -7,6 +7,7 @@ import           AslBuild.Analysis.BuildR
 import           AslBuild.Analysis.MaximumThroughput
 import           AslBuild.Analysis.ReplicationEffect
 import           AslBuild.Analysis.StabilityTrace
+import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.TraceSlice
 import           AslBuild.Constants
 
@@ -22,6 +23,8 @@ cleanAnalysisRule = "clean-analysis"
 analysisRules :: Rules ()
 analysisRules = do
     buildRRules
+
+    traceRules
 
     stabilityTraceAnalysisRules
     traceSliceAnalysisRules

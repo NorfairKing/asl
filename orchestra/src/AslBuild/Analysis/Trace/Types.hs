@@ -3,6 +3,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.Trace.Types where
 
+import           Data.Aeson     (FromJSON, ToJSON)
 import           Data.Monoid
 import           GHC.Generics
 
@@ -53,6 +54,9 @@ data Durations a
     , untilRespondedTime :: a
     } deriving (Show, Eq, Generic)
 
+instance ToJSON a => ToJSON (Durations a)
+instance FromJSON a => FromJSON (Durations a)
+
 instance FromField a => FromNamedRecord (Durations a) where
     parseNamedRecord m = Durations
         <$> m .: "untilParsed"
@@ -82,7 +86,6 @@ instance DefaultOrdered (Durations a) where
         , "untilReplied"
         , "untilResponded"
         ]
-
 
 instance Num a => Monoid (Durations a) where
     mempty = Durations

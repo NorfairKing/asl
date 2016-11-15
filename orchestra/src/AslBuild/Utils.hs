@@ -100,4 +100,7 @@ fromRight :: Either a b -> b
 fromRight (Right b) = b
 fromRight _ = error "fromRight: does not work for 'Left'"
 
+changeFilename :: (FilePath -> FilePath) -> FilePath -> FilePath
+changeFilename func path = func file ++ exts
+  where (file, exts) = splitExtensions path
 
