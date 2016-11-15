@@ -21,7 +21,7 @@ instance ExperimentFormat MaximumThroughputCfg where
         , workloadLine
         , writePercentageLine [0]
         , "Replication & No replication ($R=1$)"
-        , "Middleware threads & " ++ show (nub $ map fst threadConcTups)
+        , "Middleware threads per read pool & " ++ show (nub $ map fst threadConcTups)
         , "Runtime x repetitions & " ++ timeUnit mtRuntime ++ " x 1"
         , "Log files & " ++ "TODO"
         ]
@@ -34,7 +34,7 @@ instance ExperimentFormat ReplicationEffectCfg where
         , workloadLine
         , writePercentageLine [0.05]
         , "Replication & [$1$, $\\lceil S/2 \\rceil$, $S$]"
-        , "Middleware threads & " ++ show defaultMiddleThreads
+        , "Middleware threads per read pool & " ++ show defaultMiddleThreads
         , "Runtime x repetitions & " ++ timeUnit reRuntime ++ " x 1"
         , "Log files & " ++ "TODO"
         ]
@@ -47,7 +47,7 @@ instance ExperimentFormat WriteEffectCfg where
         , workloadLine
         , writePercentageLine writePercentages
         , "Replication & [$1$, $S$]"
-        , "Middleware threads & " ++ show defaultMiddleThreads
+        , "Middleware threads per read pool & " ++ show defaultMiddleThreads
         , "Runtime x repetitions & " ++ timeUnit weRuntime ++ " x 1"
         , "Log files & " ++ "TODO"
         ]

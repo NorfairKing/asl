@@ -31,8 +31,10 @@ Milestone}
 \newpage
 
 \section{Maximum Throughput}
-
 % Find the highest throughput of your system for 5 servers with no replication and a read-only workload configuration. What is the minimum number of threads and clients (rounded to multiple of 10) that together achieve this throughput? Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations. Provide a detailed breakdown of the time spent in the middleware for each operation type.
+
+The first experiment is the maximum throughput experiment.
+The details of this experiment can be found in figure \ref{fig:maximum-throughput-experiment}.
 
 \begin{figure}
   \centering
@@ -41,23 +43,51 @@ Milestone}
   \label{fig:maximum-throughput-experiment}
 \end{figure}
 
+Figure \ref{fig:maximum-throughput-throughput} shows that throughput tends to increase as the number of clients increases.
+It also shows that an increase in the number of clients has diminishisng effects past \FIWRD clients.
+Past this point, the average total throughput levels off at about \FIWRD transactions per second.
+
+\TODO{Mention the effect of the number of threads}
+
 \begin{figure}
   \centering
     \includegraphics[width=0.5\textwidth]{\plot{local-maximum-throughput-maximum-throughput.png}}
   \caption{Maximum Throughput}
+  \label{fig:maximum-throughput-throughput}
+\end{figure}
+
+Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} and \ref{fig:maximum-throughput-trace-slice-1-thread-relative} show a detailed breakdown of where each requests spends time in the middleware.
+Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows the average absolute time spent in the middleware for a request.
+Figure \ref{fig:maximum-throughput-trace-slice-1-thread-relative} shows the same data, but the time is shown in percentages relative to the total average amount of time spent per request.
+
+Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows that, as the number of clients increases, the only part that takes significantly longer is the time that an average requests spends in the queue, waiting to be forwarded to a server.
+Figure \ref{fig:maximum-throughput-trace-slice-1-thread-relative} shows that, as the number of clients increases, the time that an average request spends on the queue becomes the most significant component of the total time spent in the middleware.
+In fact, it becomes more than ten \FIWRD times more significant than any other part of the waiting time.
+
+\begin{figure}
+  \centering
+    \includegraphics[width=\textwidth]{\plot{summary-locations-absolute-1-slice.png}}
+  \caption{Maximum Throughput Absolute Trace Slice (1 middleware thread)}
+  \label{fig:maximum-throughput-trace-slice-1-thread-absolute}
 \end{figure}
 
 \begin{figure}
   \centering
-    \includegraphics[width=0.45\textwidth]{\plot{summary-locations-absolute-1-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{summary-locations-relative-1-slice.png}}
-  \caption{Maximum Throughput Trace Slice (1 middleware thread)}
+    \includegraphics[width=\textwidth]{\plot{summary-locations-relative-1-slice.png}}
+  \caption{Maximum Throughput Relative Trace Slice (1 middleware thread)}
+  \label{fig:maximum-throughput-trace-slice-1-thread-relative}
 \end{figure}
+
+Figure \ref{fig:maximum-throughput-trace-slice-6-threads} shows that the situation is similar when the middleware uses six \FIWRD threads per read pool.
+The total time spent in the middleware is lower for an average request, but essentially the same problem occurs.
+The average request spends the majority of its time in the middleware on a queue waiting to be forwarded to a server, and this part of the time spent becomes increasingly significant as the number of clients increases, just like before.
+
 \begin{figure}
   \centering
-    \includegraphics[width=0.45\textwidth]{\plot{summary-locations-absolute-6-slice.png}}
-    \includegraphics[width=0.45\textwidth]{\plot{summary-locations-relative-6-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{summary-locations-absolute-6-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{summary-locations-relative-6-slice.png}}
   \caption{Maximum Throughput Trace Slice (6 middleware threads)}
+  \label{fig:maximum-throughput-trace-slice-6-threads}
 \end{figure}
 
 
