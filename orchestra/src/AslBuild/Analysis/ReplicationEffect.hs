@@ -2,6 +2,8 @@
 {-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Analysis.ReplicationEffect where
 
+import           Data.List
+
 import           Development.Shake
 import           Development.Shake.FilePath
 
@@ -9,6 +11,7 @@ import           AslBuild.Analysis.BuildR
 import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.ReplicationEffect.Types
+import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
@@ -46,28 +49,45 @@ replicationAnalysisPlotsFor rec = do
     nrSers <- serverCounts rec
     return $ replicationAnalysisPrefixFor rec ++ "-" ++ show nrSers <.> pngExt
 
+replicationCostAnalysisPlotsFor :: ReplicationEffectCfg -> [FilePath]
+replicationCostAnalysisPlotsFor rec = do
+    nrSers <- serverCounts rec
+    knd <- ["read", "write"]
+    return $ intercalate "-" [replicationCostAnalysisPrefixFor rec, show nrSers, knd] <.> pngExt
+
 simplifiedReplicationCsv :: ReplicationEffectCfg -> FilePath
 simplifiedReplicationCsv rec
     = experimentAnalysisTmpDir rec </> experimentTarget rec ++ "-simplified-replication-analysis" <.> csvExt
+
+simplifiedReplicationCostCsv :: ReplicationEffectCfg -> FilePath
+simplifiedReplicationCostCsv rec
+    = experimentAnalysisTmpDir rec </> experimentTarget rec ++ "-simplified-replication-cost-analysis" <.> csvExt
 
 replicationAnalysisPrefixFor :: ReplicationEffectCfg -> String
 replicationAnalysisPrefixFor rec
     = experimentPlotsDir rec </> experimentTarget rec ++ "-replication-analysis"
 
+replicationCostAnalysisPrefixFor :: ReplicationEffectCfg -> String
+replicationCostAnalysisPrefixFor rec
+    = experimentPlotsDir rec </> experimentTarget rec ++ "-replication-cost-analysis"
+
 useReplicationEffectPlotsInReport :: ReplicationEffectCfg -> Int -> Rules ()
-useReplicationEffectPlotsInReport stc
-    = usePlotsInReport $ replicationAnalysisPlotsFor stc
+useReplicationEffectPlotsInReport rec
+    = usePlotsInReport $ replicationAnalysisPlotsFor rec ++ replicationCostAnalysisPlotsFor rec
 
 dependOnReplicationEffectPlotsForReport :: ReplicationEffectCfg -> Int -> Action ()
-dependOnReplicationEffectPlotsForReport stc
-    = dependOnPlotsForReport $ replicationAnalysisPlotsFor stc
+dependOnReplicationEffectPlotsForReport rec
+    = dependOnPlotsForReport $ replicationAnalysisPlotsFor rec ++ replicationCostAnalysisPlotsFor rec
 
 replicationAnalysisScript :: FilePath
 replicationAnalysisScript = analysisDir </> "analyze_replication_effect.r"
 
+replicationCostAnalysisScript :: FilePath
+replicationCostAnalysisScript = analysisDir </> "analyze_replication_cost.r"
+
 rulesForReplicationAnalysis :: ReplicationEffectCfg -> Rules (Maybe String)
 rulesForReplicationAnalysis rec = onlyIfResultsExist rec $ do
-    let plots = replicationAnalysisPlotsFor rec
+    let plots1 = replicationAnalysisPlotsFor rec
 
     let simplifiedCsv = simplifiedReplicationCsv rec
     simplifiedCsv %> \outFile -> do
@@ -80,13 +100,24 @@ rulesForReplicationAnalysis rec = onlyIfResultsExist rec $ do
 
         writeCSV outFile $ concat lines_
 
-    plots &%> \_ -> do
+    plots1 &%> \_ -> do
         need [replicationAnalysisScript, commonRLib, rBin, simplifiedCsv]
         needRLibs ["ggplot2"]
         rScript replicationAnalysisScript commonRLib simplifiedCsv $ replicationAnalysisPrefixFor rec
 
+    let plots2 = replicationCostAnalysisPlotsFor rec
+
+    let simplifiedCostCsv = simplifiedReplicationCostCsv rec
+    simplifiedCostCsv %> \outFile -> makeCostCsvFile rec outFile
+
+    plots2 &%> \_ -> do
+        need [replicationCostAnalysisScript, commonRLib, rBin, simplifiedCostCsv]
+        needRLibs ["ggplot2"]
+        rScript replicationCostAnalysisScript commonRLib simplifiedCostCsv $ replicationCostAnalysisPrefixFor rec
+
+
     let analysisTarget = ruleForReplicationAnalysis rec
-    analysisTarget ~> need plots
+    analysisTarget ~> need (plots1 ++ plots2)
     return analysisTarget
 
 
@@ -110,3 +141,49 @@ simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
         [ line READ gAvg
         , line WRITE sAvg
         ]
+
+makeCostCsvFile :: ReplicationEffectCfg -> FilePath -> Action ()
+makeCostCsvFile rec outFile = do
+    slocs <- readResultsSummaryLocationsForCfg rec
+    lines_ <- forP slocs $ \sloc -> do
+        ers <- readResultsSummary sloc
+        setup <- readExperimentSetupForSummary ers
+        simplifiedCostCsvLines rec setup ers
+
+    writeCSV outFile $ concat lines_
+
+simplifiedCostCsvLines :: ReplicationEffectCfg -> ExperimentSetup -> ExperimentResultSummary -> Action [SimplifiedCostCsvLine]
+simplifiedCostCsvLines rec ExperimentSetup{..} ExperimentResultSummary{..} = do
+    erMiddleResultsFile <- case merMiddleResultsFile of
+        Nothing -> fail "Missing middleware trace."
+        Just r -> pure r
+    let readDursFile = avgReadDurationFile rec erMiddleResultsFile
+    let writeDursFile = avgWriteDurationFile rec erMiddleResultsFile
+    need [readDursFile, writeDursFile]
+    avgReadDurs <- readJSON readDursFile
+    avgWriteDurs <- readJSON writeDursFile
+    let (ms, sss) = fromRight backendSetup
+    return $ concatMap
+        (uncurry $ makeDurLines
+            (length sss) -- Nr servers
+            (mwReplicationFactor $ mMiddlewareFlags ms)) -- Replication factor
+        [(READ, avgReadDurs), (WRITE, avgWriteDurs)]
+
+makeDurLines :: Int -> Int -> RequestKind -> Durations Integer -> [SimplifiedCostCsvLine]
+makeDurLines s r k Durations{..} =
+    [ row untilParsedTime     "Parsing"
+    , row untilEnqueuedTime   "Waiting to be put onto queue"
+    , row untilDequeuedTime   "In queue"
+    , row untilAskedTime      "Querying first server"
+    , row untilRepliedTime    "Interacting with server"
+    , row untilRespondedTime  "Finalisation"
+    ]
+  where
+    row val cat = SimplifiedCostCsvLine
+        { nrSs = s
+        , rf = r
+        , knd = k
+        , time = val
+        , category = cat
+        }
+

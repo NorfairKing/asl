@@ -12,7 +12,6 @@ import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Types
-import           AslBuild.Utils
 
 data ReplicationEffectCfg
     = ReplicationEffectCfg
@@ -33,8 +32,9 @@ instance ExperimentConfig ReplicationEffectCfg where
 
         let setups = do
                 curNrServers <- serverCounts
-                replicationFactor <- replicationFactors
-                let signGlobally f = intercalate "-" [f, flatPercent replicationFactor, show curNrServers]
+                replicationFactorFactor <- replicationFactors
+                let replicationFactor = max 1 $ ceiling $ fromIntegral curNrServers * replicationFactorFactor
+                let signGlobally f = intercalate "-" [f, show replicationFactor, show curNrServers]
 
                 let servers = take curNrServers $ genServerSetups sers
 
@@ -45,7 +45,7 @@ instance ExperimentConfig ReplicationEffectCfg where
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
                 let middle = defaultMiddle
                         { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
-                            { mwReplicationFactor = max 1 $ ceiling $ fromIntegral (length servers) * replicationFactor
+                            { mwReplicationFactor = replicationFactor
                             , mwReadSampleRate = Just rSampleRate
                             , mwWriteSampleRate = Just wSampleRate
                             }

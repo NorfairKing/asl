@@ -75,5 +75,5 @@ remoteReplicationEffect = ReplicationEffectCfg
         }
     , serverCounts = [3, 5, 7]
     , replicationFactors = [0, 0.5, 1]
-    , reRuntime = Minutes 2
+    , reRuntime = Minutes 1
     }

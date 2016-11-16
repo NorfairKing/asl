@@ -21,11 +21,7 @@ import           AslBuild.Analysis.Utils
 import           AslBuild.Client
 import           AslBuild.Constants
 import           AslBuild.Experiment
-import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.MaximumThroughput
-import           AslBuild.Experiments.ReplicationEffect
-import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
@@ -38,21 +34,10 @@ throughputAnalysisRule = "throughput-analysis"
 throughputAnalysisRules :: Rules ()
 throughputAnalysisRules = do
     throughputAnalysisRule ~> need
-        [ ruleForBaselines
-        , ruleForMaximumThroughputs
-        , ruleForWriteEffects
-        , ruleForReplicationEffects
-        , ruleForStabilityTraces
+        [ ruleForMaximumThroughputs
         ]
 
-    let throughputAnalysisSubrules :: ExperimentConfig a => String -> [a] -> Rules ()
-        throughputAnalysisSubrules = subRules rulesForThroughputAnalysis
-
-    throughputAnalysisSubrules ruleForBaselines allBaselineExperiments
-    throughputAnalysisSubrules ruleForStabilityTraces allStabilityTraceExperiments
-    throughputAnalysisSubrules ruleForMaximumThroughputs allMaximumThroughputExperiments
-    throughputAnalysisSubrules ruleForWriteEffects allWriteEffectExperiments
-    throughputAnalysisSubrules ruleForReplicationEffects allReplicationEffectExperiments
+    subRules rulesForThroughputAnalysis ruleForMaximumThroughputs allMaximumThroughputExperiments
 
 ruleForBaselines :: String
 ruleForBaselines = "baseline-throughput-analysis"

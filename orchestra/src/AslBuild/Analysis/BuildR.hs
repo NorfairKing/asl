@@ -73,7 +73,6 @@ rlibdir = rMakeDir </> "library"
 
 rRules :: Rules ()
 rRules = do
-    want [rBin]
     rArchive %> \_ ->
         cmd curlCmd
             "--output" rArchive

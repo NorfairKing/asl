@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
-
-module AslBuild.Analysis.Trace where
+module AslBuild.Analysis.Trace
+    ( module AslBuild.Analysis.Trace
+    , module AslBuild.Analysis.Trace.Types
+    ) where
 
 import           Control.Monad
 import           Control.Monad.IO.Class
@@ -90,8 +92,8 @@ timeTransformer = do
                 , untilEnqueuedTime  = requestEnqueuedTime   - requestParsedTime
                 , untilDequeuedTime  = requestDequeuedTime   - requestEnqueuedTime
                 , untilAskedTime     = requestAskedTime      - requestDequeuedTime
-                , untilRepliedTime   = requestRepliedTime    - requestRepliedTime
-                , untilRespondedTime = requestRespondedTime  - requestRespondedTime
+                , untilRepliedTime   = requestRepliedTime    - requestAskedTime
+                , untilRespondedTime = requestRespondedTime  - requestRepliedTime
                 }
             }
 

@@ -34,3 +34,29 @@ instance DefaultOrdered SimplifiedCsvLine where
         ] <> headerOrder (undefined :: Avg)
 
 
+data SimplifiedCostCsvLine
+    = SimplifiedCostCsvLine
+    { nrSs     :: Int
+    , rf       :: Int
+    , knd      :: RequestKind
+    , time     :: Integer
+    , category :: String
+    } deriving (Show, Eq, Generic)
+
+instance ToNamedRecord SimplifiedCostCsvLine where
+    toNamedRecord SimplifiedCostCsvLine{..} = namedRecord
+        [ "nrServers" .= nrSs
+        , "replicationFactor" .= rf
+        , "kind" .= knd
+        , "time" .= time
+        , "category" .= category
+        ]
+
+instance DefaultOrdered SimplifiedCostCsvLine where
+    headerOrder _ = header
+        [ "nrServers"
+        , "replicationFactor"
+        , "kind"
+        , "time"
+        , "category"
+        ]

@@ -23,7 +23,7 @@ for (nrSers in unique(res$nrServers)) {
 
   kind <- dat$kind
   xval <- dat$replicationFactor
-  yval <- dat$avg # / dat$avg[1]
+  yval <- dat$avg
 
   d <- data.frame(kind, xval, yval)
 
