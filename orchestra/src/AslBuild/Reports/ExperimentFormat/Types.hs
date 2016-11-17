@@ -17,11 +17,11 @@ instance ExperimentFormat MaximumThroughputCfg where
     renderSetupTable MaximumThroughputCfg{..} = tabular
         [ "Number of server machines & " ++ show (nrServers hlConfig)
         , "Number of client machines & " ++ show (nrClients hlConfig)
-        , "Virtual clients per machine & " ++ show (nub $ map snd threadConcTups)
+        , "Virtual clients per machine & " ++ showMinMaxList (map snd threadConcTups)
         , workloadLine
         , writePercentageLine [0]
         , "Replication & No replication ($R=1$)"
-        , "Middleware threads per read pool & " ++ show (nub $ map fst threadConcTups)
+        , "Middleware threads per read pool & " ++ showMinMaxList (nub $ map fst threadConcTups)
         , "Runtime x repetitions & " ++ timeUnit mtRuntime ++ " x 1"
         , "Log files & " ++ "TODO"
         ]
@@ -51,6 +51,9 @@ instance ExperimentFormat WriteEffectCfg where
         , "Runtime x repetitions & " ++ timeUnit weRuntime ++ " x 1"
         , "Log files & " ++ "TODO"
         ]
+
+showMinMaxList :: [Int] -> String
+showMinMaxList ls = "[" ++ show (minimum ls) ++ " .. " ++ show (maximum ls) ++ "]"
 
 workloadLine :: String
 workloadLine = "Workload & Key 16B, Value 128B"

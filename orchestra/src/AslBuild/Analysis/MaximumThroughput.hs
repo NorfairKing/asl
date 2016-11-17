@@ -39,44 +39,34 @@ throughputAnalysisRules = do
 
     subRules rulesForThroughputAnalysis ruleForMaximumThroughputs allMaximumThroughputExperiments
 
-ruleForBaselines :: String
-ruleForBaselines = "baseline-throughput-analysis"
-
 ruleForMaximumThroughputs :: String
 ruleForMaximumThroughputs = "maximum-throughput-throughput-analysis"
-
-ruleForWriteEffects :: String
-ruleForWriteEffects = "write-effect-throughput-analysis"
-
-ruleForReplicationEffects :: String
-ruleForReplicationEffects = "replication-effect-throughput-analysis"
-
-ruleForStabilityTraces :: String
-ruleForStabilityTraces = "stability-trace-throughput-analysis"
 
 ruleForThroughputAnalysis :: ExperimentConfig a => a -> String
 ruleForThroughputAnalysis mtc
     = experimentTarget mtc ++ "-throughput-analysis"
 
-throughputAnalysisPlotsFor :: ExperimentConfig a => a -> [FilePath]
-throughputAnalysisPlotsFor mtc = [maximumThroughputPrefixFor mtc <.> pngExt]
+throughputAnalysisPlotsFor :: MaximumThroughputCfg -> [FilePath]
+throughputAnalysisPlotsFor mtc = do
+    thds <- nub $ map fst $ threadConcTups mtc
+    return $ intercalate "-" [maximumThroughputPrefixFor mtc, show thds] <.> pngExt
 
 simplifiedCsvFor :: ExperimentConfig a => a -> FilePath
 simplifiedCsvFor mtc = experimentAnalysisTmpDir mtc </> "simplified.csv"
 
-maximumThroughputPrefixFor :: ExperimentConfig a => a -> String
+maximumThroughputPrefixFor :: MaximumThroughputCfg -> String
 maximumThroughputPrefixFor mtc
     = experimentPlotsDir mtc </> experimentTarget mtc ++ "-maximum-throughput"
 
-useThroughputAnalysisPlotsInReport :: ExperimentConfig a => a -> Int -> Rules ()
+useThroughputAnalysisPlotsInReport :: MaximumThroughputCfg -> Int -> Rules ()
 useThroughputAnalysisPlotsInReport stc
     = usePlotsInReport $ throughputAnalysisPlotsFor stc
 
-dependOnThroughputAnalysisPlotsForReport :: ExperimentConfig a => a -> Int -> Action ()
+dependOnThroughputAnalysisPlotsForReport :: MaximumThroughputCfg -> Int -> Action ()
 dependOnThroughputAnalysisPlotsForReport stc
     = dependOnPlotsForReport $ throughputAnalysisPlotsFor stc
 
-rulesForThroughputAnalysis :: ExperimentConfig a => a -> Rules (Maybe String)
+rulesForThroughputAnalysis :: MaximumThroughputCfg -> Rules (Maybe String)
 rulesForThroughputAnalysis mtc = onlyIfResultsExist mtc $ do
     let plots = throughputAnalysisPlotsFor mtc
 
