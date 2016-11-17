@@ -9,6 +9,7 @@ import           AslBuild.Analysis.ReplicationEffect
 import           AslBuild.Analysis.StabilityTrace
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.TraceSlice
+import           AslBuild.Analysis.WriteEffect
 import           AslBuild.Constants
 
 analysisScript :: FilePath
@@ -30,12 +31,14 @@ analysisRules = do
     traceSliceAnalysisRules
     throughputAnalysisRules
     replicationAnalysisRules
+    writeAnalysisRules
 
     analysisRule ~> need
         [ stabilityTraceAnalysisRule
         , traceSliceAnalysisRule
         , throughputAnalysisRule
         , replicationAnalysisRule
+        , writeAnalysisRule
         ]
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]

@@ -74,6 +74,6 @@ remoteWriteEffect = WriteEffectCfg
         , resultsPersistence = Persistent
         }
     , serverCounts = [3 .. 7]
-    , writePercentages = [0.01, 0.05, 0.1]
+    , writePercentages = [0.01, 0.02 .. 0.1]
     , weRuntime = Minutes 1
     }
