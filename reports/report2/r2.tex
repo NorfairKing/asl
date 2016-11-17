@@ -51,7 +51,8 @@ Past this point, the average total throughput levels off at about \FIWRD transac
 
 \begin{figure}
   \centering
-    \includegraphics[width=0.5\textwidth]{\plot{local-maximum-throughput-maximum-throughput.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-maximum-throughput.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput.png}}
   \caption{Maximum Throughput}
   \label{fig:maximum-throughput-throughput}
 \end{figure}
@@ -66,14 +67,28 @@ In fact, it becomes more than ten \FIWRD times more significant than any other p
 
 \begin{figure}
   \centering
-    \includegraphics[width=\textwidth]{\plot{summary-locations-absolute-1-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{local-maximum-throughput-slice-absolute-1-slice.png}}
   \caption{Maximum Throughput Absolute Trace Slice (1 middleware thread)}
   \label{fig:maximum-throughput-trace-slice-1-thread-absolute}
 \end{figure}
 
 \begin{figure}
   \centering
-    \includegraphics[width=\textwidth]{\plot{summary-locations-relative-1-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{local-maximum-throughput-slice-relative-1-slice.png}}
+  \caption{Maximum Throughput Relative Trace Slice (1 middleware thread)}
+  \label{fig:maximum-throughput-trace-slice-1-thread-relative}
+\end{figure}
+
+\begin{figure}
+  \centering
+    \includegraphics[width=\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-1-slice.png}}
+  \caption{Maximum Throughput Absolute Trace Slice (1 middleware thread)}
+  \label{fig:maximum-throughput-trace-slice-1-thread-absolute}
+\end{figure}
+
+\begin{figure}
+  \centering
+    \includegraphics[width=\textwidth]{\plot{big-local-maximum-throughput-slice-relative-1-slice.png}}
   \caption{Maximum Throughput Relative Trace Slice (1 middleware thread)}
   \label{fig:maximum-throughput-trace-slice-1-thread-relative}
 \end{figure}
@@ -84,8 +99,16 @@ The average request spends the majority of its time in the middleware on a queue
 
 \begin{figure}
   \centering
-    \includegraphics[width=0.48\textwidth]{\plot{summary-locations-absolute-6-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{summary-locations-relative-6-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-6-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-6-slice.png}}
+  \caption{Maximum Throughput Trace Slice (6 middleware threads)}
+  \label{fig:maximum-throughput-trace-slice-6-threads}
+\end{figure}
+
+\begin{figure}
+  \centering
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-6-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-6-slice.png}}
   \caption{Maximum Throughput Trace Slice (6 middleware threads)}
   \label{fig:maximum-throughput-trace-slice-6-threads}
 \end{figure}

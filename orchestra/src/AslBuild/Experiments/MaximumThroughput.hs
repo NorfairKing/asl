@@ -16,8 +16,10 @@ allMaximumThroughputExperiments :: [MaximumThroughputCfg]
 allMaximumThroughputExperiments =
     [ smallLocalMaximumThroughput
     , localMaximumThroughput
+    , bigLocalMaximumThroughput
     , smallRemoteMaximumThroughput
     , remoteMaximumThroughput
+    , bigRemoteMaximumThroughput
     ]
 
 smallLocalMaximumThroughputRule :: String
@@ -39,6 +41,18 @@ localMaximumThroughput :: MaximumThroughputCfg
 localMaximumThroughput = remoteMaximumThroughput
     { hlConfig = (hlConfig remoteMaximumThroughput)
         { target = localMaximumThroughputRule
+        , location = Local
+        , resultsPersistence = Volatile
+        }
+    }
+
+bigLocalMaximumThroughputRule :: String
+bigLocalMaximumThroughputRule = "big-local-maximum-throughput"
+
+bigLocalMaximumThroughput :: MaximumThroughputCfg
+bigLocalMaximumThroughput = bigRemoteMaximumThroughput
+    { hlConfig = (hlConfig bigRemoteMaximumThroughput)
+        { target = bigLocalMaximumThroughputRule
         , location = Local
         , resultsPersistence = Volatile
         }
@@ -78,10 +92,26 @@ remoteMaximumThroughput = MaximumThroughputCfg
         }
     , threadConcTups = do
         middleThreads <- [1..6]
-        concurrencies <-
-            scanl (+) 1 $
-                concatMap (uncurry replicate)
-                [(9, 1), (5, 2), (3, 3), (2, 4)]
+        concurrencies <- [1..25]
         return (middleThreads, concurrencies)
-    , mtRuntime = Minutes 1
+    , mtRuntime = Seconds 30
+    }
+
+bigRemoteMaximumThroughputRule :: String
+bigRemoteMaximumThroughputRule = "big-remote-maximum-throughput"
+
+bigRemoteMaximumThroughput :: MaximumThroughputCfg
+bigRemoteMaximumThroughput = MaximumThroughputCfg
+    { hlConfig = HighLevelConfig
+        { target = bigRemoteMaximumThroughputRule
+        , nrServers = 5
+        , nrClients = 3
+        , location = Remote
+        , resultsPersistence = Persistent
+        }
+    , threadConcTups = do
+        middleThreads <- [1, 6 .. 30]
+        concurrencies <- [1, 6 .. 125]
+        return (middleThreads, concurrencies)
+    , mtRuntime = Seconds 30
     }

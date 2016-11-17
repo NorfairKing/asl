@@ -17,6 +17,8 @@ report2Rules = report 2 texPreAction customRules
     customRules = do
         localMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
         localMaximumThroughput `useTraceSlicePlotsInReport` 2
+        bigLocalMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
+        bigLocalMaximumThroughput `useTraceSlicePlotsInReport` 2
         localReplicationEffect `useReplicationEffectPlotsInReport` 2
         remoteMaximumThroughput `useExperimentTableInReport` 2
         remoteReplicationEffect `useExperimentTableInReport` 2
@@ -25,6 +27,8 @@ report2Rules = report 2 texPreAction customRules
     texPreAction = do
         localMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
         localMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
+        bigLocalMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
+        bigLocalMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
         localReplicationEffect `dependOnReplicationEffectPlotsForReport` 2
         remoteMaximumThroughput `dependOnExperimentTableForReport` 2
         remoteReplicationEffect `dependOnExperimentTableForReport` 2

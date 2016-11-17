@@ -56,11 +56,7 @@ workloadLine :: String
 workloadLine = "Workload & Key 16B, Value 128B"
 
 writePercentageLine :: [Double] -> String
-writePercentageLine pers = "Write percentage & " ++ render pers
-  where
-    render [d] = showPer d ++ "\\%"
-    render ds = ("[" ++) . (++ "]") . intercalate ", " $ map ((\d -> "$" ++ d ++ "$\\%") . showPer) ds
-    showPer = show . (floor :: Double -> Int) . (* 100)
+writePercentageLine pers = "Write percentage & " ++ showPercentageList pers
 
 tabular :: [String] -> String
 tabular rows = unlines $
@@ -72,3 +68,16 @@ tabular rows = unlines $
 
 tabRow :: String -> String
 tabRow row = "\\hline " ++ row ++ "\\\\"
+
+showIntList :: [Int] -> String
+showIntList = showListWith (\d -> "$" ++ show d ++ "$")
+
+showPercentageList :: [Double] -> String
+showPercentageList = showListWith (\d -> "$" ++ showPercentage d ++ "$")
+
+showPercentage :: Double -> String
+showPercentage = (++ "\\%") . show . (floor :: Double -> Int) . (* 100)
+
+showListWith :: (a -> String) -> [a] -> String
+showListWith func [d] = func d
+showListWith func ds = "[" ++ intercalate ", " (map func ds) ++ "]"

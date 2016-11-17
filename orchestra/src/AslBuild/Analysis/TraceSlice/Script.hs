@@ -27,7 +27,7 @@ traceSlicePlotsForSingleExperiment mtc = do
 
 traceSlicePlotPrefix :: MaximumThroughputCfg -> FilePath -> FilePath
 traceSlicePlotPrefix ecf postfix
-    = experimentPlotsDir ecf </> dropExtensions (takeFileName $ resultSummariesLocationFile ecf) ++ "-" ++ postfix
+    = experimentPlotsDir ecf </> experimentTarget ecf ++ "-slice-" ++ postfix
 
 traceSlicePlotsWithPrefix :: MaximumThroughputCfg -> FilePath -> [FilePath]
 traceSlicePlotsWithPrefix MaximumThroughputCfg{..} prefix = do
