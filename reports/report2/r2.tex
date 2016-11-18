@@ -30,24 +30,64 @@ Milestone}
 
 \newpage
 
+\section{Introduction}
+
+This is the second report in a series of three reports for the the advanced systems lab.
+In this course we implement and investigate the performance of a middleware for memcached.
+This part focusses mostly on investigating the performance of the system that was built for the previous part.
+
+
+\section{Fixes and upgrades}
+
+The middleware has changed since the last part to improve its efficiency.
+It no longer constructs the extremely verbose logging messages that it used to.
+Even though these messages were never printed, they were still constructed because of Java's strict evaluation semantics.
+
+\TODO{re-run stability trace?}
+
 \section{Maximum Throughput}
 % Find the highest throughput of your system for 5 servers with no replication and a read-only workload configuration. What is the minimum number of threads and clients (rounded to multiple of 10) that together achieve this throughput? Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations. Provide a detailed breakdown of the time spent in the middleware for each operation type.
 
-The first experiment is the maximum throughput experiment.
-The details of this experiment can be found in figure \ref{fig:maximum-throughput-experiment}.
+\subsection{System under test}
 
-\begin{figure}
+In the first experiment, the middleware is in charge of five servers with no replication and a read-only workload configuration.
+The aim is to investigate which combination of the total number of clients and the number of threads in each server's thread pool for reads achieves the highest throughput.
+The details of the explored configuration can be found in figure \TODO{which figure?}.
+
+\begin{figure}[H]
   \centering
   \input{\genfile{remote-maximum-throughput-table.tex}}
   \caption{Maximum throughput experiments}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \input{\genfile{big-remote-maximum-throughput-table.tex}}
   \caption{Big Maximum throughput experiments}
 \end{figure}
 
+\subsection{Hypothesis}
+
+Making an accurate estimate of the configuration that achieves the highest throughput is hard if not unnecessary.
+What is more important is to estimate what will happen as we increase the total number of virtual clients or the number of threads in each server's thread pool for reads.
+
+\subsubsection{Increasing the total number of virtual clients}
+
+As the middleware operates with an unbounded queue of requests to process, it never drops requests even if the load increses.
+(We assume that the limits of memory are not reached.
+This assumption is reasonable as the middleware machine that will be used has 14 GiB of main memory.)
+
+As the total number of virtual clients increases, we expect to see throughput increase up to a certain point.
+This is the point at which request are never empty.
+From then on the throughput should not increase any further as subsequents will just be punt onto the queue and requests will not be processed any quicker.
+
+\subsubsection{Increasing the number of clients in each server's thread pool for reads}
+
+Reads are executed in a synchronous manner.
+This means that each read thread can perform at most one request per round-trip time.
+\TODO{implement the synchronous thingies correctly!!}
+
+\subsection{Results and analysis}
 
 Figure \ref{fig:maximum-throughput-throughput} shows that throughput tends to increase as the number of clients increases.
 It also shows that an increase in the number of clients has diminishisng effects past \FIWRD clients.
