@@ -105,7 +105,7 @@ showMathNum :: String -> String
 showMathNum d = "$" ++ d ++ "$"
 
 showPercentage :: Double -> String
-showPercentage = showMathNum . (++ "\\%") . show . (floor :: Double -> Int) . (* 100)
+showPercentage = showMathNum . (++ "\\%") . show . (round :: Double -> Int) . (* 100)
 
 showListWith :: (a -> String) -> [a] -> String
 showListWith func [d] = func d
