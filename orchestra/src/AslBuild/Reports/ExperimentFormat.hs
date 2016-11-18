@@ -17,26 +17,9 @@ experimentTablesRule = "experiment-tables"
 
 experimentTablesRules :: Rules ()
 experimentTablesRules = do
-    mtTargets <- mapM experimentFormatRulesFor
-        [ smallLocalMaximumThroughput
-        , localMaximumThroughput
-        , smallRemoteMaximumThroughput
-        , remoteMaximumThroughput
-        ]
-
-    reTargets <- mapM experimentFormatRulesFor
-        [ smallLocalReplicationEffect
-        , localReplicationEffect
-        , smallRemoteReplicationEffect
-        , remoteReplicationEffect
-        ]
-
-    weTargets <- mapM experimentFormatRulesFor
-        [ smallLocalWriteEffect
-        , localWriteEffect
-        , smallRemoteWriteEffect
-        , remoteWriteEffect
-        ]
+    mtTargets <- mapM experimentFormatRulesFor allMaximumThroughputExperiments
+    reTargets <- mapM experimentFormatRulesFor allReplicationEffectExperiments
+    weTargets <- mapM experimentFormatRulesFor allWriteEffectExperiments
 
     experimentTablesRule ~> need (mtTargets ++ reTargets ++ weTargets)
 

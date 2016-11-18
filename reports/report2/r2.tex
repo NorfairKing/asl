@@ -40,7 +40,12 @@ The details of this experiment can be found in figure \ref{fig:maximum-throughpu
   \centering
   \input{\genfile{remote-maximum-throughput-table.tex}}
   \caption{Maximum throughput experiments}
-  \label{fig:maximum-throughput-experiment}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \input{\genfile{big-remote-maximum-throughput-table.tex}}
+  \caption{Big Maximum throughput experiments}
 \end{figure}
 
 
@@ -58,14 +63,17 @@ Past this point, the average total throughput levels off at about \FIWRD transac
     \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-4.png}}
     \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-5.png}}
     \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-6.png}}
+  \caption{Maximum Throughput}
+\end{figure}
+\begin{figure}
+  \centering
     \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-1.png}}
     \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-6.png}}
     \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-11.png}}
     \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-16.png}}
     \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-21.png}}
     \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-26.png}}
-  \caption{Maximum Throughput}
-  \label{fig:maximum-throughput-throughput}
+  \caption{Big Maximum Throughput}
 \end{figure}
 
 Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} and \ref{fig:maximum-throughput-trace-slice-1-thread-relative} show a detailed breakdown of where each requests spends time in the middleware.
@@ -181,6 +189,7 @@ The average request spends the majority of its time in the middleware on a queue
   \label{fig:write-analysis-tps}
 \end{figure}
 \begin{figure}
+  \centering
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-3.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-4.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-5.png}}

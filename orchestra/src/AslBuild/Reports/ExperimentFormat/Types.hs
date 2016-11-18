@@ -7,6 +7,7 @@ import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput.Types
 import           AslBuild.Experiments.ReplicationEffect.Types
 import           AslBuild.Experiments.WriteEffect.Types
+import           AslBuild.Memaslap
 import           AslBuild.Types
 
 class ExperimentFormat a where
@@ -52,14 +53,33 @@ instance ExperimentFormat WriteEffectCfg where
         , "Log files & " ++ "TODO"
         ]
 
-showMinMaxList :: [Int] -> String
-showMinMaxList ls = "[" ++ show (minimum ls) ++ " .. " ++ show (maximum ls) ++ "]"
-
 workloadLine :: String
-workloadLine = "Workload & Key 16B, Value 128B"
+workloadLine = workloadLineFor defaultMemaslapConfig
+
+workloadLineFor :: MemaslapConfig -> String
+workloadLineFor MemaslapConfig{..} =
+    "Workload & " ++
+    intercalate ", "
+        [ "Key " ++ renderDistrList keysizeDistributions ++ "B"
+        , "Value " ++ renderDistrList valueDistributions ++ "B"
+        ]
+  where
+    renderDistrList [d] = renderDistr d
+    renderDistrList _ = error "not implemented yet."
+    renderDistr Distribution{..} =
+        if distrMin == distrMax
+        then show distrMin
+        else show distrMin ++ "-" ++ show distrMax
 
 writePercentageLine :: [Double] -> String
-writePercentageLine pers = "Write percentage & " ++ showPercentageList pers
+writePercentageLine pers = "Write percentage & " ++ showMinMaxPercentageList pers
+
+showMinMaxList :: [Int] -> String
+showMinMaxList = showMinMaxListWith show
+
+showMinMaxListWith :: Ord a => (a -> String) -> [a] -> String
+showMinMaxListWith func [l] = func l
+showMinMaxListWith func ls = "[" ++ func (minimum ls) ++ " .. " ++ func (maximum ls) ++ "]"
 
 tabular :: [String] -> String
 tabular rows = unlines $
@@ -73,13 +93,19 @@ tabRow :: String -> String
 tabRow row = "\\hline " ++ row ++ "\\\\"
 
 showIntList :: [Int] -> String
-showIntList = showListWith (\d -> "$" ++ show d ++ "$")
+showIntList = showListWith (showMathNum . show)
+
+showMinMaxPercentageList :: [Double] -> String
+showMinMaxPercentageList = showMinMaxListWith showPercentage
 
 showPercentageList :: [Double] -> String
-showPercentageList = showListWith (\d -> "$" ++ showPercentage d ++ "$")
+showPercentageList = showListWith showPercentage
+
+showMathNum :: String -> String
+showMathNum d = "$" ++ d ++ "$"
 
 showPercentage :: Double -> String
-showPercentage = (++ "\\%") . show . (floor :: Double -> Int) . (* 100)
+showPercentage = showMathNum . (++ "\\%") . show . (floor :: Double -> Int) . (* 100)
 
 showListWith :: (a -> String) -> [a] -> String
 showListWith func [d] = func d

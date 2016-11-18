@@ -34,5 +34,10 @@ for (i in threads) {
       )
   lines(conc, avg)
   arrows(conc, avg-sdev, conc, avg+sdev, length=0.05, angle=90, code=3)
-  abline(h = max(res$avgTps))
+  abline(h = max(res$avgTps), col="red")
+  my.legend.size <- legend("bottomright"
+      , "Maximum"
+      , lty=c(1)
+      , lwd=c(2.5)
+      , col="red")
 }
