@@ -76,52 +76,42 @@ Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows that, as
 Figure \ref{fig:maximum-throughput-trace-slice-1-thread-relative} shows that, as the number of clients increases, the time that an average request spends on the queue becomes the most significant component of the total time spent in the middleware.
 In fact, it becomes more than ten \FIWRD times more significant than any other part of the waiting time.
 
-\begin{figure}
-  \centering
-    \includegraphics[width=\textwidth]{\plot{local-maximum-throughput-slice-absolute-1-slice.png}}
-  \caption{Maximum Throughput Absolute Trace Slice (1 middleware thread)}
-  \label{fig:maximum-throughput-trace-slice-1-thread-absolute}
-\end{figure}
-
-\begin{figure}
-  \centering
-    \includegraphics[width=\textwidth]{\plot{local-maximum-throughput-slice-relative-1-slice.png}}
-  \caption{Maximum Throughput Relative Trace Slice (1 middleware thread)}
-  \label{fig:maximum-throughput-trace-slice-1-thread-relative}
-\end{figure}
-
-\begin{figure}
-  \centering
-    \includegraphics[width=\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-1-slice.png}}
-  \caption{Maximum Throughput Absolute Trace Slice (1 middleware thread)}
-  \label{fig:maximum-throughput-trace-slice-1-thread-absolute}
-\end{figure}
-
-\begin{figure}
-  \centering
-    \includegraphics[width=\textwidth]{\plot{big-local-maximum-throughput-slice-relative-1-slice.png}}
-  \caption{Maximum Throughput Relative Trace Slice (1 middleware thread)}
-  \label{fig:maximum-throughput-trace-slice-1-thread-relative}
-\end{figure}
-
-Figure \ref{fig:maximum-throughput-trace-slice-6-threads} shows that the situation is similar when the middleware uses six \FIWRD threads per read pool.
+Figure TODO shows that the situation is similar when the middleware uses six \FIWRD threads per read pool.
 The total time spent in the middleware is lower for an average request, but essentially the same problem occurs.
 The average request spends the majority of its time in the middleware on a queue waiting to be forwarded to a server, and this part of the time spent becomes increasingly significant as the number of clients increases, just like before.
 
 \begin{figure}
   \centering
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-1-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-1-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-2-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-2-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-3-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-3-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-4-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-4-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-5-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-5-slice.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-6-slice.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-6-slice.png}}
-  \caption{Maximum Throughput Trace Slice (6 middleware threads)}
-  \label{fig:maximum-throughput-trace-slice-6-threads}
+  \caption{Big Maximum Throughput Trace Slice}
 \end{figure}
 
 \begin{figure}
   \centering
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-1-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-1-slice.png}}
     \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-6-slice.png}}
     \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-6-slice.png}}
-  \caption{Maximum Throughput Trace Slice (6 middleware threads)}
-  \label{fig:maximum-throughput-trace-slice-6-threads}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-11-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-11-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-16-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-16-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-21-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-21-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-26-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-26-slice.png}}
+  \caption{Big Maximum Throughput Trace Slice}
 \end{figure}
 
 
@@ -178,6 +168,26 @@ The average request spends the majority of its time in the middleware on a queue
   \input{\genfile{remote-write-effect-table.tex}}
   \caption{Write effect experiments}
   \label{fig:write-effect-experiment}
+\end{figure}
+
+\begin{figure}
+  \centering
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-3.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-4.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-5.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-6.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-7.png}}
+  \caption{Effect of write percentage: Throughput}
+  \label{fig:write-analysis-tps}
+\end{figure}
+\begin{figure}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-3.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-4.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-5.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-6.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-7.png}}
+  \caption{Effect of write percentage: Response time}
+  \label{fig:write-analysis-resp}
 \end{figure}
  
 \end{document}

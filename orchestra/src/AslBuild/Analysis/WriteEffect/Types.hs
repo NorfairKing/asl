@@ -14,7 +14,6 @@ import qualified Data.HashMap.Strict     as HM
 import qualified Data.Vector             as V
 
 import           AslBuild.Analysis.Types
-import           AslBuild.Types
 
 data SimplifiedCsvLine
     = SimplifiedCsvLine

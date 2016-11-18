@@ -20,10 +20,8 @@ isabs <- postfix == 'absolute'
 xl = "Virtual clients (no unit)"
 
 if(isabs){
-  title = "Absolute time spent in middleware per request"
   yl = "Average absolute time spent in middleware (microseconds)"
 } else {
-  title = "Relative time spent in middleware per request"
   yl = "Average relative time spent in middleware (percentage)"
 }
 
@@ -34,6 +32,11 @@ res = read.csv(inFile, header=TRUE)
 for (threads in unique(res$middleThreads)) {
   file = paste(outFile, threads, "slice", sep="-")
   startPng(file)
+  if (isabs) {
+    title = paste("Absolute time spent in middleware per request (", threads, " threads per pool)", sep="")
+  } else {
+    title = paste("Relative time spent in middleware per request (", threads, " threads per pool)", sep="")
+  }
 
   dat <- res[res$middleThreads == threads,]
 

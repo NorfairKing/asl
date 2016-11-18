@@ -10,7 +10,6 @@ import           Development.Shake.FilePath
 import           AslBuild.Analysis.BuildR
 import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.Memaslap
-import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Analysis.WriteEffect.Types
@@ -22,7 +21,6 @@ import           AslBuild.Memaslap.Types
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Reports.Common
-import           AslBuild.Types
 import           AslBuild.Utils
 
 writeAnalysisRule :: String
@@ -48,8 +46,9 @@ ruleForWriteAnalysis rec
 
 writeAnalysisPlotsFor :: WriteEffectCfg -> [FilePath]
 writeAnalysisPlotsFor rec = do
-    nrSers <- [3] -- serverCounts rec
-    return $ intercalate "-" [writeAnalysisPrefixFor rec, show nrSers] <.> pngExt
+    nrSers <- serverCounts rec
+    metric <- ["tps", "resp"]
+    return $ intercalate "-" [writeAnalysisPrefixFor rec, metric, show nrSers] <.> pngExt
 
 simplifiedWriteCsv :: WriteEffectCfg -> FilePath
 simplifiedWriteCsv rec
@@ -98,15 +97,14 @@ rulesForWriteAnalysis rec = onlyIfResultsExist rec $ do
 
 simplifiedCsvLines :: ExperimentSetup -> MemaslapClientResults -> Action SimplifiedCsvLine
 simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
-    let respR = respResults
     let respA = bothResults respResults
     let tpsA = bothResults tpsResults
     let (ms, sss) = fromRight backendSetup
     let cs = clientSetups
-    return $ SimplifiedCsvLine
-            { nrServers = length sss
-            , writePercentage = maximum $ map (setProportion . msConfig . cMemaslapSettings) cs
-            , replicationFactor = mwReplicationFactor $ mMiddlewareFlags ms
-            , respAvg = respA
-            , tpsAvg = tpsA
-            }
+    return SimplifiedCsvLine
+        { nrServers = length sss
+        , writePercentage = maximum $ map (setProportion . msConfig . cMemaslapSettings) cs
+        , replicationFactor = mwReplicationFactor $ mMiddlewareFlags ms
+        , respAvg = respA
+        , tpsAvg = tpsA
+        }

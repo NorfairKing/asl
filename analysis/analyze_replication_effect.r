@@ -17,8 +17,8 @@ yl = "Response time (microseconds)"
 
 for (nrSers in unique(res$nrServers)) {
   dat <- res[res$nrServers == nrSers,]
-  title = paste("Response time,", nrSers, "servers")
 
+  title = paste("Response time,", nrSers, "servers")
   startPng(paste(prefix, nrSers, sep="-"))
 
   kind <- dat$kind
