@@ -1,5 +1,6 @@
 module AslBuild.Utils where
 
+import           Control.Arrow
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.List
@@ -11,6 +12,9 @@ import qualified Data.ByteString.Lazy       as LB
 import           Data.Csv                   (DefaultOrdered, FromNamedRecord,
                                              ToNamedRecord)
 import qualified Data.Csv                   as CSV
+import           Data.Hashable              (Hashable)
+import           Data.HashMap.Strict        (HashMap)
+import qualified Data.HashMap.Strict        as HM
 import           Data.Vector                (Vector)
 import           System.Directory           (createDirectoryIfMissing)
 
@@ -103,4 +107,7 @@ fromRight _ = error "fromRight: does not work for 'Left'"
 changeFilename :: (FilePath -> FilePath) -> FilePath -> FilePath
 changeFilename func path = func file ++ exts
   where (file, exts) = splitExtensions path
+
+mapKeys :: (Eq l, Hashable l) => (k -> l) -> HashMap k v -> HashMap l v
+mapKeys func hm = HM.fromList $ map (first func) $ HM.toList hm
 

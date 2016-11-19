@@ -3,6 +3,7 @@
 
 \usepackage{mathtools}
 \usepackage{float}
+\usepackage{subcaption}
 
 \input{../common.tex}
 
@@ -97,11 +98,34 @@ Past this point, the average total throughput levels off at about \FIWRD transac
 
 \begin{figure}
   \centering
-    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-1.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-25.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-33.png}}
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-1-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-1-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-1-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-1-slice.png}}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-9-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-9-slice.png}}
+    \end{subfigure}
+  \caption{Maximum Throughput}
+\end{figure}
+\begin{figure}
+  \centering
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-17-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-17-slice.png}}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-25-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-25-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-25-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-25-slice.png}}
+    \end{subfigure}
   \caption{Maximum Throughput}
 \end{figure}
 
@@ -116,21 +140,6 @@ In fact, it becomes more than ten \FIWRD times more significant than any other p
 Figure TODO shows that the situation is similar when the middleware uses six \FIWRD threads per read pool.
 The total time spent in the middleware is lower for an average request, but essentially the same problem occurs.
 The average request spends the majority of its time in the middleware on a queue waiting to be forwarded to a server, and this part of the time spent becomes increasingly significant as the number of clients increases, just like before.
-
-\begin{figure}
-  \centering
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-1-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-1-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-9-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-9-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-17-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-17-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-25-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-25-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-33-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-33-slice.png}}
-  \caption{Maximum Throughput Trace Slice}
-\end{figure}
 
 
 \section{Effect of Replication}

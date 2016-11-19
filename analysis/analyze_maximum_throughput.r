@@ -13,9 +13,10 @@ outFile <- args[3]
 res = read.csv(inFile, header=TRUE)
 res$stdTps = as.numeric(as.character(res$stdTps))
 
+# TPS
 threads = unique(res$threads)
 for (i in threads) {
-  file = paste(outFile, i, sep="-")
+  file = paste(outFile, i, "tps", sep="-")
   startPng(file)
 
   dat = res[res$threads == i,]
@@ -32,12 +33,32 @@ for (i in threads) {
       , xlim=c(min(res$conc), max(res$conc))
       , ylim=c(min(res$avgTps-res$stdTps), max(res$avgTps+res$stdTps))
       )
+  title(paste("Throughput", i, "middleware threads"))
   lines(conc, avg)
   arrows(conc, avg-sdev, conc, avg+sdev, length=0.05, angle=90, code=3)
-  abline(h = max(res$avgTps), col="red")
-  my.legend.size <- legend("bottomright"
-      , "Maximum"
-      , lty=c(1)
-      , lwd=c(2.5)
-      , col="red")
+}
+
+# RESP
+threads = unique(res$threads)
+for (i in threads) {
+  file = paste(outFile, i, "resp", sep="-")
+  startPng(file)
+
+  dat = res[res$threads == i,]
+  conc = dat$conc
+  avg = dat$avgResp
+  sdev = dat$stdResp
+
+  plot(
+        dat$clientConcurrencies
+      , dat$throughput
+      , type="n" # Don't plot yet
+      , xlab="Total number of virtual threads (no unit)"
+      , ylab="Response time (microseconds)"
+      , xlim=c(min(res$conc), max(res$conc))
+      , ylim=c(min(res$avgResp-res$stdResp), max(res$avgResp+res$stdResp))
+      )
+  title(paste("Response time", i, "middleware threads"))
+  lines(conc, avg)
+  arrows(conc, avg-sdev, conc, avg+sdev, length=0.05, angle=90, code=3)
 }

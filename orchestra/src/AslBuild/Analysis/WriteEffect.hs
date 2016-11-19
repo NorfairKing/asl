@@ -80,7 +80,7 @@ rulesForWriteAnalysis rec = onlyIfResultsExist rec $ do
             ers <- readResultsSummary sloc
             setup <- readExperimentSetupForSummary ers
             res <- throughputResults $ erClientResultsFiles ers
-            simplifiedCsvLines setup res
+            return $ simplifiedCsvLines setup res
 
         writeCSV outFile lines_
 
@@ -95,13 +95,13 @@ rulesForWriteAnalysis rec = onlyIfResultsExist rec $ do
     return analysisTarget
 
 
-simplifiedCsvLines :: ExperimentSetup -> MemaslapClientResults -> Action SimplifiedCsvLine
-simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
+simplifiedCsvLines :: ExperimentSetup -> MemaslapClientResults -> SimplifiedCsvLine
+simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} =
     let respA = bothResults respResults
-    let tpsA = bothResults tpsResults
-    let (ms, sss) = fromRight backendSetup
-    let cs = clientSetups
-    return SimplifiedCsvLine
+        tpsA = bothResults tpsResults
+        (ms, sss) = fromRight backendSetup
+        cs = clientSetups
+    in SimplifiedCsvLine
         { nrServers = length sss
         , writePercentage = maximum $ map (setProportion . msConfig . cMemaslapSettings) cs
         , replicationFactor = mwReplicationFactor $ mMiddlewareFlags ms
