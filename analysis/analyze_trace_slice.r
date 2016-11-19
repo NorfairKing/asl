@@ -47,7 +47,8 @@ for (threads in unique(res$middleThreads)) {
 
   d <- data.frame(nrc, cat, val)
 
-  d$cat <- factor(d$cat, levels=cat[1:6])
+  # A nicer order
+  d$cat <- factor(d$cat, levels=rev(cat[1:6]))
 
   gg <- ggplot(d, aes(x=nrc, y=val, fill=cat))
   gg <- gg + geom_bar(stat='identity')
