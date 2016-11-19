@@ -30,13 +30,14 @@ rLibs =
     [ "igraph"
     , "caTools"
     , "pkgmaker"
+    , "ggplot2"
     ]
 
 rArchive :: FilePath
 rArchive = tmpDir </> "R.tar.gz"
 
 rVersion :: String
-rVersion = "R-3.1.0"
+rVersion = "R-3.2.0"
 
 rLink :: FilePath
 rLink = "https://cran.r-project.org/src/base/R-3" </> rVersion <.> tarGzExt

@@ -58,7 +58,7 @@ copyClientLogsBack clientSetups = do
 
 shutdownClients :: [ClientSetup] -> Action ()
 shutdownClients cs = phPar (nub $ map cRemoteLogin cs) $ \cRemoteLogin ->
-    scriptAt cRemoteLogin $ script [unwords ["killall", "memaslap", "||", "true"]]
+    scriptAt cRemoteLogin $ namedScript "kill-memaslap" [unwords ["killall", "memaslap", "||", "true"]]
 
 waitForClients :: [ProcessHandle] -> Action ()
 waitForClients phs = go

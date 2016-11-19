@@ -86,6 +86,7 @@ rulesForThroughputAnalysis mtc = onlyIfResultsExist mtc $ do
     plots &%> \_ -> do
         need [maximumThroughputAnalysisScript, simpleCsv, commonRLib]
         need [rBin]
+        needRLibs ["ggplot2"]
         rScript maximumThroughputAnalysisScript commonRLib simpleCsv $
             maximumThroughputPrefixFor mtc
 

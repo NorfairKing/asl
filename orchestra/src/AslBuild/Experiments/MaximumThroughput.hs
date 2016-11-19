@@ -16,10 +16,8 @@ allMaximumThroughputExperiments :: [MaximumThroughputCfg]
 allMaximumThroughputExperiments =
     [ smallLocalMaximumThroughput
     , localMaximumThroughput
-    , bigLocalMaximumThroughput
     , smallRemoteMaximumThroughput
     , remoteMaximumThroughput
-    , bigRemoteMaximumThroughput
     ]
 
 smallLocalMaximumThroughputRule :: String
@@ -41,18 +39,6 @@ localMaximumThroughput :: MaximumThroughputCfg
 localMaximumThroughput = remoteMaximumThroughput
     { hlConfig = (hlConfig remoteMaximumThroughput)
         { target = localMaximumThroughputRule
-        , location = Local
-        , resultsPersistence = Volatile
-        }
-    }
-
-bigLocalMaximumThroughputRule :: String
-bigLocalMaximumThroughputRule = "big-local-maximum-throughput"
-
-bigLocalMaximumThroughput :: MaximumThroughputCfg
-bigLocalMaximumThroughput = bigRemoteMaximumThroughput
-    { hlConfig = (hlConfig bigRemoteMaximumThroughput)
-        { target = bigLocalMaximumThroughputRule
         , location = Local
         , resultsPersistence = Volatile
         }
@@ -86,32 +72,13 @@ remoteMaximumThroughput = MaximumThroughputCfg
     { hlConfig = HighLevelConfig
         { target = remoteMaximumThroughputRule
         , nrServers = 5
-        , nrClients = 1
+        , nrClients = 2
         , location = Remote
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        middleThreads <- [1..6]
-        concurrencies <- [1..25]
+        middleThreads <- [1, 9 .. 40]
+        concurrencies <- [1, 6 .. 100]
         return (middleThreads, concurrencies)
-    , mtRuntime = Seconds 30
-    }
-
-bigRemoteMaximumThroughputRule :: String
-bigRemoteMaximumThroughputRule = "big-remote-maximum-throughput"
-
-bigRemoteMaximumThroughput :: MaximumThroughputCfg
-bigRemoteMaximumThroughput = MaximumThroughputCfg
-    { hlConfig = HighLevelConfig
-        { target = bigRemoteMaximumThroughputRule
-        , nrServers = 5
-        , nrClients = 3
-        , location = Remote
-        , resultsPersistence = Persistent
-        }
-    , threadConcTups = do
-        middleThreads <- [1, 6 .. 30]
-        concurrencies <- [1, 6 .. 125]
-        return (middleThreads, concurrencies)
-    , mtRuntime = Seconds 30
+    , mtRuntime = Minutes 1
     }

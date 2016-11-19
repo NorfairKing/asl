@@ -23,7 +23,7 @@ startMiddleOn MiddleSetup{..} = scriptAt mRemoteLogin $ script
 
 shutdownMiddle :: MiddleSetup -> ProcessHandle -> Action ()
 shutdownMiddle MiddleSetup{..} middlePh = do
-    unit $ scriptAt mRemoteLogin $ script
+    unit $ scriptAt mRemoteLogin $ namedScript "kill-middle"
         [ "kill `jps | grep \"asl.jar\" | cut -d \" \" -f 1`" ]
     void $ liftIO $ waitForProcess middlePh
     -- TODO check if middleware has failed

@@ -16,25 +16,19 @@ report2Rules :: Rules ()
 report2Rules = report 2 texPreAction customRules
   where
     customRules = do
-        localMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
-        localMaximumThroughput `useTraceSlicePlotsInReport` 2
-        bigLocalMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
-        bigLocalMaximumThroughput `useTraceSlicePlotsInReport` 2
+        remoteMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
+        remoteMaximumThroughput `useTraceSlicePlotsInReport` 2
         localReplicationEffect `useReplicationEffectPlotsInReport` 2
         localWriteEffect `useWriteEffectPlotsInReport` 2
         remoteMaximumThroughput `useExperimentTableInReport` 2
-        bigRemoteMaximumThroughput `useExperimentTableInReport` 2
         remoteReplicationEffect `useExperimentTableInReport` 2
         remoteWriteEffect `useExperimentTableInReport` 2
 
     texPreAction = do
-        localMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
-        localMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
-        bigLocalMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
-        bigLocalMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
+        remoteMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
+        remoteMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
         localReplicationEffect `dependOnReplicationEffectPlotsForReport` 2
         localWriteEffect `dependOnWriteEffectPlotsForReport` 2
         remoteMaximumThroughput `dependOnExperimentTableForReport` 2
-        bigRemoteMaximumThroughput `dependOnExperimentTableForReport` 2
         remoteReplicationEffect `dependOnExperimentTableForReport` 2
         remoteWriteEffect `dependOnExperimentTableForReport` 2

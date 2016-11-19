@@ -71,10 +71,10 @@ startTime :: Int
 startTime = 1
 
 serverStartTime :: Int
-serverStartTime = startTime
+serverStartTime = 2 * startTime
 
 middleStartTime :: Int
-middleStartTime = 2 * startTime
+middleStartTime = 5 * startTime
 
 shutdownTime :: Int
 shutdownTime = 1

@@ -60,11 +60,11 @@ The details of the explored configuration can be found in figure \TODO{which fig
   \caption{Maximum throughput experiments}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \input{\genfile{big-remote-maximum-throughput-table.tex}}
-  \caption{Big Maximum throughput experiments}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \input{\genfile{big-remote-maximum-throughput-table.tex}}
+%   \caption{Big Maximum throughput experiments}
+% \end{figure}
 
 \subsection{Hypothesis}
 
@@ -97,23 +97,12 @@ Past this point, the average total throughput levels off at about \FIWRD transac
 
 \begin{figure}
   \centering
-    \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-1.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-2.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-3.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-4.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-5.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{local-maximum-throughput-maximum-throughput-6.png}}
+    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-1.png}}
+    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9.png}}
+    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17.png}}
+    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-25.png}}
+    \includegraphics[width=0.32\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-33.png}}
   \caption{Maximum Throughput}
-\end{figure}
-\begin{figure}
-  \centering
-    \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-1.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-6.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-11.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-16.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-21.png}}
-    \includegraphics[width=0.32\textwidth]{\plot{big-local-maximum-throughput-maximum-throughput-26.png}}
-  \caption{Big Maximum Throughput}
 \end{figure}
 
 Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} and \ref{fig:maximum-throughput-trace-slice-1-thread-relative} show a detailed breakdown of where each requests spends time in the middleware.
@@ -130,36 +119,17 @@ The average request spends the majority of its time in the middleware on a queue
 
 \begin{figure}
   \centering
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-1-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-1-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-2-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-2-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-3-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-3-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-4-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-4-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-5-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-5-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-absolute-6-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-maximum-throughput-slice-relative-6-slice.png}}
-  \caption{Big Maximum Throughput Trace Slice}
-\end{figure}
-
-\begin{figure}
-  \centering
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-1-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-1-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-6-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-6-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-11-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-11-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-16-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-16-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-21-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-21-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-absolute-26-slice.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{big-local-maximum-throughput-slice-relative-26-slice.png}}
-  \caption{Big Maximum Throughput Trace Slice}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-1-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-1-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-9-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-9-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-17-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-17-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-25-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-25-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-absolute-33-slice.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-maximum-throughput-slice-relative-33-slice.png}}
+  \caption{Maximum Throughput Trace Slice}
 \end{figure}
 
 
