@@ -4,6 +4,7 @@ module AslBuild.Client
     , module AslBuild.Client.Types
     ) where
 
+import           Control.Concurrent
 import           Control.Monad
 import           Data.List
 import           Data.Maybe
@@ -19,6 +20,7 @@ import           System.Process
 import           AslBuild.Client.Types
 import           AslBuild.CommonActions
 import           AslBuild.Constants
+import           AslBuild.Experiment.Types
 import           AslBuild.Memaslap
 import           AslBuild.Types
 import           AslBuild.Utils
@@ -60,29 +62,77 @@ shutdownClients :: [ClientSetup] -> Action ()
 shutdownClients cs = phPar (nub $ map cRemoteLogin cs) $ \cRemoteLogin ->
     scriptAt cRemoteLogin $ namedScript "kill-memaslap" [unwords ["killall", "memaslap", "||", "true"]]
 
-waitForClients :: [ProcessHandle] -> Action ()
+
+waitAndWaitForClients :: TimeUnit -> [ProcessHandle] -> Action ExperimentSuccess
+waitAndWaitForClients runtime clientPhs = do
+    mes <- waitNicelyWith checkClients $ toSeconds runtime
+    case mes of
+        Just e -> return e
+        Nothing -> do
+            putLoud "Done waiting for the runtime, now just waiting for the clients to finish."
+            waitForClients clientPhs
+  where
+    checkClients = do
+        mecs <- forP clientPhs $ liftIO . getProcessExitCode
+        pure $ case catMaybes $ checkAnyFailure mecs of
+            [] -> Nothing -- Nothing went wrong
+            fs -> Just $ makeClientFailure fs
+
+
+
+waitNicelyWith :: Action (Maybe a) -> Int -> Action (Maybe a)
+waitNicelyWith func is = do
+    putLoud $ "Waiting for " ++ toClockString is
+    go is
+  where
+    period = 10
+    go s = do
+        putLoud $ toClockString s ++ " remaining."
+        mr <- func
+        case mr of
+            Nothing ->
+                if s < period
+                then do
+                    liftIO $ threadDelay $ s * 1000 * 1000
+                    return Nothing
+                else do
+                    liftIO $ threadDelay $ period * 1000 * 1000
+                    go $ s - period
+            r -> return r
+
+checkAnyFailure :: [Maybe ExitCode] -> [Maybe String]
+checkAnyFailure mecs = flip map (indexed mecs) $ \(cix, mec) ->
+    case mec of
+        Nothing -> Nothing
+        Just ExitSuccess -> Nothing
+        Just (ExitFailure e) -> Just $ unwords
+            [ "Client"
+            , show cix
+            , "failed with exit code"
+            , show e
+            ]
+
+makeClientFailure :: [String] -> ExperimentSuccess
+makeClientFailure [] = ExperimentSuccess
+makeClientFailure fails = ExperimentFailure $ show fails
+
+waitForClients :: [ProcessHandle] -> Action ExperimentSuccess
 waitForClients phs = go
   where
     go = do
         mecs <- forP phs $ liftIO . getProcessExitCode
         printMecs mecs
-        checkAnyFailure mecs
-        unless (all isJust mecs) $ do
-            void $ liftIO $
-                timeout (5 * 1000 * 1000) $
-                    forM_ phs waitForProcess
-            go
-
-    checkAnyFailure mecs = forM_ (indexed mecs) $ \(cix, mec) ->
-        case mec of
-            Nothing -> return ()
-            Just ExitSuccess -> return ()
-            Just (ExitFailure e) -> fail $ unwords
-                [ "Client"
-                , show cix
-                , "failed with exit code"
-                , show e
-                ]
+        let fails = checkAnyFailure mecs
+        case catMaybes fails of
+            [] ->
+                if all isJust mecs
+                then return ExperimentSuccess
+                else do
+                    void $ liftIO $
+                        timeout (5 * 1000 * 1000) $
+                            forM_ phs waitForProcess
+                    go
+            fs -> return $ makeClientFailure fs
 
     printMecs mecs =
         unless (all isNothing mecs) $

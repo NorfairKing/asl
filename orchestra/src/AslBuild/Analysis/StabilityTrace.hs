@@ -65,9 +65,9 @@ stabilityTraceAnalysisRulesFor stc = onlyIfResultsExist stc $ do
         logs <- forP erClientResultsFiles readJSON
 
         putLoud "Converting logfiles to a simple CSV file."
-        let statistics :: ClientResults -> [Statistics]
-            statistics = map (periodStats . bothStats) . triples . crLog
-        let tpsTuples :: ClientResults -> [(Int, Statistics)]
+        let statistics :: MemaslapLog -> [Statistics]
+            statistics = map (periodStats . bothStats) . triples
+        let tpsTuples :: MemaslapLog -> [(Int, Statistics)]
             tpsTuples = zip [1..] . statistics
         let tupsList :: [(Int, [(Int, Statistics)])]
             tupsList = zip [1..] $ map tpsTuples logs

@@ -8,11 +8,10 @@ import           GHC.Generics
 
 import           Development.Shake
 
-import           Data.Csv                hiding (lookup, (.:), (.=))
-import qualified Data.Csv                as CSV (lookup)
+import           Data.Csv              hiding (lookup, (.:), (.=))
+import qualified Data.Csv              as CSV (lookup)
 
 import           AslBuild.Client.Types
-import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
 import           AslBuild.Server.Types
 import           AslBuild.Types
@@ -50,6 +49,11 @@ data ExperimentSetup
 instance ToJSON   ExperimentSetup
 instance FromJSON ExperimentSetup
 
+data ExperimentSuccess
+    = ExperimentSuccess
+    | ExperimentFailure String
+    deriving (Show, Eq)
+
 data ExperimentResultSummary
     = ExperimentResultSummary
     { erClientResultsFiles :: [FilePath]
@@ -70,24 +74,6 @@ instance FromJSON ExperimentResultSummary where
         <*> o .: "middle-results-file"
         <*> o .: "setup"
     parseJSON _ = mempty
-
-data ClientResults
-    = ClientResults
-    { crSetup :: ClientSetup
-    , crLog   :: MemaslapLog
-    } deriving (Show, Eq, Generic)
-
-instance ToJSON   ClientResults
-instance FromJSON ClientResults
-
-data ExperimentResults
-    = ExperimentResults
-    { cResults :: [ClientResults]
-    , mResults :: [MiddleResultLine]
-    } deriving (Show, Eq, Generic)
-
-instance ToJSON   ExperimentResults
-instance FromJSON ExperimentResults
 
 data MiddleResultLine
     = MiddleResultLine

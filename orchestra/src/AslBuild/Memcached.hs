@@ -12,7 +12,10 @@ import           AslBuild.Memcached.Types
 runMemcachedLocally :: CmdResult r => MemcachedFlags -> Action r
 runMemcachedLocally flags = do
     need [memcachedBin]
-    cmd $ memcachedCmds memcachedBin flags
+    runMemcachedLocally_ flags
+
+runMemcachedLocally_ :: CmdResult r => MemcachedFlags -> Action r
+runMemcachedLocally_ flags = cmd $ memcachedCmds memcachedBin flags
 
 memcachedCmds :: FilePath -> MemcachedFlags -> [String]
 memcachedCmds path flags = path : memcachedArgs flags

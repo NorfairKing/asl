@@ -6,6 +6,7 @@ import           Development.Shake.FilePath
 import           AslBuild.Analysis
 import           AslBuild.BuildMemcached
 import           AslBuild.Constants
+import           AslBuild.Experiment
 import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
@@ -40,8 +41,17 @@ preCommitRules = do
             , localLogTestRule
 
             , localMiddlewareTestsRule
+            ]
 
-            , smallLocalBaselineExperimentRule
+        liftIO $ do
+            removeFiles "" [experimentLocalTmpDir smallLocalBaselineExperiment]
+            removeFiles "" [experimentLocalTmpDir smallLocalStabilityTrace]
+            removeFiles "" [experimentLocalTmpDir smallLocalMaximumThroughput]
+            removeFiles "" [experimentLocalTmpDir smallLocalReplicationEffect]
+            removeFiles "" [experimentLocalTmpDir smallLocalWriteEffect]
+
+        mapM_ (need . (:[]))
+            [ smallLocalBaselineExperimentRule
             , smallLocalStabilityTraceRule
             , smallLocalMaximumThroughputRule
             , smallLocalReplicationEffectRule

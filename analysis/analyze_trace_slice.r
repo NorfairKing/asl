@@ -28,6 +28,12 @@ if(isabs){
 
 
 res = read.csv(inFile, header=TRUE)
+if(isabs) { res$value <- res$value / 1000 } # Convert to microseconds
+
+totals = res[res$category == "totalTime", ]
+maxTime = max(totals$value)
+
+res <- res[res$category != "totalTime",]
 
 for (threads in unique(res$middleThreads)) {
   file = paste(outFile, threads, "slice", sep="-")
@@ -43,7 +49,6 @@ for (threads in unique(res$middleThreads)) {
   nrc <- dat$nrClients
   cat <- dat$category
   val <- dat$value
-  if(isabs) { val <- val / 1000 } # Convert to microseconds
 
   d <- data.frame(nrc, cat, val)
 
@@ -53,6 +58,7 @@ for (threads in unique(res$middleThreads)) {
   gg <- ggplot(d, aes(x=nrc, y=val, fill=cat))
   gg <- gg + geom_bar(stat='identity')
   gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
+  gg <- gg + coord_cartesian(ylim=c(0,maxTime))
   gg <- gg + theme(legend.title=element_blank())
   gg <- gg + scale_fill_brewer(palette = "Set1")
   gg

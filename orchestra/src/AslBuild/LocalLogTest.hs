@@ -145,14 +145,14 @@ localLogTestRules = do
 
             withResource runLock 1 $ do
                 -- Start memcached locally
-                serverPh <- runMemcachedLocally serverFlags
+                serverPh <- runMemcachedLocally_ serverFlags
 
                 mmiddlePh <- case mmiddlewareFlags of
                     Nothing -> return Nothing
                     Just middlewareFlags -> (Just <$>) $ do
                         waitMs 250
                         -- Start the middleware locally
-                        runMiddlewareLocally middlewareFlags
+                        runMiddlewareLocally_ middlewareFlags
 
                 waitMs 250
 

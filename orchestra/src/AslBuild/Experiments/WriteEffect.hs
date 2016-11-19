@@ -69,7 +69,7 @@ remoteWriteEffect = WriteEffectCfg
     { hlConfig = HighLevelConfig
         { target = remoteWriteEffectRule
         , nrServers = 7
-        , nrClients = 1
+        , nrClients = 2
         , location = Remote
         , resultsPersistence = Persistent
         }

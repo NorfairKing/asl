@@ -18,7 +18,7 @@ import           AslBuild.Middleware.Types
 import           AslBuild.Utils
 
 
-durTupLineTrans :: Monad m => Pipe (DurTup a) (DurationsLine a) m v
+durTupLineTrans :: (Monad m, Num a) => Pipe (DurTup a) (DurationsLine a) m v
 durTupLineTrans = forever $ do
     DurTup{..} <- P.await
     let row val cat = DurationsLine
@@ -34,6 +34,19 @@ durTupLineTrans = forever $ do
         , row untilAskedTime      "Querying first server"
         , row untilRepliedTime    "Interacting with server"
         , row untilRespondedTime  "Finalisation"
+        , DurationsLine
+            { nrCls = nrCs
+            , middleThds = middleTds
+            , category = "totalTime"
+            , value = sum
+                [ untilParsedTime    durs
+                , untilEnqueuedTime  durs
+                , untilDequeuedTime  durs
+                , untilAskedTime     durs
+                , untilRepliedTime   durs
+                , untilRespondedTime durs
+                ]
+            }
         ]
 
 relDurTup :: DurTup Integer -> DurTup Float

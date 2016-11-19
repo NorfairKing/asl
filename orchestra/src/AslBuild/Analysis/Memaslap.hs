@@ -19,8 +19,7 @@ throughputResults :: [FilePath] -> Action MemaslapClientResults
 throughputResults clrfs = do
     rs <- forP clrfs $ \clrf -> do
         clr <- readClientResults clrf
-        let log_ = crLog clr
-        let trips = triples log_
+        let trips = triples clr
         let tprs = pureClientResults trips
         return tprs
     return $ combineClientResults rs

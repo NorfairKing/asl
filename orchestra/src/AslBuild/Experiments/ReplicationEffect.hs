@@ -69,7 +69,7 @@ remoteReplicationEffect = ReplicationEffectCfg
     { hlConfig = HighLevelConfig
         { target = remoteReplicationEffectRule
         , nrServers = 7
-        , nrClients = 1
+        , nrClients = 2
         , location = Remote
         , resultsPersistence = Persistent
         }

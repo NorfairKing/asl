@@ -21,7 +21,6 @@ module AslBuild.Experiment
     ) where
 
 import           Control.Arrow
-import           Control.Concurrent
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.List                  (intercalate)
@@ -59,13 +58,58 @@ generateTargetFor ecf = do
         (eSetups, vmsNeeded) <- genExperimentSetups ecf
 
         provisionVms vmsNeeded
-
-        -- Intentionally no parallelism here.
-        forM_ (indexed eSetups) $ \(ix, es) -> do
-            printBanner ecf ix eSetups
-            runOneExperiment es
+        runExperiments ecf eSetups vmsNeeded
 
         writeJSON rFile $ map esResultsSummaryFile eSetups
+
+retryPolicy :: Int
+retryPolicy = 3
+
+runExperiments :: ExperimentConfig a => a -> [ExperimentSetup] -> [RemoteLogin] -> Action ()
+runExperiments ecf eSetups vmsNeeded =
+    -- Intentionally no parallelism here.
+    forM_ (indexed eSetups) $ \(ix, es) -> do
+        let resSumFile = esResultsSummaryFile es
+        alreadyDone <- doesFileExist resSumFile
+        if alreadyDone
+        then do
+            putLoud $ unwords
+                [ "Not rerunning experiment"
+                , show ix
+                , "because its results file already exists:"
+                ]
+            putLoud resSumFile
+        else do
+            printBanner ecf ix eSetups
+            retryAsNeeded es
+  where
+    retryAsNeeded es = go 1
+      where
+        go i
+            | i > retryPolicy = fail $ unwords
+                [ "Experiment failed "
+                , show retryPolicy
+                , "times. Stopping here."
+                ]
+            | otherwise = do
+                result <- runOneExperiment es
+                case result of
+                    ExperimentSuccess -> pure () -- Done
+                    ExperimentFailure err -> do
+                        putLoud $ unwords
+                            [ "Experiment failed in attempt"
+                            , show i
+                            , "with the following error, "
+                            , "trying again."
+                            ]
+                        putLoud err
+                        putLoud "Clearing all processes."
+                        clearLocal
+                        clearVms vmsNeeded
+                        putLoud "Waiting a while to let everything settle down."
+                        wait 5
+                        go $ i + 1
+
 
 startTime :: Int
 startTime = 1
@@ -115,7 +159,7 @@ printBanner ecf ix eSetups = do
         , "remaining."
         ]
 
-runOneExperiment :: ExperimentSetup -> Action ()
+runOneExperiment :: ExperimentSetup -> Action ExperimentSuccess
 runOneExperiment es@ExperimentSetup{..} = do
     -- Get the clients configs set up
     setupClientConfigs clientSetups
@@ -144,49 +188,49 @@ runOneExperiment es@ExperimentSetup{..} = do
     clientPhs <- startClientsOn clientSetups
 
     -- Wait for the experiment to finish
-    actionFinally (waitNicely $ toSeconds esRuntime) (return ())
-
-    putLoud "Done waiting for the runtime, now just waiting for the clients to finish."
-
     -- Wait for memaslap to stop running. (This should not be long now, but who knows.)
-    waitForClients clientPhs
+    alreadyFailed <- waitAndWaitForClients esRuntime clientPhs
+    case alreadyFailed of
+        ExperimentFailure _ -> return alreadyFailed
+        _ -> do
+            case mMiddle of
+                Nothing -> return ()
+                Just (middleSetup, middlePh) ->
+                    -- Shut down the middleware
+                    shutdownMiddle middleSetup middlePh
 
-    case mMiddle of
-        Nothing -> return ()
-        Just (middleSetup, middlePh) ->
-            -- Shut down the middleware
-            shutdownMiddle middleSetup middlePh
+            -- Shut down the servers
+            shutdownServers serverSetups
 
-    -- Shut down the servers
-    shutdownServers serverSetups
+            case mMiddle of
+                Nothing -> return ()
+                Just (middleSetup, _) ->
+                    -- Copy the middleware logs back
+                    copyMiddleTraceBack middleSetup
 
-    case mMiddle of
-        Nothing -> return ()
-        Just (middleSetup, _) ->
-            -- Copy the middleware logs back
-            copyMiddleTraceBack middleSetup
+            -- Shut down the memaslap instances
+            shutdownClients clientSetups
 
-    -- Shut down the memaslap instances
-    shutdownClients clientSetups
+            -- Copy the client logs back
+            copyClientLogsBack clientSetups
 
-    -- Copy the client logs back
-    copyClientLogsBack clientSetups
+            -- Prepare analysis files for the client logs.
+            makeClientResultFiles clientSetups
 
-    -- Prepare analysis files for the client logs.
-    makeClientResultFiles clientSetups
+            -- Write the setup file
+            writeJSON esSetupFile es
 
-    -- Write the setup file
-    writeJSON esSetupFile es
+            -- Make the result record
+            let results = ExperimentResultSummary
+                    { erClientResultsFiles = map cResultsFile clientSetups
+                    , merMiddleResultsFile = (mLocalTrace . fst) <$> mMiddle
+                    , erSetupFile = esSetupFile
+                    }
 
-    -- Make the result record
-    let results = ExperimentResultSummary
-            { erClientResultsFiles = map cResultsFile clientSetups
-            , merMiddleResultsFile = (mLocalTrace . fst) <$> mMiddle
-            , erSetupFile = esSetupFile
-            }
+            -- Write the result record to file
+            writeJSON esResultsSummaryFile results
 
-    -- Write the result record to file
-    writeJSON esResultsSummaryFile results
+            return ExperimentSuccess
 
 experimentResultsDir
     :: ExperimentConfig a
@@ -213,30 +257,11 @@ makeClientResultFiles :: [ClientSetup] -> Action ()
 makeClientResultFiles = (`forP_` makeClientResultFile)
 
 makeClientResultFile :: ClientSetup -> Action ()
-makeClientResultFile cSetup@ClientSetup{..} = do
+makeClientResultFile ClientSetup{..} = do
     mel <- parseLog cLocalLog
     case mel of
         Nothing -> fail $ "could not parse logfile: " ++ cLocalLog
-        Just parsedLog -> do
-            let results = ClientResults
-                    { crSetup = cSetup
-                    , crLog = parsedLog
-                    }
-            writeJSON cResultsFile results
-
-waitNicely :: Int -> Action ()
-waitNicely is = do
-    putLoud $ "Waiting for " ++ toClockString is
-    go is
-  where
-    period = 10
-    go s = do
-        putLoud $ toClockString s ++ " remaining."
-        if s < period
-        then liftIO $ threadDelay $ s * 1000 * 1000
-        else do
-            liftIO $ threadDelay $ period * 1000 * 1000
-            go $ s - period
+        Just parsedLog -> writeJSON cResultsFile parsedLog
 
 getVmsForExperiments
     :: ExperimentConfig a
@@ -319,11 +344,11 @@ genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(ci
         { cRemoteLogin = cLogin
         , cIndex = cix
         , cLocalLog
-            = experimentLocalTmpDir ecf </> "local-client-logs" </> sign "client-local-log"
+            = experimentResultsDir ecf </> "local-client-logs" </> sign "client-local-log"
         , cRemoteLog
             = experimentRemoteTmpDir ecf </> sign "memaslap-remote-log"
         , cResultsFile
-            = experimentResultsDir ecf </> "client-results" </> sign "client-results"
+            = experimentLocalTmpDir ecf </> "client-results" </> sign "client-results"
         , cLocalMemaslapConfigFile
             = experimentLocalTmpDir ecf </> "memaslap-configs" </> sign "memaslap-config"
         , cMemaslapSettings = MemaslapSettings
@@ -344,10 +369,10 @@ genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(ci
         }
 
 defaultConcurrency :: Int
-defaultConcurrency = 45
+defaultConcurrency = 25
 
 defaultMiddleThreads :: Int
-defaultMiddleThreads = 1
+defaultMiddleThreads = 8
 
 
 genExperimentSetup
@@ -386,5 +411,5 @@ readExperimentSetupForSummary = readExperimentSetup . erSetupFile
 readExperimentSetup :: MonadIO m => FilePath -> m ExperimentSetup
 readExperimentSetup = readJSON
 
-readClientResults :: MonadIO m => FilePath -> m ClientResults
+readClientResults :: MonadIO m => FilePath -> m MemaslapLog
 readClientResults = readJSON
