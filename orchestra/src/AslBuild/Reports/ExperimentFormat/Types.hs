@@ -15,7 +15,7 @@ class ExperimentFormat a where
 
 -- TODO separate info on seperate lines a little better
 instance ExperimentFormat MaximumThroughputCfg where
-    renderSetupTable MaximumThroughputCfg{..} = tabular
+    renderSetupTable ecf@MaximumThroughputCfg{..} = tabular
         [ "Number of server machines & " ++ show (nrServers hlConfig)
         , "Number of client machines & " ++ show (nrClients hlConfig)
         , "Virtual clients per machine & " ++ showMinMaxList (map snd threadConcTups)
@@ -24,33 +24,33 @@ instance ExperimentFormat MaximumThroughputCfg where
         , "Replication & No replication ($R=1$)"
         , "Middleware threads per read pool & " ++ showMinMaxList (nub $ map fst threadConcTups)
         , "Runtime x repetitions & " ++ timeUnit mtRuntime ++ " x 1"
-        , "Log files & " ++ "TODO"
+        , logfileLine ecf
         ]
 
 instance ExperimentFormat ReplicationEffectCfg where
-    renderSetupTable ReplicationEffectCfg{..} = tabular
-        [ "Number of server machines & " ++ show serverCounts
+    renderSetupTable ecf@ ReplicationEffectCfg{..} = tabular
+        [ "Number of server machines & " ++ showIntList serverCounts
         , "Number of client machines & " ++ show (nrClients hlConfig)
         , "Virtual clients per machine & " ++ show defaultConcurrency
         , workloadLine
         , writePercentageLine [0.05]
-        , "Replication & [$1$, $\\lceil S/2 \\rceil$, $S$]"
+        , "Replication & " ++ showMathList ["1", "\\lceil S/2 \\rceil", "S"]
         , "Middleware threads per read pool & " ++ show defaultMiddleThreads
         , "Runtime x repetitions & " ++ timeUnit reRuntime ++ " x 1"
-        , "Log files & " ++ "TODO"
+        , logfileLine ecf
         ]
 
 instance ExperimentFormat WriteEffectCfg where
-    renderSetupTable WriteEffectCfg{..} = tabular
-        [ "Number of server machines & " ++ show serverCounts
+    renderSetupTable ecf@WriteEffectCfg{..} = tabular
+        [ "Number of server machines & " ++ showMinMaxList serverCounts
         , "Number of client machines & " ++ show (nrClients hlConfig)
         , "Virtual clients per machine & " ++ show defaultConcurrency
         , workloadLine
         , writePercentageLine writePercentages
-        , "Replication & [$1$, $S$]"
+        , "Replication & " ++ showMathList ["1", "S"]
         , "Middleware threads per read pool & " ++ show defaultMiddleThreads
         , "Runtime x repetitions & " ++ timeUnit weRuntime ++ " x 1"
-        , "Log files & " ++ "TODO"
+        , logfileLine ecf
         ]
 
 workloadLine :: String
@@ -73,6 +73,9 @@ workloadLineFor MemaslapConfig{..} =
 
 writePercentageLine :: [Double] -> String
 writePercentageLine pers = "Write percentage & " ++ showMinMaxPercentageList pers
+
+logfileLine :: ExperimentConfig a => a -> String
+logfileLine ecf = "Log files & " ++ experimentResultsDir ecf
 
 showMinMaxList :: [Int] -> String
 showMinMaxList = showMinMaxListWith show
@@ -100,6 +103,9 @@ showMinMaxPercentageList = showMinMaxListWith showPercentage
 
 showPercentageList :: [Double] -> String
 showPercentageList = showListWith showPercentage
+
+showMathList :: [String] -> String
+showMathList = showListWith showMathNum
 
 showMathNum :: String -> String
 showMathNum d = "$" ++ d ++ "$"

@@ -49,17 +49,17 @@ Even though these messages were never printed, they were still constructed becau
 \section{Maximum Throughput}
 % Find the highest throughput of your system for 5 servers with no replication and a read-only workload configuration. What is the minimum number of threads and clients (rounded to multiple of 10) that together achieve this throughput? Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations. Provide a detailed breakdown of the time spent in the middleware for each operation type.
 
-\subsection{System under test}
-
-In the first experiment, the middleware is in charge of five servers with no replication and a read-only workload configuration.
-The aim is to investigate which combination of the total number of clients and the number of threads in each server's thread pool for reads achieves the highest throughput.
-The details of the explored configuration can be found in figure \TODO{which figure?}.
-
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-maximum-throughput-table.tex}}
   \caption{Maximum throughput experiments}
 \end{figure}
+
+\subsection{System under test}
+
+In the first experiment, the middleware is in charge of five servers with no replication and a read-only workload configuration.
+The aim is to investigate which combination of the total number of clients and the number of threads in each server's thread pool for reads achieves the highest throughput.
+The details of the explored configuration can be found in figure \TODO{which figure?}.
 
 \subsection{Hypothesis}
 
@@ -68,19 +68,28 @@ What is more important is to estimate what will happen as we increase the total 
 
 \subsubsection{Increasing the total number of virtual clients}
 
-As the middleware operates with an unbounded queue of requests to process, it never drops requests even if the load increses.
-(We assume that the limits of memory are not reached.
-This assumption is reasonable as the middleware machine that will be used has 14 GiB of main memory.)
+As the middleware operates with an unbounded queue of requests to process, it never drops requests even if the load increases.
+\footnote{
+  We assume that the limits of memory are not reached.
+  This assumption is reasonable as the middleware machine that will be used has 14 GiB of main memory.
+}
 
-As the total number of virtual clients increases, we expect to see throughput increase up to a certain point.
-This is the point at which request are never empty.
+As the total number of virtual clients increases, we expect to see throughput increase linearly up to the point where request queues are no longer always empty.
+From then on we expect to see throughput increase sublinearly up to the point where the request queues are no longer ever empty.
 From then on the throughput should not increase any further as subsequents will just be punt onto the queue and requests will not be processed any quicker.
 
-\subsubsection{Increasing the number of clients in each server's thread pool for reads}
+\subsubsection{Increasing the number of threads in each server's thread pool for reads}
 
 Reads are executed in a synchronous manner.
 This means that each read thread can perform at most one request per round-trip time.
-\TODO{implement the synchronous thingies correctly!!}
+Using more threads should somewhat solve this problem, but context switches are relatively expensive.
+This means that we expect using multiple threads to increase the throughput up to a certain point.
+At that point the cost of using multiple threads will outweigh the benefit.
+
+In general we expect response time to remain constant up to the point where queues are no longer constantly empty.
+After this point, any more work gets put onto the queue and we then expect response times to increase linearly.
+This is only true because the system under test is a closed system.
+The same argument would not necessarily hold for open systems.
 
 \subsection{Results and analysis}
 
@@ -99,26 +108,26 @@ Past this point, the average total throughput levels off at about \FIWRD transac
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-1-slice.png}}
     \end{subfigure}
     \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-tps.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-9-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-9-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-5-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-5-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-5-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-5-slice.png}}
     \end{subfigure}
   \caption{Maximum Throughput}
 \end{figure}
 \begin{figure}
   \centering
     \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-tps.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-17-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-17-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-9-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-9-slice.png}}
     \end{subfigure}
     \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-25-tps.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-25-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-25-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-25-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-13-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-13-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-13-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-13-slice.png}}
     \end{subfigure}
   \caption{Maximum Throughput}
 \end{figure}
@@ -147,6 +156,13 @@ The average request spends the majority of its time in the middleware on a queue
 % 
 % Answer at least the following questions: Are \texttt{get} and \texttt{set} requests impacted the same way by different setups? If yes/no, why? Which operations become more expensive inside the middleware as the configuration changes? How does the scalability of your system compare to that of an ideal implementation? Provide the graphs and tables necessary to support your claims.
 
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-replication-effect-table.tex}}
+  \caption{Replication effect experiments}
+  \label{fig:replication-effect-experiment}
+\end{figure}
+
 \subsection{System under test}
 
 The second experiment aims to explore the effect of using more replication on performance.
@@ -155,13 +171,6 @@ There will be $3$, $5$ or $7$ server backends.
 Three configurations of the replication factor will be explored: No replication $(R=1)$, half replication $(\lceil \frac{S}{2} \rceil$ and full replication $(R=S)$.
 The details of the system under test can be found in figure \TODO{which figure?}.
 
-
-\begin{figure}[H]
-  \centering
-  \input{\genfile{remote-replication-effect-table.tex}}
-  \caption{Replication effect experiments}
-  \label{fig:replication-effect-experiment}
-\end{figure}
 
 \subsection{Hypothesis}
 
@@ -203,13 +212,6 @@ For read requests, we don't expect the interaction time to increase.
 % In this section, you should study the changes in throughput and response time of your system as the percentage of write operations increases. Use a combination of 3 to 7 servers and vary the number of writes between 1\% and 10\% (e.g. 1\%, 5\% and 10\%). The experiments need to be carried out for the replication factors R=1 and R=all.  
 % 
 % For what number of servers do you see the biggest impact (relative to base case) on performance? Investigate the main reason for the reduced performance and provide a detailed explanation of the behavior of the system. Provide the graphs and tables necessary to support your claims.
-
-\subsection{System under test}
-
-In this last experiment, we investigate the results of increasing the percentage of the workload consists of write requests on performance.
-Between 3 and 7 servers will be used with either no replication or full replication.
-The percentage of the requests that consists of writes will be varied between 1\% and 10\%.
-We call this percentage the write percentage.
  
 \begin{figure}[H]
   \centering
@@ -217,6 +219,13 @@ We call this percentage the write percentage.
   \caption{Write effect experiments}
   \label{fig:write-effect-experiment}
 \end{figure}
+
+\subsection{System under test}
+
+In this last experiment, we investigate the results of increasing the percentage of the workload consists of write requests on performance.
+Between 3 and 7 servers will be used with either no replication or full replication.
+The percentage of the requests that consists of writes will be varied between 1\% and 10\%.
+We call this percentage the write percentage.
 
 \subsection{Hypothesis}
 
