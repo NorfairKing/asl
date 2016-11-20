@@ -11,6 +11,7 @@ import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Reports.Common
 import           AslBuild.Reports.ExperimentFormat
+import           AslBuild.Reports.Logfiles
 
 report2Rules :: Rules ()
 report2Rules = report 2 texPreAction customRules
@@ -23,6 +24,11 @@ report2Rules = report 2 texPreAction customRules
         remoteMaximumThroughput `useExperimentTableInReport` 2
         remoteReplicationEffect `useExperimentTableInReport` 2
         remoteWriteEffect `useExperimentTableInReport` 2
+        useTheseLogfileListingsForReport 2
+            [ loglistingFileFor remoteMaximumThroughput
+            , loglistingFileFor remoteReplicationEffect
+            , loglistingFileFor remoteWriteEffect
+            ]
 
     texPreAction = do
         remoteMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
@@ -32,3 +38,4 @@ report2Rules = report 2 texPreAction customRules
         remoteMaximumThroughput `dependOnExperimentTableForReport` 2
         remoteReplicationEffect `dependOnExperimentTableForReport` 2
         remoteWriteEffect `dependOnExperimentTableForReport` 2
+        dependOnLogfileListingsForReport 2

@@ -8,6 +8,7 @@ import           AslBuild.Experiments.MaximumThroughput.Types
 import           AslBuild.Experiments.ReplicationEffect.Types
 import           AslBuild.Experiments.WriteEffect.Types
 import           AslBuild.Memaslap
+import           AslBuild.Reports.Logfiles
 import           AslBuild.Types
 
 class ExperimentFormat a where
@@ -73,8 +74,8 @@ writePercentageLine pers = "Write percentage & " ++ showMinMaxPercentageList per
 
 logfileLines :: ExperimentConfig a => a -> [String]
 logfileLines ecf =
-    [ "Log files & " ++ localClientLogDir ecf ++ "/*"
-    , " & " ++ localMiddleTraceDir ecf ++ "/*"
+    [ "Log files & " ++ experimentClientLogsShort ecf
+    , " & " ++ experimentMiddleTracesShort ecf
     ]
 
 showMinMaxList :: [Int] -> String

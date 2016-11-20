@@ -4,6 +4,7 @@ import           Development.Shake
 
 import           AslBuild.Reports.Common
 import           AslBuild.Reports.ExperimentFormat
+import           AslBuild.Reports.Logfiles
 import           AslBuild.Reports.MileStone1
 import           AslBuild.Reports.MileStone2
 
@@ -21,6 +22,7 @@ reportRules = do
     phony cleanReportsRule $ need $ map reportCleanRule reportNrs
 
     experimentTablesRules
+    logfileListingRules
     report1Rules
     report2Rules
 
