@@ -18,6 +18,7 @@ import           AslBuild.Analysis.Utils
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Memaslap.LogParser
 import           AslBuild.Memaslap.Types
@@ -31,7 +32,8 @@ memaslapLogsRules = do
     rs1 <- mapM memaslapLogsRulesFor allMaximumThroughputExperiments
     rs2 <- mapM memaslapLogsRulesFor allReplicationEffectExperiments
     rs3 <- mapM memaslapLogsRulesFor allWriteEffectExperiments
-    memaslapLogsRule ~> need (catMaybes $ rs1 ++ rs2 ++ rs3)
+    rs4 <- mapM memaslapLogsRulesFor allStabilityTraceExperiments
+    memaslapLogsRule ~> need (catMaybes $ rs1 ++ rs2 ++ rs3 ++ rs4)
 
 memaslapLogRuleTargetFor :: ExperimentConfig a => a -> String
 memaslapLogRuleTargetFor ecf = experimentTarget ecf ++ "-memaslap-logs"

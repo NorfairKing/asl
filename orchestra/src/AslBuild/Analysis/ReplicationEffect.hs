@@ -49,7 +49,7 @@ replicationAnalysisPlotsFor rec = do
     arity <- ["id", "rev"]
     count <- case arity of
         "id" -> show <$> serverCounts rec
-        "rev" -> (show . (ceiling :: Double -> Int). (*2)) <$> replicationFactors rec
+        "rev" -> (show . (round :: Double -> Int). (*2)) <$> replicationFactors rec
         _ -> fail "wut."
     return $ intercalate "-" [replicationAnalysisPrefixFor rec, arity, count] <.> pngExt
 
@@ -141,10 +141,10 @@ simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
             { nrServers = nrsers
             , replicationFactor = repfac
             , replicationCoefficient =
-                if repfac == mwReplicationFactor (mMiddlewareFlags ms)
-                then 1
-                else if repfac == 1
-                    then 0
+                if repfac == 1
+                then 0
+                else if repfac == mwReplicationFactor (mMiddlewareFlags ms)
+                    then 1
                     else 0.5
             , kind = k
             , respAvg = a
