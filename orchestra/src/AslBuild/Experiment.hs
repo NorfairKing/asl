@@ -383,10 +383,10 @@ genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(ci
         }
 
 defaultConcurrency :: Int
-defaultConcurrency = 25
+defaultConcurrency = 35
 
 defaultMiddleThreads :: Int
-defaultMiddleThreads = 8
+defaultMiddleThreads = 16
 
 localExperimentSummariesDir :: ExperimentConfig a => a -> FilePath
 localExperimentSummariesDir ecf = experimentResultsDir ecf </> "summaries"

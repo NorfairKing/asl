@@ -31,7 +31,7 @@ for (i in threads) {
       , xlab="Total number of virtual threads (no unit)"
       , ylab="Average total throughput (transactions/second)"
       , xlim=c(min(res$conc), max(res$conc))
-      , ylim=c(min(res$avgTps-res$stdTps), max(res$avgTps+res$stdTps))
+      , ylim=c(0, max(res$avgTps+res$stdTps))
       )
   title(paste("Throughput", i, "middleware threads"))
   lines(conc, avg)
@@ -59,7 +59,7 @@ for (i in threads) {
       , xlab="Total number of virtual threads (no unit)"
       , ylab="Response time (milliseconds)"
       , xlim=c(min(res$conc), max(res$conc))
-      , ylim=c(min(res$avgResp-res$stdResp), max(res$avgResp+res$stdResp))
+      , ylim=c(0, max(res$avgResp+res$stdResp))
       )
   title(paste("Response time", i, "middleware threads"))
   lines(conc, avg)
