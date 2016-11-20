@@ -343,7 +343,7 @@ localClientResultsDir ecf = experimentLocalTmpDir ecf </> "client-results"
 
 -- The results file for a given log file.
 localClientResultsFile :: ExperimentConfig a => a -> FilePath -> FilePath
-localClientResultsFile ecf fp = fp `replaceDirectory` localClientResultsDir ecf
+localClientResultsFile ecf fp = (fp `replaceDirectory` localClientResultsDir ecf) ++ "-results" <.> jsonExt
 
 genClientSetup
     :: (ExperimentConfig a)
