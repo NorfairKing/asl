@@ -13,7 +13,10 @@ prefix <- args[3]
 res = read.csv(inFile, header=TRUE)
 
 xl = "Replication factor"
-yl = "Response time (microseconds)"
+yl = "Response time (milliseconds)"
+
+res$time <- res$time / 1000 / 1000 # Convert to milliseconds
+maxTime = max(res$time)
 
 for (nrSers in unique(res$nrServers)) {
   for (knd in unique(res$kind)) {
@@ -35,6 +38,7 @@ for (nrSers in unique(res$nrServers)) {
     gg <- ggplot(d, aes(x=factor(xval), y=yval, fill=cat))
     gg <- gg + geom_bar(stat='identity')
     gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
+    gg <- gg + coord_cartesian(ylim=c(0,maxTime))
     gg <- gg + theme(legend.title=element_blank())
     gg <- gg + scale_fill_brewer(palette = "Set1")
     print(gg)

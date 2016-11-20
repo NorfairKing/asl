@@ -35,7 +35,7 @@ Milestone}
 \section{Introduction}
 
 This is the second report in a series of three reports for the the advanced systems lab.
-In this course we implement and investigate the performance of a middleware for memcached.
+In this course we implement and investigate the performance of a middleware for Memcache.
 This part focusses mostly on investigating the performance of the system that was built for the previous part.
 
 
@@ -44,25 +44,30 @@ This part focusses mostly on investigating the performance of the system that wa
 The middleware has changed since the last part to improve its efficiency.
 It no longer constructs the extremely verbose logging messages that it used to.
 Even though these messages were never printed, they were still constructed because of Java's strict evaluation semantics.
+This caused the middleware to perform very poorly.
 
 \TODO{re-run stability trace?}
 
 \section{Maximum Throughput}
-% Find the highest throughput of your system for 5 servers with no replication and a read-only workload configuration. What is the minimum number of threads and clients (rounded to multiple of 10) that together achieve this throughput? Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations. Provide a detailed breakdown of the time spent in the middleware for each operation type.
+
+\subsection{System under test}
+
+% Find the highest throughput of your system for 5 servers with no replication and a read-only workload configuration.
+
+In the first experiment, the middleware is in charge of five servers with no replication and a read-only workload configuration.
+The aim is to investigate which combination of the total number of clients and the number of threads in each server's thread pool for reads achieves the highest throughput.
+The details of the explored configuration can be found in figure \ref{fig:sut-maximum-throughput}.
 
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-maximum-throughput-table.tex}}
   \caption{Maximum throughput experiments}
+  \label{fig:sut-maximum-throughput}
 \end{figure}
 
-\subsection{System under test}
-
-In the first experiment, the middleware is in charge of five servers with no replication and a read-only workload configuration.
-The aim is to investigate which combination of the total number of clients and the number of threads in each server's thread pool for reads achieves the highest throughput.
-The details of the explored configuration can be found in figure \TODO{which figure?}.
-
 \subsection{Hypothesis}
+
+% Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations.
 
 Making an accurate estimate of the configuration that achieves the highest throughput is hard if not unnecessary.
 What is more important is to estimate what will happen as we increase the total number of virtual clients or the number of threads in each server's thread pool for reads.
@@ -83,84 +88,162 @@ From then on the throughput should not increase any further as subsequents will 
 
 Reads are executed in a synchronous manner.
 This means that each read thread can perform at most one request per round-trip time.
-Using more threads should somewhat solve this problem, but context switches are relatively expensive.
+Using more threads to processes read requests should somewhat solve this problem, but context switches are relatively expensive.
 This means that we expect using multiple threads to increase the throughput up to a certain point.
 At that point the cost of using multiple threads will outweigh the benefit.
 
 In general we expect response time to remain constant up to the point where queues are no longer constantly empty.
 After this point, any more work gets put onto the queue and we then expect response times to increase linearly.
-This is only true because the system under test is a closed system.
-The same argument would not necessarily hold for open systems.
+\footnote{
+  This is only true because the system under test is a closed system.
+  The same argument would not necessarily hold for open systems.
+}
 
 \subsection{Results and analysis}
 
-Figure \ref{fig:maximum-throughput-throughput} shows that throughput tends to increase as the number of clients increases.
-It also shows that an increase in the number of clients has diminishisng effects past \FIWRD clients.
-Past this point, the average total throughput levels off at about \FIWRD transactions per second.
+In figures \ref{fig:maximum-throughput-low}, \ref{fig:maximum-throughput-mid} and \ref{fig:maximum-throughput-high}, the results of the maximum throughput experiment are plotted.
 
-\TODO{Mention the effect of the number of threads}
+In what follows, we will refer to the number of threads in the middleware's read request thread pools as the 'threadcount' of the setup.
+For each threadcount under test there are four plots.
 
-\begin{figure}
+The first plot shows the throughput in function of the total number of virtual clients and the second shows the total response time.
+Both of these first plots are derived from the data as viewed by the clients.
+
+The next two plots show data gathered in the middleware.
+They show a detailed breakdown of the time that an average request spends in the middleware.
+
+\subsubsection{Maximum throughput configuration}
+
+% What is the minimum number of threads and clients (rounded to multiple of 10) that together achieve this throughput?
+
+An exact number for either the maximum throughput or the number of virtual clients at which this throughput is achieved is hard to compute.
+Uncertainties in measurement, along with a vague definition of 'maximum throughput' make it hard to give an exact number.
+
+The estimated maximum throughput and the number of virtual clients at which this throughput is achieved can be found in figure \ref{fig:maximum-throughput-numbers}.
+The maximum throughput estimate is given with an error of plus-minus $500$ TPS.
+The estimate for the number of virtual clients is given with an error of plus-minus $10$.
+
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{c|c|c}
+    Number of threads & Maximum throughput (TPS) & Number of virtual clients \\
+    \hline $1$ & $2000 \pm 500$ & $25$ \\
+    \hline $5$ & $5000 \pm 500$ & $30$ \\
+    \hline $9$ & $10000 \pm 500$ & $50$ \\
+    \hline $13$ & $11000 \pm 500$ & $60$ \\
+    \hline $17$ & $11500 \pm 500$ & $70$ \\
+    \hline $21$ & $17500 \pm 500$ & $80$ \\
+  \end{tabular}
+  \label{fig:maximum-throughput-numbers}
+\end{figure}
+
+\begin{figure}[H]
   \centering
     \begin{subfigure}{0.48\textwidth}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-1-tps.png}}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-1-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-1-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-1-slice.png}}
     \end{subfigure}
     \begin{subfigure}{0.48\textwidth}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-5-tps.png}}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-5-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-5-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-5-slice.png}}
     \end{subfigure}
   \caption{Maximum Throughput}
+  \label{fig:maximum-throughput-low}
 \end{figure}
-\begin{figure}
+\begin{figure}[H]
   \centering
     \begin{subfigure}{0.48\textwidth}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-tps.png}}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-9-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-9-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-9-slice.png}}
     \end{subfigure}
     \begin{subfigure}{0.48\textwidth}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-13-tps.png}}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-13-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-13-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-13-slice.png}}
     \end{subfigure}
   \caption{Maximum Throughput}
+  \label{fig:maximum-throughput-mid}
 \end{figure}
-\begin{figure}
+\begin{figure}[H]
   \centering
     \begin{subfigure}{0.48\textwidth}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-tps.png}}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-resp.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-17-slice.png}}
-    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-17-slice.png}}
     \end{subfigure}
     \begin{subfigure}{0.48\textwidth}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-21-tps.png}}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-21-resp.png}}
+    \end{subfigure}
+  \caption{Maximum Throughput}
+  \label{fig:maximum-throughput-high}
+\end{figure}
+
+\subsubsection{Comparison of results with hypothesis}
+
+In each throughput plot we see that throughput first increases linearly, then increases sublinearly and finally levels off.
+This corresponds exactly to the hypothesis.
+
+In each response time plot, we see a linear increase in response time.
+There is no phase of constant response time to see in these plots as hypothesized.
+It is possible that the constant response time phase was too short to show up on the plots.
+
+\subsubsection{Breakdown of time spent in middleware}
+
+% Provide a detailed breakdown of the time spent in the middleware for each operation type.
+
+Figures \ref{fig:maximum-throughput-slice-low}, \ref{fig:maximum-throughput-slice-mid} and \ref{fig:maximum-throughput-slice-high} show a detailed breakdown of where an average request spends time in the middleware.
+The top plots show the absolute time spent, broken down by operation.
+The bottom plots show the same data, but the time is show in percentages relative to the total amount of time spent for an average request.
+
+Note that we see that these response time plots are very similar in shapes to the same response times as seen by the client.
+% Reword
+
+% Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows that, as the number of clients increases, the only part that takes significantly longer is the time that an average requests spends in the queue, waiting to be forwarded to a server.
+% Figure \ref{fig:maximum-throughput-trace-slice-1-thread-relative} shows that, as the number of clients increases, the time that an average request spends on the queue becomes the most significant component of the total time spent in the middleware.
+% In fact, it becomes more than ten \FIWRD times more significant than any other part of the waiting time.
+% 
+% Figure TODO shows that the situation is similar when the middleware uses six \FIWRD threads per read pool.
+% The total time spent in the middleware is lower for an average request, but essentially the same problem occurs.
+% The average request spends the majority of its time in the middleware on a queue waiting to be forwarded to a server, and this part of the time spent becomes increasingly significant as the number of clients increases, just like before.
+
+\begin{figure}[H]
+  \centering
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-1-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-1-slice.png}}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-5-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-5-slice.png}}
+    \end{subfigure}
+  \caption{Maximum Throughput}
+  \label{fig:maximum-throughput-slice-low}
+\end{figure}
+\begin{figure}[H]
+  \centering
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-9-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-9-slice.png}}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-13-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-13-slice.png}}
+    \end{subfigure}
+  \caption{Maximum Throughput}
+  \label{fig:maximum-throughput-slice-mid}
+\end{figure}
+\begin{figure}[H]
+  \centering
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-17-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-17-slice.png}}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-21-slice.png}}
     \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-21-slice.png}}
     \end{subfigure}
   \caption{Maximum Throughput}
+  \label{fig:maximum-throughput-slice-high}
 \end{figure}
-
-Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} and \ref{fig:maximum-throughput-trace-slice-1-thread-relative} show a detailed breakdown of where each requests spends time in the middleware.
-Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows the average absolute time spent in the middleware for a request.
-Figure \ref{fig:maximum-throughput-trace-slice-1-thread-relative} shows the same data, but the time is shown in percentages relative to the total average amount of time spent per request.
-
-Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows that, as the number of clients increases, the only part that takes significantly longer is the time that an average requests spends in the queue, waiting to be forwarded to a server.
-Figure \ref{fig:maximum-throughput-trace-slice-1-thread-relative} shows that, as the number of clients increases, the time that an average request spends on the queue becomes the most significant component of the total time spent in the middleware.
-In fact, it becomes more than ten \FIWRD times more significant than any other part of the waiting time.
-
-Figure TODO shows that the situation is similar when the middleware uses six \FIWRD threads per read pool.
-The total time spent in the middleware is lower for an average request, but essentially the same problem occurs.
-The average request spends the majority of its time in the middleware on a queue waiting to be forwarded to a server, and this part of the time spent becomes increasingly significant as the number of clients increases, just like before.
-
 
 \section{Effect of Replication}
 
@@ -202,6 +285,8 @@ Moreover, we expect this effect to be more prominent the more servers are used.
 For read requests, we don't expect the interaction time to increase.
 
 \subsection{Results and analysis}
+
+% Also make plots that put the number of servers on the x axis for each replication factor.
 
 \begin{figure}[H]
   \centering

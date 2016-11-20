@@ -20,7 +20,7 @@ isabs <- postfix == 'absolute'
 xl = "Virtual clients (no unit)"
 
 if(isabs){
-  yl = "Average absolute time spent in middleware (microseconds)"
+  yl = "Average absolute time spent in middleware (milliseconds)"
 } else {
   yl = "Average relative time spent in middleware (percentage)"
 }
@@ -28,7 +28,7 @@ if(isabs){
 
 
 res = read.csv(inFile, header=TRUE)
-if(isabs) { res$value <- res$value / 1000 } # Convert to microseconds
+if(isabs) { res$value <- res$value / 1000 / 1000 } # Convert to milliseconds
 
 totals = res[res$category == "totalTime", ]
 maxTime = max(totals$value)
