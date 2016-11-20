@@ -195,15 +195,13 @@ The top plots show the absolute time spent, broken down by operation.
 The bottom plots show the same data, but the time is show in percentages relative to the total amount of time spent for an average request.
 
 Note that we see that these response time plots are very similar in shapes to the same response times as seen by the client.
-% Reword
+Anything else would not make sense and would indicate a fault somewhere.
 
-% Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows that, as the number of clients increases, the only part that takes significantly longer is the time that an average requests spends in the queue, waiting to be forwarded to a server.
-% Figure \ref{fig:maximum-throughput-trace-slice-1-thread-relative} shows that, as the number of clients increases, the time that an average request spends on the queue becomes the most significant component of the total time spent in the middleware.
-% In fact, it becomes more than ten \FIWRD times more significant than any other part of the waiting time.
-% 
-% Figure TODO shows that the situation is similar when the middleware uses six \FIWRD threads per read pool.
-% The total time spent in the middleware is lower for an average request, but essentially the same problem occurs.
-% The average request spends the majority of its time in the middleware on a queue waiting to be forwarded to a server, and this part of the time spent becomes increasingly significant as the number of clients increases, just like before.
+In the case of one thread per read pool, we can see that the majority of an average request's time is spent on the queue, waiting to be processed.
+Using more threads per read pool results in the average request spending more time interacting with the server.
+This is because the threads start contending for for both access to the network and for CPU time.
+As the number of threads per pool increases further, the interaction time takes over most of the time spent.
+This corresponds to the predictions
 
 \begin{figure}[H]
   \centering
