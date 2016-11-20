@@ -20,7 +20,7 @@ report2Rules = report 2 texPreAction customRules
         remoteMaximumThroughput `useThroughputAnalysisPlotsInReport` 2
         remoteMaximumThroughput `useTraceSlicePlotsInReport` 2
         remoteReplicationEffect `useReplicationEffectPlotsInReport` 2
-        localWriteEffect `useWriteEffectPlotsInReport` 2
+        remoteWriteEffect `useWriteEffectPlotsInReport` 2
         remoteMaximumThroughput `useExperimentTableInReport` 2
         remoteReplicationEffect `useExperimentTableInReport` 2
         remoteWriteEffect `useExperimentTableInReport` 2
@@ -34,7 +34,7 @@ report2Rules = report 2 texPreAction customRules
         remoteMaximumThroughput `dependOnThroughputAnalysisPlotsForReport` 2
         remoteMaximumThroughput `dependOnTraceSlicePlotsForReport` 2
         remoteReplicationEffect `dependOnReplicationEffectPlotsForReport` 2
-        localWriteEffect `dependOnWriteEffectPlotsForReport` 2
+        remoteWriteEffect `dependOnWriteEffectPlotsForReport` 2
         remoteMaximumThroughput `dependOnExperimentTableForReport` 2
         remoteReplicationEffect `dependOnExperimentTableForReport` 2
         remoteWriteEffect `dependOnExperimentTableForReport` 2

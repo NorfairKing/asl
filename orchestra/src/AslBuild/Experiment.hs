@@ -27,6 +27,7 @@ import           Control.Arrow
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.List                  (intercalate)
+import           Data.Maybe
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -217,23 +218,32 @@ runOneExperiment es@ExperimentSetup{..} = do
             -- Copy the client logs back
             copyClientLogsBack clientSetups
 
-            -- Prepare analysis files for the client logs.
-            makeClientResultFiles clientSetups
+            -- Make sure the client logs parse
+            mfails <- forP clientSetups $ \ClientSetup{..} -> do
+                mel <- parseLog cLocalLog
+                return $ case mel of
+                    Nothing -> Just $ "could not parse logfile: " ++ cLocalLog
+                    Just _ -> Nothing
 
-            -- Write the setup file
-            writeJSON esSetupFile es
+            case catMaybes mfails of
+                [] -> do
+                    -- Write the setup file
+                    writeJSON esSetupFile es
 
-            -- Make the result record
-            let results = ExperimentResultSummary
-                    { erClientLogFiles = map cLocalLog clientSetups
-                    , merMiddleResultsFile = (mLocalTrace . fst) <$> mMiddle
-                    , erSetupFile = esSetupFile
-                    }
+                    -- Make the result record
+                    let results = ExperimentResultSummary
+                            { erClientLogFiles = map cLocalLog clientSetups
+                            , merMiddleResultsFile = (mLocalTrace . fst) <$> mMiddle
+                            , erSetupFile = esSetupFile
+                            }
 
-            -- Write the result record to file
-            writeJSON esResultsSummaryFile results
+                    -- Write the result record to file
+                    writeJSON esResultsSummaryFile results
 
-            return ExperimentSuccess
+                    return ExperimentSuccess
+
+                fs -> return $ ExperimentFailure $ show fs
+
 
 experimentResultsDir
     :: ExperimentConfig a
@@ -255,16 +265,6 @@ experimentRemoteTmpDir a = remoteTmpDir </> experimentTarget a
 resultSummariesLocationFile :: ExperimentConfig a => a -> FilePath
 resultSummariesLocationFile cfg
     = experimentResultsDir cfg </> "summary-locations" <.> jsonExt
-
-makeClientResultFiles :: [ClientSetup] -> Action ()
-makeClientResultFiles = (`forP_` makeClientResultFile)
-
-makeClientResultFile :: ClientSetup -> Action ()
-makeClientResultFile ClientSetup{..} = do
-    mel <- parseLog cLocalLog
-    case mel of
-        Nothing -> fail $ "could not parse logfile: " ++ cLocalLog
-        Just _ -> return ()
 
 getVmsForExperiments
     :: ExperimentConfig a

@@ -41,7 +41,7 @@ instance ExperimentFormat ReplicationEffectCfg where
 
 instance ExperimentFormat WriteEffectCfg where
     renderSetupTable ecf@WriteEffectCfg{..} = tabular $
-        [ "Number of server machines & " ++ showMinMaxList serverCounts
+        [ "Number of server machines & " ++ showIntList serverCounts
         , "Number of client machines & " ++ show (nrClients hlConfig)
         , "Virtual clients per machine & " ++ show defaultConcurrency
         , workloadLine
