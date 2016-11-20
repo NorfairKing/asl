@@ -39,6 +39,9 @@ for (i in threads) {
 }
 
 # RESP
+res$avgResp = res$avgResp / 1000 # Convert to milliseconds
+res$stdResp = res$stdResp / 1000 # Convert to milliseconds
+
 threads = unique(res$threads)
 for (i in threads) {
   file = paste(outFile, i, "resp", sep="-")
@@ -54,7 +57,7 @@ for (i in threads) {
       , dat$throughput
       , type="n" # Don't plot yet
       , xlab="Total number of virtual threads (no unit)"
-      , ylab="Response time (microseconds)"
+      , ylab="Response time (milliseconds)"
       , xlim=c(min(res$conc), max(res$conc))
       , ylim=c(min(res$avgResp-res$stdResp), max(res$avgResp+res$stdResp))
       )

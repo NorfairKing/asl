@@ -131,6 +131,22 @@ Past this point, the average total throughput levels off at about \FIWRD transac
     \end{subfigure}
   \caption{Maximum Throughput}
 \end{figure}
+\begin{figure}
+  \centering
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-17-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-17-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-17-slice.png}}
+    \end{subfigure}
+    \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-21-tps.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-maximum-throughput-21-resp.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-absolute-21-slice.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-maximum-throughput-slice-relative-21-slice.png}}
+    \end{subfigure}
+  \caption{Maximum Throughput}
+\end{figure}
 
 Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} and \ref{fig:maximum-throughput-trace-slice-1-thread-relative} show a detailed breakdown of where each requests spends time in the middleware.
 Figure \ref{fig:maximum-throughput-trace-slice-1-thread-absolute} shows the average absolute time spent in the middleware for a request.
@@ -242,9 +258,7 @@ We also expect this difference to be larger for a setup with more servers and/or
 \begin{figure}
   \centering
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-3.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-4.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-5.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-6.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-tps-7.png}}
   \caption{Effect of write percentage: Throughput}
   \label{fig:write-analysis-tps}
@@ -252,9 +266,7 @@ We also expect this difference to be larger for a setup with more servers and/or
 \begin{figure}
   \centering
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-3.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-4.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-5.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-6.png}}
     \includegraphics[width=0.48\textwidth]{\plot{local-write-effect-write-analysis-resp-7.png}}
   \caption{Effect of write percentage: Response time}
   \label{fig:write-analysis-resp}
