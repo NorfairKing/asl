@@ -8,6 +8,9 @@ module AslBuild.Experiment
     , genMiddleSetup
     , genServerSetups
     , getVmsForExperiments
+    , localClientResultsFile
+    , localClientLogDir
+    , localMiddleTraceDir
     , resultSummariesLocationFile
     , readResultsSummaryLocationsForCfg
     , readResultsSummaryLocations
@@ -222,7 +225,7 @@ runOneExperiment es@ExperimentSetup{..} = do
 
             -- Make the result record
             let results = ExperimentResultSummary
-                    { erClientResultsFiles = map cResultsFile clientSetups
+                    { erClientLogFiles = map cLocalLog clientSetups
                     , merMiddleResultsFile = (mLocalTrace . fst) <$> mMiddle
                     , erSetupFile = esSetupFile
                     }
@@ -261,7 +264,7 @@ makeClientResultFile ClientSetup{..} = do
     mel <- parseLog cLocalLog
     case mel of
         Nothing -> fail $ "could not parse logfile: " ++ cLocalLog
-        Just parsedLog -> writeJSON cResultsFile parsedLog
+        Just _ -> return ()
 
 getVmsForExperiments
     :: ExperimentConfig a
@@ -296,6 +299,9 @@ genServerSetups sers = flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSe
     }
   where serverPort = 12345
 
+localMiddleTraceDir :: ExperimentConfig a => a -> FilePath
+localMiddleTraceDir ecf = experimentResultsDir ecf </> "traces"
+
 genMiddleSetup
     :: ExperimentConfig a
     => a
@@ -306,7 +312,7 @@ genMiddleSetup
     -> MiddleSetup
 genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
     { mRemoteLogin = mLogin
-    , mLocalTrace = experimentResultsDir ecf </> "traces" </> traceFileName <.> csvExt
+    , mLocalTrace = localMiddleTraceDir ecf </> traceFileName <.> csvExt
     , mMiddlewareFlags = MiddlewareFlags
         { mwIp = mPrivate
         , mwPort = middlePort
@@ -329,6 +335,16 @@ genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
     middlePort = 23456
     traceFileName = signGlobally (target ++ "-trace")
 
+localClientLogDir :: ExperimentConfig a => a -> FilePath
+localClientLogDir ecf = experimentResultsDir ecf </> "local-client-logs"
+
+localClientResultsDir :: ExperimentConfig a => a -> FilePath
+localClientResultsDir ecf = experimentLocalTmpDir ecf </> "client-results"
+
+-- The results file for a given log file.
+localClientResultsFile :: ExperimentConfig a => a -> FilePath -> FilePath
+localClientResultsFile ecf fp = fp `replaceDirectory` localClientResultsDir ecf
+
 genClientSetup
     :: (ExperimentConfig a)
     => a
@@ -344,11 +360,9 @@ genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(ci
         { cRemoteLogin = cLogin
         , cIndex = cix
         , cLocalLog
-            = experimentResultsDir ecf </> "local-client-logs" </> sign "client-local-log"
+            = localClientLogDir ecf </> sign "client-local-log"
         , cRemoteLog
             = experimentRemoteTmpDir ecf </> sign "memaslap-remote-log"
-        , cResultsFile
-            = experimentLocalTmpDir ecf </> "client-results" </> sign "client-results"
         , cLocalMemaslapConfigFile
             = experimentLocalTmpDir ecf </> "memaslap-configs" </> sign "memaslap-config"
         , cMemaslapSettings = MemaslapSettings
@@ -374,6 +388,11 @@ defaultConcurrency = 25
 defaultMiddleThreads :: Int
 defaultMiddleThreads = 8
 
+localExperimentSummariesDir :: ExperimentConfig a => a -> FilePath
+localExperimentSummariesDir ecf = experimentResultsDir ecf </> "summaries"
+
+localExperimentSetupsDir :: ExperimentConfig a => a -> FilePath
+localExperimentSetupsDir ecf = experimentResultsDir ecf </> "setups"
 
 genExperimentSetup
     :: ExperimentConfig a
@@ -387,9 +406,9 @@ genExperimentSetup
 genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentSetup
     { esRuntime = runtime
     , esResultsSummaryFile
-        = experimentResultsDir ecf </> "summaries" </> signGlobally "summary" <.> jsonExt
+        = localExperimentSummariesDir ecf </> signGlobally "summary" <.> jsonExt
     , esSetupFile
-        = experimentResultsDir ecf </> "setups" </> signGlobally "setup" <.> jsonExt
+        = localExperimentSetupsDir ecf </> signGlobally "setup" <.> jsonExt
     , clientSetups = clients
     , backendSetup = Right (middle, servers)
     }

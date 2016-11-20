@@ -15,7 +15,6 @@ data ClientSetup
     , cIndex                   :: Int
     , cLocalLog                :: FilePath
     , cRemoteLog               :: FilePath
-    , cResultsFile             :: FilePath
     , cLocalMemaslapConfigFile :: FilePath
     , cMemaslapSettings        :: MemaslapSettings
     } deriving (Show, Eq, Generic)

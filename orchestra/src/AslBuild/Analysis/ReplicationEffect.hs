@@ -95,7 +95,7 @@ rulesForReplicationAnalysis rec = onlyIfResultsExist rec $ do
         lines_ <- forP slocs $ \sloc -> do
             ers <- readResultsSummary sloc
             setup <- readExperimentSetupForSummary ers
-            res <- throughputResults $ erClientResultsFiles ers
+            res <- throughputResults rec $ erClientLogFiles ers
             simplifiedCsvLines setup res
 
         writeCSV outFile $ concat lines_

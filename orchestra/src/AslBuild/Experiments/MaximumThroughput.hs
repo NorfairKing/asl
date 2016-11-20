@@ -77,8 +77,8 @@ remoteMaximumThroughput = MaximumThroughputCfg
         , resultsPersistence = Persistent
         }
     , threadConcTups = do
-        middleThreads <- [1, 5, 9, 13]
-        concurrencies <- [1, 6 .. 75]
+        middleThreads <- [1, 5 .. 21]
+        concurrencies <- [1, 6 .. 100]
         return (middleThreads, concurrencies)
     , mtRuntime = Minutes 1
     }

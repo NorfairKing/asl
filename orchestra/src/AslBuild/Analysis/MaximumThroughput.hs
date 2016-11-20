@@ -78,7 +78,7 @@ rulesForThroughputAnalysis mtc = onlyIfResultsExist mtc $ do
         ls <- forP summaryPaths $ \summaryPath -> do
             ers <- readResultsSummary summaryPath
             es <- readExperimentSetupForSummary ers
-            res <- throughputResults $ erClientResultsFiles ers
+            res <- throughputResults mtc $ erClientLogFiles ers
             return $ simplifiedCsvLine es res
 
         writeCSV simpleCsv ls

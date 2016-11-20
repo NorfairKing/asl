@@ -4,14 +4,18 @@
 module AslBuild.Experiment.Types where
 
 import           Data.Aeson
+import           Data.List
+import           Data.List.Split
 import           GHC.Generics
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
-import           Data.Csv              hiding (lookup, (.:), (.=))
-import qualified Data.Csv              as CSV (lookup)
+import           Data.Csv                   hiding (lookup, (.:), (.=))
+import qualified Data.Csv                   as CSV (lookup)
 
 import           AslBuild.Client.Types
+import           AslBuild.Constants
 import           AslBuild.Middle.Types
 import           AslBuild.Server.Types
 import           AslBuild.Types
@@ -56,23 +60,39 @@ data ExperimentSuccess
 
 data ExperimentResultSummary
     = ExperimentResultSummary
-    { erClientResultsFiles :: [FilePath]
+    { erClientLogFiles     :: [FilePath]
     , merMiddleResultsFile :: Maybe FilePath
-    , erSetupFile          :: FilePath
+    , erSetupFile          :: FilePath --TODO add logfile here.
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   ExperimentResultSummary where
     toJSON ExperimentResultSummary{..} = object
-        [ "client-results-files" .= erClientResultsFiles
+        [ "client-log-files" .= erClientLogFiles
         , "middle-results-file" .= merMiddleResultsFile
         , "setup" .= erSetupFile
         ]
 
 instance FromJSON ExperimentResultSummary where
-    parseJSON (Object o) = ExperimentResultSummary
-        <$> o .: "client-results-files"
-        <*> o .: "middle-results-file"
-        <*> o .: "setup"
+    parseJSON (Object o) = do
+        mrf <- o .: "middle-results-file"
+        setup <- o .: "setup"
+        moldclrfs <- o .:? "client-results-files"
+        -- TODO remove this once we've gotten rid of deprecated files
+        clrfs <- case moldclrfs of
+            Nothing -> o .: "client-log-files"
+            Just oldclrfs ->
+                case mapM (stripPrefix $ tmpDir ++ "/") oldclrfs of
+                    Nothing -> mempty
+                    Just clrfs -> return $ flip map clrfs $ \clrf ->
+                            let [eDir, "client-results", file] = splitDirectories clrf
+                                [prefix, suffix] = splitOn "client-results" file
+                                file' = prefix ++ "client-local-log" ++ suffix
+                            in joinPath [resultsDir, eDir, "local-client-logs", file']
+        return ExperimentResultSummary
+            { merMiddleResultsFile = mrf
+            , erSetupFile = setup
+            , erClientLogFiles = clrfs
+            }
     parseJSON _ = mempty
 
 data MiddleResultLine

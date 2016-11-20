@@ -15,7 +15,7 @@ class ExperimentFormat a where
 
 -- TODO separate info on seperate lines a little better
 instance ExperimentFormat MaximumThroughputCfg where
-    renderSetupTable ecf@MaximumThroughputCfg{..} = tabular
+    renderSetupTable ecf@MaximumThroughputCfg{..} = tabular $
         [ "Number of server machines & " ++ show (nrServers hlConfig)
         , "Number of client machines & " ++ show (nrClients hlConfig)
         , "Virtual clients per machine & " ++ showMinMaxList (map snd threadConcTups)
@@ -24,11 +24,10 @@ instance ExperimentFormat MaximumThroughputCfg where
         , "Replication & No replication ($R=1$)"
         , "Middleware threads per read pool & " ++ showMinMaxList (nub $ map fst threadConcTups)
         , "Runtime x repetitions & " ++ timeUnit mtRuntime ++ " x 1"
-        , logfileLine ecf
-        ]
+        ] ++ logfileLines ecf
 
 instance ExperimentFormat ReplicationEffectCfg where
-    renderSetupTable ecf@ ReplicationEffectCfg{..} = tabular
+    renderSetupTable ecf@ ReplicationEffectCfg{..} = tabular $
         [ "Number of server machines & " ++ showIntList serverCounts
         , "Number of client machines & " ++ show (nrClients hlConfig)
         , "Virtual clients per machine & " ++ show defaultConcurrency
@@ -37,11 +36,10 @@ instance ExperimentFormat ReplicationEffectCfg where
         , "Replication & " ++ showMathList ["1", "\\lceil S/2 \\rceil", "S"]
         , "Middleware threads per read pool & " ++ show defaultMiddleThreads
         , "Runtime x repetitions & " ++ timeUnit reRuntime ++ " x 1"
-        , logfileLine ecf
-        ]
+        ] ++ logfileLines ecf
 
 instance ExperimentFormat WriteEffectCfg where
-    renderSetupTable ecf@WriteEffectCfg{..} = tabular
+    renderSetupTable ecf@WriteEffectCfg{..} = tabular $
         [ "Number of server machines & " ++ showMinMaxList serverCounts
         , "Number of client machines & " ++ show (nrClients hlConfig)
         , "Virtual clients per machine & " ++ show defaultConcurrency
@@ -50,8 +48,7 @@ instance ExperimentFormat WriteEffectCfg where
         , "Replication & " ++ showMathList ["1", "S"]
         , "Middleware threads per read pool & " ++ show defaultMiddleThreads
         , "Runtime x repetitions & " ++ timeUnit weRuntime ++ " x 1"
-        , logfileLine ecf
-        ]
+        ] ++ logfileLines ecf
 
 workloadLine :: String
 workloadLine = workloadLineFor defaultMemaslapConfig
@@ -74,8 +71,11 @@ workloadLineFor MemaslapConfig{..} =
 writePercentageLine :: [Double] -> String
 writePercentageLine pers = "Write percentage & " ++ showMinMaxPercentageList pers
 
-logfileLine :: ExperimentConfig a => a -> String
-logfileLine ecf = "Log files & " ++ experimentResultsDir ecf
+logfileLines :: ExperimentConfig a => a -> [String]
+logfileLines ecf =
+    [ "Log files & " ++ localClientLogDir ecf ++ "/*"
+    , " & " ++ localMiddleTraceDir ecf ++ "/*"
+    ]
 
 showMinMaxList :: [Int] -> String
 showMinMaxList = showMinMaxListWith show

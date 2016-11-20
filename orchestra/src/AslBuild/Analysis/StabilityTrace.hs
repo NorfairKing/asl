@@ -61,8 +61,7 @@ stabilityTraceAnalysisRulesFor stc = onlyIfResultsExist stc $ do
         [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
         ExperimentResultSummary{..} <- readResultsSummary summaryFile
 
-        putLoud $ init $ unlines $ "Reading logfiles:" : erClientResultsFiles
-        logs <- forP erClientResultsFiles readJSON
+        logs <- forP (map (localClientResultsFile stc) erClientLogFiles) readJSON
 
         putLoud "Converting logfiles to a simple CSV file."
         let statistics :: MemaslapLog -> [Statistics]
