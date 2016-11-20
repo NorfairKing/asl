@@ -13,16 +13,18 @@ import           AslBuild.Types
 
 data SimplifiedCsvLine
     = SimplifiedCsvLine
-    { nrServers         :: Int
-    , replicationFactor :: Int
-    , kind              :: RequestKind
-    , respAvg           :: Avg
+    { nrServers              :: Int
+    , replicationFactor      :: Int
+    , replicationCoefficient :: Double
+    , kind                   :: RequestKind
+    , respAvg                :: Avg
     } deriving (Show, Eq, Generic)
 
 instance ToNamedRecord SimplifiedCsvLine where
     toNamedRecord SimplifiedCsvLine{..} = namedRecord
         [ "nrServers" .= nrServers
         , "replicationFactor" .= replicationFactor
+        , "replicationCoefficient" .= replicationCoefficient
         , "kind" .= kind
         ] <> toNamedRecord respAvg
 
@@ -30,6 +32,7 @@ instance DefaultOrdered SimplifiedCsvLine where
     headerOrder _ = header
         [ "nrServers"
         , "replicationFactor"
+        , "replicationCoefficient"
         , "kind"
         ] <> headerOrder (undefined :: Avg)
 

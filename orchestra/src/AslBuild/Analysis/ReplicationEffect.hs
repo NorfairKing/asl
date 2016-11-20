@@ -46,8 +46,12 @@ ruleForReplicationAnalysis rec
 
 replicationAnalysisPlotsFor :: ReplicationEffectCfg -> [FilePath]
 replicationAnalysisPlotsFor rec = do
-    nrSers <- serverCounts rec
-    return $ replicationAnalysisPrefixFor rec ++ "-" ++ show nrSers <.> pngExt
+    arity <- ["id", "rev"]
+    count <- case arity of
+        "id" -> show <$> serverCounts rec
+        "rev" -> (show . (ceiling :: Double -> Int). (*2)) <$> replicationFactors rec
+        _ -> fail "wut."
+    return $ intercalate "-" [replicationAnalysisPrefixFor rec, arity, count] <.> pngExt
 
 replicationCostAnalysisPlotsFor :: ReplicationEffectCfg -> [FilePath]
 replicationCostAnalysisPlotsFor rec = do
@@ -131,9 +135,17 @@ simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
         Nothing -> fail "Missing set throughput results."
         Just r -> return r
     let (ms, sss) = fromRight backendSetup
+        nrsers = length sss
+        repfac = mwReplicationFactor $ mMiddlewareFlags ms
     let line k a = SimplifiedCsvLine
-            { nrServers = length sss
-            , replicationFactor = mwReplicationFactor $ mMiddlewareFlags ms
+            { nrServers = nrsers
+            , replicationFactor = repfac
+            , replicationCoefficient =
+                if repfac == mwReplicationFactor (mMiddlewareFlags ms)
+                then 1
+                else if repfac == 1
+                    then 0
+                    else 0.5
             , kind = k
             , respAvg = a
             }
