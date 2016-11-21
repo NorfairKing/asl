@@ -60,6 +60,8 @@ In the case of no replication that is just one server, but in the case of full r
 The replication factor is an absolute number between $1$ and the number of servers.
 The so-called replication coefficient is a fraction that represents the ratio of redundant replication to the total number of backend servers. For example: For a setup with a total of $7$ backend servers and replication factor $4$, the replication coefficient is $\frac{1}{2}$
 
+The percentage of the workload that consists of write requests is called the write percentage.
+
 \section{Maximum Throughput}
 
 \subsection{System under test}
@@ -268,7 +270,7 @@ This corresponds to the predictions
   \centering
   \input{\genfile{remote-replication-effect-table.tex}}
   \caption{Replication effect experiments}
-  \label{fig:replication-effect-experiment}
+  \label{fig:sut-replication-effect}
 \end{figure}
 
 \subsection{System under test}
@@ -278,6 +280,8 @@ The clients will use a 5\%-write workload.
 There will be $3$, $5$ or $7$ server backends.
 Three configurations of the replication factor will be explored: No replication $(R=1)$, half replication $(R=\lceil\frac{S}{2}\rceil)$ and full replication $(R=S)$.
 The details of the system under test can be found in figure \TODO{which figure?}.
+
+The details of this experiment's setups can be found in Figure \ref{fig:sut-replication-effect}.
 
 \subsection{Hypothesis}
  
@@ -370,51 +374,58 @@ Moreover, this effect is larger when the total number of backend servers is grea
 
 \section{Effect of Writes}
 
-% In this section, you should study the changes in throughput and response time of your system as the percentage of write operations increases. Use a combination of 3 to 7 servers and vary the number of writes between 1\% and 10\% (e.g. 1\%, 5\% and 10\%). The experiments need to be carried out for the replication factors R=1 and R=all.  
-% 
-% For what number of servers do you see the biggest impact (relative to base case) on performance? Investigate the main reason for the reduced performance and provide a detailed explanation of the behavior of the system. Provide the graphs and tables necessary to support your claims.
+% In this section, you should study the changes in throughput and response time of your system as the percentage of write operations increases.
+% Use a combination of 3 to 7 servers and vary the number of writes between 1\% and 10\% (e.g. 1\%, 5\% and 10\%). The experiments need to be carried out for the replication factors R=1 and R=all.  
+
  
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-write-effect-table.tex}}
   \caption{Write effect experiments}
-  \label{fig:write-effect-experiment}
+  \label{fig:sut-write-effect}
 \end{figure}
 
 \subsection{System under test}
 
-In this last experiment, we investigate the results of increasing the percentage of the workload consists of write requests on performance.
+In this last experiment, we investigate the results of increasing the percentage of the workload that consists of write requests on performance.
 Between 3 and 7 servers will be used with either no replication or full replication.
 The percentage of the requests that consists of writes will be varied between 1\% and 10\%.
-We call this percentage the write percentage.
+
+The details of the experiment's setups can be found in Figure \ref{fig:sut-write-effect}.
 
 \subsection{Hypothesis}
 
+% For what number of servers do you see the biggest impact (relative to base case) on performance?
+% Investigate the main reason for the reduced performance and provide a detailed explanation of the behavior of the system. Provide the graphs and tables necessary to support your claims.
+
 As investigated in the previous section, writes are much more expensive in a setup with full replication than in a setup with no replication.
 This means that we can expect there to be a difference in performance between the no replication situation and the full replication situation for any given non-zero write percentage.
-We expect that the system with full replication will perform worse and that this difference will increase as the write percentage increases.
-Moreover, we expect this difference to be greater if more servers are used.
+We expect that the system with full replication will perform worse and that this difference will grow larger as the write percentage increases.
+Moreover, we expect this difference to be even greater if more servers are used.
 Concretely we expect a lower throughput and higher response times in the case of full replication relative to the case of no replication.
 We also expect this difference to be larger for a setup with more servers and/or a greater write percentage.
 
 
 \subsection{Results and analysis}
 
+In Figure \ref{fig:write-analysis}, the throughput and response time of the middleware is plotted in function of the write percentage of the clients' workloads for fixed numbers of backend servers.
+
+The plots clearly show that throughput and response time both stay constant as the write percentage increases in the case of no replication.
+In the case of full replication we see that throughput decreases and response time increases as the write percentage increases.
+Moreover, this decrease in throughput and increase in response time are greater for greater numbers of backend servers.
+
+These results match up with the hypotheses exactly.
+
 \begin{figure}[H]
   \centering
     \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-tps-3.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-tps-5.png}}
-    \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-tps-7.png}}
-  \caption{Effect of write percentage: Throughput}
-  \label{fig:write-analysis-tps}
-\end{figure}
-\begin{figure}[H]
-  \centering
     \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-resp-3.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-tps-5.png}}
     \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-resp-5.png}}
+    \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-tps-7.png}}
     \includegraphics[width=0.48\textwidth]{\plot{remote-write-effect-write-analysis-resp-7.png}}
-  \caption{Effect of write percentage: Response time}
-  \label{fig:write-analysis-resp}
+  \caption{Effect of write percentage: Throughput}
+  \label{fig:write-analysis}
 \end{figure}
 
 \newpage

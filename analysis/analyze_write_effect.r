@@ -15,7 +15,7 @@ res$writePercentage <- as.numeric(as.character(res$writePercentage))
 res$respstd <- as.numeric(as.character(res$respstd))
 res$tpsstd <- as.numeric(as.character(res$tpsstd))
   
-colors = c("green", "blue")
+colors = c("blue", "red")
 
 ### THROUGHPUT ###
 for (nrSers in unique(res$nrServers)) {
