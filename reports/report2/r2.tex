@@ -34,7 +34,7 @@ Milestone}
 
 \section{Introduction}
 
-This is the second report in a series of three reports for the the advanced systems lab.
+This is the second report in a series of three reports for the the "Advanced Systems Lab".
 In this course we implement and investigate the performance of a middleware for Memcache.
 This part focusses mostly on investigating the performance of the system that was built for the previous part.
 
@@ -42,25 +42,53 @@ This part focusses mostly on investigating the performance of the system that wa
 \section{Fixes and upgrades}
 
 The middleware has changed since the last part to improve its efficiency.
-It no longer constructs the extremely verbose logging messages that it used to.
-Even though these messages were never printed, they were still constructed because of Java's strict evaluation semantics.
-This caused the middleware to perform very poorly.
 
-\TODO{re-run stability trace?}
+Previously the middleware was able to perform very verbose logging for debugging purposes.
+This logging could be turned off at runtime.
+Sadly, due tue Java's strict evaluation semantics, the logging messages were still constructed even if they weren't printed.
+As a result, the middleware would perform very poorly and achieve a very low throughput.
+
+The middleware has been adapted not to include this logging functionality anymore.
+It is now much more performant.
+
 
 \section{Background, internals and definitions}
 
-Each request is instrumented with timestamps that, among other things, indicate the time that a first request to any server was sent, and the time that the last response was received from all servers.
+The exact internal workings of the middleware system are described at length in the first report of this series.
+The most relevant bits are repeated here for reference.  
+
+
+\subsection{Instrumentation}
+
+Each request is instrumented with different timestamps that indicate certain important points in the processing of the request.
+
+Two of these timestamps indicate the time that a first request to any server was sent, and the time that the last response was received from all servers.
 The time between these two timestamps is called the 'interaction time' because that is when it is interacting with the servers.
 
 In the case of read requests, there is always only one server to contact, so this interaction time signifies the time it takes for the server to respond.
-In the case of write requests, the interaction time signifies the time it takes for all servers to respond.
+In the case of write requests, the interaction time signifies the time it takes for the middleware to receive a response from all relevant servers.
 In the case of no replication that is just one server, but in the case of full replication that is all the servers.
 
-The replication factor is an absolute number between $1$ and the number of servers.
-The so-called replication coefficient is a fraction that represents the ratio of redundant replication to the total number of backend servers. For example: For a setup with a total of $7$ backend servers and replication factor $4$, the replication coefficient is $\frac{1}{2}$
+\subsection{Threads}
 
+The middleware uses seperate queues and workes for the two kinds of requests.
+Read request are executed synchronously by a pool of read workers per server.
+Write requests are executed asynchronously by a single write worker per server.
+The number of threads in the read worker pool will be referred to as the 'threadcount' of the middleware.
+
+\subsection{Replication}
+
+The replication factor is an absolute number between $1$ and the number of servers.
+The so-called replication coefficient $R_c$ is a fraction that represents the ratio of redundant replication to the total number of backend servers. For example: For a setup with a total of $7$ backend servers and replication factor $4$, the replication coefficient is $\frac{1}{2}$
+It can be computed with the formula $R_c = \frac{R - 1}{S - 1}$.
+
+
+\subsection{Workload}
+
+The pretend clients that are used in the experiments use a predefined distribution of requests.
+One fracton of the requests will be read requests and the rest will be write requests.
 The percentage of the workload that consists of write requests is called the write percentage.
+
 
 \section{Maximum Throughput}
 
@@ -70,7 +98,7 @@ The percentage of the workload that consists of write requests is called the wri
 
 In the first experiment, the middleware is in charge of five servers with no replication and a read-only workload configuration.
 The aim is to investigate which combination of the total number of clients and the number of threads in each server's thread pool for reads achieves the highest throughput.
-The details of the explored configuration can be found in figure \ref{fig:sut-maximum-throughput}.
+The details of the explored configurations can be found in figure \ref{fig:sut-maximum-throughput}.
 
 \begin{figure}[H]
   \centering
@@ -83,7 +111,7 @@ The details of the explored configuration can be found in figure \ref{fig:sut-ma
 
 % Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations.
 
-Making an accurate estimate of the configuration that achieves the highest throughput is hard if not unnecessary.
+Making an accurate estimate of the exact configuration that achieves the highest throughput is hard if not unnecessary.
 What is more important is to estimate what will happen as we increase the total number of virtual clients or the number of threads in each server's thread pool for reads.
 
 \subsubsection{Increasing the total number of virtual clients}
@@ -96,14 +124,13 @@ As the middleware operates with an unbounded queue of requests to process, it ne
 
 As the total number of virtual clients increases, we expect to see throughput increase linearly up to the point where request queues are no longer always empty.
 From then on we expect to see throughput increase sublinearly up to the point where the request queues are no longer ever empty.
-From then on the throughput should not increase any further as subsequents will just be punt onto the queue and requests will not be processed any quicker.
+After that the throughput should not increase any further as subsequents will just be punt onto the queue and requests will not be processed any quicker.
 
 \subsubsection{Increasing the number of threads in each server's thread pool for reads}
 
-Reads are executed in a synchronous manner.
-This means that each read thread can perform at most one request per round-trip time.
+The fact that reads are executed in a synchronous manner means that each read thread can perform at most one request per round-trip time.
 Using more threads to processes read requests should somewhat solve this problem, but context switches are relatively expensive.
-This means that we expect using multiple threads to increase the throughput up to a certain point.
+As a result, we expect that using multiple threads will increase the throughput up to a certain point.
 At that point the cost of using multiple threads will outweigh the benefit.
 
 In general we expect response time to remain constant up to the point where queues are no longer constantly empty.
@@ -116,8 +143,6 @@ After this point, any more work gets put onto the queue and we then expect respo
 \subsection{Results and analysis}
 
 In figures \ref{fig:maximum-throughput-low}, \ref{fig:maximum-throughput-mid} and \ref{fig:maximum-throughput-high}, the results of the maximum throughput experiment are plotted.
-
-In what follows, we will refer to the number of threads in the middleware's read request thread pools as the 'threadcount' of the setup.
 For each threadcount under test there are four plots.
 
 The first plot shows the throughput in function of the total number of virtual clients and the second shows the total response time.
@@ -134,7 +159,7 @@ An exact number for either the maximum throughput or the number of virtual clien
 Uncertainties in measurement, along with a vague definition of 'maximum throughput' make it hard to give an exact number.
 
 The estimated maximum throughput and the number of virtual clients at which this throughput is achieved can be found in figure \ref{fig:maximum-throughput-numbers}.
-The maximum throughput estimate is given with an error of plus-minus $500$ TPS.
+The maximum throughput estimate is given with an error of plus-minus $500$ transactions per second.
 The estimate for the number of virtual clients is given with an error of plus-minus $10$.
 
 \begin{figure}[H]
@@ -146,8 +171,9 @@ The estimate for the number of virtual clients is given with an error of plus-mi
     \hline $9$ & $10000 \pm 500$ & $50$ \\
     \hline $13$ & $11000 \pm 500$ & $60$ \\
     \hline $17$ & $11500 \pm 500$ & $70$ \\
-    \hline $21$ & $17500 \pm 500$ & $80$ \\
+    \hline $21$ & $11750 \pm 500$ & $80$ \\
   \end{tabular}
+  \caption{Maximum throughput estimates}
   \label{fig:maximum-throughput-numbers}
 \end{figure}
 
@@ -209,7 +235,6 @@ The top plots show the absolute time spent, broken down by operation.
 The bottom plots show the same data, but the time is show in percentages relative to the total amount of time spent for an average request.
 
 Note that we see that these response time plots are very similar in shapes to the same response times as seen by the client.
-Anything else would not make sense and would indicate a fault somewhere.
 
 In the case of one thread per read pool, we can see that the majority of an average request's time is spent on the queue, waiting to be processed.
 Using more threads per read pool results in the average request spending more time interacting with the server.

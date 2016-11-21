@@ -140,12 +140,7 @@ simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
     let line k a = SimplifiedCsvLine
             { nrServers = nrsers
             , replicationFactor = repfac
-            , replicationCoefficient =
-                if repfac == 1
-                then 0
-                else if repfac == mwReplicationFactor (mMiddlewareFlags ms)
-                    then 1
-                    else 0.5
+            , replicationCoefficient = (fromIntegral repfac - 1) / (fromIntegral nrsers - 1)
             , kind = k
             , respAvg = a
             }
