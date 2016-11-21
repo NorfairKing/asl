@@ -33,7 +33,7 @@ for (nrSers in unique(res$nrServers)) {
     cat <- dat$category
 
     d <- data.frame(xval, yval, cat)
-    d$cat <- factor(d$cat, levels=cat[1:6])
+    d$cat <- factor(d$cat, levels=rev(cat[1:6]))
 
     gg <- ggplot(d, aes(x=factor(xval), y=yval, fill=cat))
     gg <- gg + geom_bar(stat='identity')

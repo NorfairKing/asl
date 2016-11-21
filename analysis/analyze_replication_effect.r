@@ -12,7 +12,6 @@ prefix <- args[3]
 
 res = read.csv(inFile, header=TRUE)
 
-xl = "Replication factor"
 yl = "Average response time (milliseconds)"
 
 res$avg <- res$avg / 1000
@@ -20,6 +19,7 @@ res$std <- res$std / 1000
 
 maxTime = max(res$avg + res$std)
 
+xl = "Replication factor"
 # TODO error bars
 for (nrSers in unique(res$nrServers)) {
   dat <- res[res$nrServers == nrSers,]
@@ -40,10 +40,11 @@ for (nrSers in unique(res$nrServers)) {
   gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
   gg <- gg + coord_cartesian(ylim=c(0,maxTime))
   gg <- gg + theme(legend.title=element_blank())
-  gg <- gg + scale_fill_brewer(palette = "Set1")
+  gg <- gg + scale_fill_brewer(palette = "Set2")
   print(gg)
 }
 
+xl = "Number of servers"
 for (repcof in unique(res$replicationCoefficient)) {
   dat <- res[res$replicationCoefficient == repcof,]
 
@@ -63,6 +64,6 @@ for (repcof in unique(res$replicationCoefficient)) {
   gg <- gg + ggtitle(title) + xlab(xl) + ylab(yl)
   gg <- gg + coord_cartesian(ylim=c(0,maxTime))
   gg <- gg + theme(legend.title=element_blank())
-  gg <- gg + scale_fill_brewer(palette = "Set1")
+  gg <- gg + scale_fill_brewer(palette = "Set3")
   print(gg)
 }

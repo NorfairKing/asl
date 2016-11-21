@@ -48,6 +48,18 @@ This caused the middleware to perform very poorly.
 
 \TODO{re-run stability trace?}
 
+\section{Background, internals and definitions}
+
+Each request is instrumented with timestamps that, among other things, indicate the time that a first request to any server was sent, and the time that the last response was received from all servers.
+The time between these two timestamps is called the 'interaction time' because that is when it is interacting with the servers.
+
+In the case of read requests, there is always only one server to contact, so this interaction time signifies the time it takes for the server to respond.
+In the case of write requests, the interaction time signifies the time it takes for all servers to respond.
+In the case of no replication that is just one server, but in the case of full replication that is all the servers.
+
+The replication factor is an absolute number between $1$ and the number of servers.
+The so-called replication coefficient is a fraction that represents the ratio of redundant replication to the total number of backend servers. For example: For a setup with a total of $7$ backend servers and replication factor $4$, the replication coefficient is $\frac{1}{2}$
+
 \section{Maximum Throughput}
 
 \subsection{System under test}
@@ -251,8 +263,6 @@ This corresponds to the predictions
 % \item Write to $\ceil{\frac{S}{2}}$ (half) 
 % \item Write to all 
 % \end{itemize}
-% 
-% Answer at least the following questions: Are \texttt{get} and \texttt{set} requests impacted the same way by different setups? If yes/no, why? Which operations become more expensive inside the middleware as the configuration changes? How does the scalability of your system compare to that of an ideal implementation? Provide the graphs and tables necessary to support your claims.
 
 \begin{figure}[H]
   \centering
@@ -266,43 +276,85 @@ This corresponds to the predictions
 The second experiment aims to explore the effect of using more replication on performance.
 The clients will use a 5\%-write workload.
 There will be $3$, $5$ or $7$ server backends.
-Three configurations of the replication factor will be explored: No replication $(R=1)$, half replication $(\lceil \frac{S}{2} \rceil$ and full replication $(R=S)$.
+Three configurations of the replication factor will be explored: No replication $(R=1)$, half replication $(R=\lceil\frac{S}{2}\rceil)$ and full replication $(R=S)$.
 The details of the system under test can be found in figure \TODO{which figure?}.
 
-
 \subsection{Hypothesis}
+ 
+% Answer at least the following questions:
+% Are \texttt{get} and \texttt{set} requests impacted the same way by different setups? If yes/no, why?
+% Which operations become more expensive inside the middleware as the configuration changes?
+% How does the scalability of your system compare to that of an ideal implementation? Provide the graphs and tables necessary to support your claims.
 
-Each request is instrumented with timestamps that, among other things, indicate the time that a first request to any server was sent, and the time that the last response was received from all servers.
-The time between these two timestamps is called the 'interaction time' because that is when it is interacting with the servers.
-In the case of read requests, there is always only one servert to contact, so this interaction time signifies the time it takes for the server to respond.
-In the case of write requests, the interaction time signifies the time it takes for all servers to respond.
-In the case of no replication that is just one server, but in the case of full replication that is all the servers.
+For any fixed number of backend servers, we expect the interaction time for write requests to increase when the replication factor is increased.
+As such we expect the total response time for write requests to increase.
+This is because write requests need to be sent to more servers as the replication factor is increases and the middleware needs to wait for all the responses.
+Naturally, for a greater number of backend servers, we expect this increase to be even larger.
 
-As such, we expect the interaction time for write requests to increase as we increase the replication factor.
-Moreover, we expect this effect to be more prominent the more servers are used.
-For read requests, we don't expect the interaction time to increase.
+For read requests, we don't expect the interaction time, nor the total response time, to increase when the replication factor is increased.
+This is because read requests only ever get sent to one server no matter the replication factor.
+
+For any fixed replication coefficient, we expect the interaction time for write requests to increase when the number of backend servers is increased.
+Again we expect the total response time for write requests to increase.
+However, for a greater replication coefficient, we expect this increase to be larger.
+In particular we expect there to not be a difference in the case of $R=1$.
+
+For read request, we don't expect the interaction time, nor the total response time, to increase when the number of servers is increased.
+Again this is because read requests only ever get sent to one server no matter the replication factor.
 
 \subsection{Results and analysis}
 
-% Also make plots that put the number of servers on the x axis for each replication factor.
+% Are \texttt{get} and \texttt{set} requests impacted the same way by different setups? If yes/no, why?
+
+In figure \ref{fig:replication-analysis-id}, there are grouped bar plots of response times \footnote{as measured by memaslap}, grouped by the replication factor.
+On each plot we see that write requests incur a greater response time than read request.
+Moreover we see that response times for read requests stay constant as the replication factor increases.
+Write requests, on the other hand, become more expensive as the replication factor increases.
+This increase is larger for a greater number of backend servers.
+
+These results exactly match the hypothesis
 
 \begin{figure}[H]
   \centering
-    \includegraphics[width=0.31\textwidth]{\plot{remote-replication-effect-replication-analysis-id-3.png}}
-    \includegraphics[width=0.31\textwidth]{\plot{remote-replication-effect-replication-analysis-id-5.png}}
-    \includegraphics[width=0.31\textwidth]{\plot{remote-replication-effect-replication-analysis-id-7.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-replication-effect-replication-analysis-id-3.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-replication-effect-replication-analysis-id-5.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-replication-effect-replication-analysis-id-7.png}}
   \caption{Effect of replication factor}
-  \label{fig:replication-analysis}
+  \label{fig:replication-analysis-id}
 \end{figure}
+
+In figure \ref{fig:replication-analysis-rev}, there are grouped bar plots of response time, grouped by the number of backend servers.
+On each plot we again see that write requests incur a greater response time than read requests.
+
+We also see that response times for both kinds of requests increase ever so slightly as the number of backend servers increases.
+This result differs from the expected result.
+It happens because there is more bookkeeping to do in total if there are more backend servers so there is more processing to contend with.
+
+In the case of replication coefficients $0.5$ and $1.0$, we see that response times for read requests become only slightly longer while there is a big increase in the response times for write requests.
+Moreover, this increase is larger for the situation with replication coefficient $1.0$ than for the situation with replication coefficient $0.5$.
 
 \begin{figure}[H]
   \centering
-    \includegraphics[width=0.31\textwidth]{\plot{remote-replication-effect-replication-analysis-rev-0.png}}
-    \includegraphics[width=0.31\textwidth]{\plot{remote-replication-effect-replication-analysis-rev-1.png}}
-    \includegraphics[width=0.31\textwidth]{\plot{remote-replication-effect-replication-analysis-rev-2.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-replication-effect-replication-analysis-rev-0.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-replication-effect-replication-analysis-rev-1.png}}
+    \includegraphics[width=\textwidth]{\plot{remote-replication-effect-replication-analysis-rev-2.png}}
   \caption{Effect of replication factor}
-  \label{fig:replication-analysis}
+  \label{fig:replication-analysis-rev}
 \end{figure}
+
+% Which operations become more expensive inside the middleware as the configuration changes?
+% How does the scalability of your system compare to that of an ideal implementation? Provide the graphs and tables necessary to support your claims.
+
+In figure \ref{fig:replication-cost}, there is a detailed breakdown of the time that an average requests spends in the middleware.
+On the left are the plots for read request, on the right are plots for write requests.
+Each plot accounts for a fixed number of servers, with the replication factor on the x-axis.
+
+First note that the shapes of these time\footnote{As measured by the middleware} plots correspond to the shape of the plots of the response times as measured by the clients.
+
+We can see that in both cases, the middleware spends most of a request's time interacting with the servers.
+As hypothesized, this time stays constant for read requests as the replication factor increases.
+For write requests, the time spent interacting with the servers increases severely when the replication factor increases.
+Moreover, this effect is larger when the total number of backend servers is greater.
 
 \begin{figure}[H]
   \centering
@@ -313,7 +365,7 @@ For read requests, we don't expect the interaction time to increase.
     \includegraphics[width=0.48\textwidth]{\plot{remote-replication-effect-replication-cost-analysis-7-read.png}}
     \includegraphics[width=0.48\textwidth]{\plot{remote-replication-effect-replication-cost-analysis-7-write.png}}
   \caption{Effect of replication factor}
-  \label{fig:replication-analysis}
+  \label{fig:replication-cost}
 \end{figure}
 
 \section{Effect of Writes}
