@@ -36,7 +36,7 @@ Milestone}
 
 This is the second report in a series of three reports for the the "Advanced Systems Lab".
 In this course we implement and investigate the performance of a middleware for Memcache.
-This part focusses mostly on investigating the performance of the system that was built for the previous part.
+This part focuses mostly on investigating the performance of the system that was built for the previous part.
 
 
 \section{Fixes and upgrades}
@@ -45,7 +45,7 @@ The middleware has changed since the last part to improve its efficiency.
 
 Previously the middleware was able to perform very verbose logging for debugging purposes.
 This logging could be turned off at runtime.
-Sadly, due tue Java's strict evaluation semantics, the logging messages were still constructed even if they weren't printed.
+Sadly, due due Java's strict evaluation semantics, the logging messages were still constructed even if they weren't printed.
 As a result, the middleware would perform very poorly and achieve a very low throughput.
 
 The middleware has been adapted not to include this logging functionality anymore.
@@ -71,10 +71,10 @@ In the case of no replication that is just one server, but in the case of full r
 
 \subsection{Threads}
 
-The middleware uses seperate queues and workes for the two kinds of requests.
+The middleware uses separate queues and workers for the two kinds of requests.
 Read request are executed synchronously by a pool of read workers per server.
 Write requests are executed asynchronously by a single write worker per server.
-The number of threads in the read worker pool will be referred to as the 'threadcount' of the middleware.
+The number of threads in the read worker pool will be referred to as the 'thread count' of the middleware.
 
 \subsection{Replication}
 
@@ -86,7 +86,7 @@ It can be computed with the formula $R_c = \frac{R - 1}{S - 1}$.
 \subsection{Workload}
 
 The pretend clients that are used in the experiments use a predefined distribution of requests.
-One fracton of the requests will be read requests and the rest will be write requests.
+One fraction of the requests will be read requests and the rest will be write requests.
 The percentage of the workload that consists of write requests is called the write percentage.
 
 
@@ -123,8 +123,8 @@ As the middleware operates with an unbounded queue of requests to process, it ne
 }
 
 As the total number of virtual clients increases, we expect to see throughput increase linearly up to the point where request queues are no longer always empty.
-From then on we expect to see throughput increase sublinearly up to the point where the request queues are no longer ever empty.
-After that the throughput should not increase any further as subsequents will just be punt onto the queue and requests will not be processed any quicker.
+From then on we expect to see throughput increase sub-linearly up to the point where the request queues are no longer ever empty.
+After that the throughput should not increase any further as subsequent will just be punt onto the queue and requests will not be processed any quicker.
 
 \subsubsection{Increasing the number of threads in each server's thread pool for reads}
 
@@ -143,7 +143,7 @@ After this point, any more work gets put onto the queue and we then expect respo
 \subsection{Results and analysis}
 
 In figures \ref{fig:maximum-throughput-low}, \ref{fig:maximum-throughput-mid} and \ref{fig:maximum-throughput-high}, the results of the maximum throughput experiment are plotted.
-For each threadcount under test there are four plots.
+For each thread count under test there are four plots.
 
 The first plot shows the throughput in function of the total number of virtual clients and the second shows the total response time.
 Both of these first plots are derived from the data as viewed by the clients.
@@ -219,7 +219,7 @@ The estimate for the number of virtual clients is given with an error of plus-mi
 
 \subsubsection{Comparison of results with hypothesis}
 
-In each throughput plot we see that throughput first increases linearly, then increases sublinearly and finally levels off.
+In each throughput plot we see that throughput first increases linearly, then increases sub-linearly and finally levels off.
 This corresponds exactly to the hypothesis.
 
 In each response time plot, we see a linear increase in response time.
@@ -313,7 +313,6 @@ The details of this experiments' setups can be found in Figure \ref{fig:sut-repl
 % Are \texttt{get} and \texttt{set} requests impacted the same way by different setups? If yes/no, why?
 % Which operations become more expensive inside the middleware as the configuration changes?
 % How does the scalability of your system compare to that of an ideal implementation? Provide the graphs and tables necessary to support your claims.
-% TODO this is important to still answer.
 
 For any fixed number of backend servers, we expect the interaction time for write requests to increase when the replication factor is increased.
 This is because write requests need to be sent to more servers as the replication factor is increases and the middleware needs to wait for all the responses.
@@ -359,6 +358,7 @@ On each plot we again see that write requests incur a greater response time than
 In the case of a replication coefficient of $0.0$, we see that response times for both kinds of requests increase ever so slightly as the number of backend servers increases.
 This result differs from the expected result.
 It happens because there is more bookkeeping to do in total if there are more backend servers so there is more processing to contend with.
+This is where the real system differs from an ideal system.
 
 In the cases of replication coefficients $0.5$ and $1.0$, we see that response times for read requests become only slightly longer while there is a big increase in the response times for write requests.
 Moreover, this increase is larger for the situation with replication coefficient $1.0$ than for the situation with replication coefficient $0.5$.
@@ -421,7 +421,7 @@ In this last experiment, we investigate the results of increasing the size of th
 Between 3 and 7 servers will be used with either no replication or full replication.
 The percentage of the requests that consists of writes will be varied between 1\% and 10\%.
 
-The details of the experiment's setups can be found in Figure \ref{fig:sut-write-effect}.
+The details of the experiments' setups can be found in Figure \ref{fig:sut-write-effect}.
 
 
 \subsection{Hypothesis}
@@ -461,7 +461,7 @@ These results match up with the hypotheses exactly.
 
 \newpage
 
-\section{Logfile listing}
+\section{Log file listing}
 
 \input{\genfile{report-2-logfile-listings.tex}}
  
