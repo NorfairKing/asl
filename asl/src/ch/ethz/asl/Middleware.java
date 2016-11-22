@@ -33,7 +33,9 @@ public class Middleware {
       List<String> mcAddresses,
       int numThreadsPTP,
       int writeToCount,
-      String logfile)
+      String logfile,
+      int readSampleRate,
+      int writeSampleRate)
       throws IOException {
     this.myAddress = new InetSocketAddress(myIp, myPort);
     this.servers = makeServers(mcAddresses);
@@ -41,7 +43,7 @@ public class Middleware {
     this.assc = AsynchronousServerSocketChannel.open(group);
     this.replicationFactor = writeToCount;
     this.readThreadpoolSize = numThreadsPTP;
-    this.instrumentor = new Instrumentor(logfile);
+    this.instrumentor = new Instrumentor(logfile, readSampleRate, writeSampleRate);
   }
 
   private static List<ServerAddress> makeServers(List<String> servers) {
@@ -73,11 +75,10 @@ public class Middleware {
   public void startServer() {
     try {
       assc.bind(myAddress);
-      log.fine("Bound to " + myAddress);
-      assc.accept(
-          null,
+      AcceptCompletionHandler ach =
           new AcceptCompletionHandler(
-              assc, servers, instrumentor, replicationFactor, readThreadpoolSize));
+              assc, servers, instrumentor, replicationFactor, readThreadpoolSize);
+      assc.accept(null, ach);
     } catch (BindException e) {
       e.printStackTrace();
       System.exit(1);

@@ -17,5 +17,5 @@ c \
   asl/test
 
 print_colored_text BLUE "Report code:\n"
-c --quiet \
+c \
   reports

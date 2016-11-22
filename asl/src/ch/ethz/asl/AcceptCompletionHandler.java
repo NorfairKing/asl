@@ -73,30 +73,28 @@ public class AcceptCompletionHandler
           ByteBuffer.allocate(BUFFER_SIZE); // Clear does not set values to 0, just reallocate here.
       chan.read(bbuf, this, handler);
     }
+
+    void doTheRead(final InitialInputCompletionHandler handler, int bytesRead) {
+      chan.read(bbuf, this, handler);
+    }
   }
 
-  class InitialInputCompletionHandler implements CompletionHandler<Integer, InitialInput> {
+  private class InitialInputCompletionHandler implements CompletionHandler<Integer, InitialInput> {
 
     @Override
     public void completed(final Integer bytesRead, final InitialInput initialInput) {
       long receivedAt = now();
       AsynchronousSocketChannel chan = initialInput.chan;
       ByteBuffer bbuf = initialInput.bbuf;
-      log.finest("Input from client:");
-      log.finest(Integer.toString(bytesRead) + " bytes");
       if (bytesRead >= 0) {
-        log.finest("\"" + new String(bbuf.array()) + "\"");
-
         Request req = null;
         Response preliminaryResponse = null;
         try {
           req = RequestParser.parseRequest(bbuf);
-          log.finest("Parsed request: " + req.toString());
         } catch (NotEnoughDataException e) {
-          log.fine("Not enough data to parse request.");
-          preliminaryResponse = new ClientErrorResponse("Not enough data.");
+          initialInput.doTheRead(this, bytesRead);
+          return;
         } catch (ParseFailedException e) {
-          log.fine("Failed to parse a request.");
           preliminaryResponse = new ErrorResponse();
         }
         if (req == null) { // Then preliminary response will not be null.
@@ -115,7 +113,6 @@ public class AcceptCompletionHandler
         initialInput.doTheRead(this);
       } else {
         try {
-          log.fine("Got " + bytesRead + " from client, closing the connection.");
           chan.close();
         } catch (IOException e) {
           e.printStackTrace();
@@ -125,8 +122,9 @@ public class AcceptCompletionHandler
 
     @Override
     public void failed(Throwable exc, InitialInput initialInput) {
+      exc.printStackTrace();
       try {
-        log.info("Initial input failed, closing the connection.");
+        log.severe("Initial input failed, closing the connection.");
         initialInput.chan.close();
       } catch (IOException e) {
         e.printStackTrace();
@@ -159,10 +157,8 @@ public class AcceptCompletionHandler
 
   private static int pickServerIndex(final List<ServerHandler> servers, final Request req) {
     int hash = req.keyHash();
-    log.finest("hash of request: " + Integer.toString(req.hashCode()));
     int nrServers = servers.size();
     int serverIndex = mod(hash, nrServers);
-    log.finest("Chose server index: " + Integer.toString(serverIndex));
     return serverIndex;
   }
 
@@ -176,6 +172,7 @@ public class AcceptCompletionHandler
 
   @Override
   public void failed(Throwable exc, Object attachment) {
+    exc.printStackTrace();
     try {
       assc.close();
     } catch (IOException e) {

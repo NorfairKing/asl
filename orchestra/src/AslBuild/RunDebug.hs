@@ -7,10 +7,8 @@ import           System.Process
 import           Development.Shake
 import           Development.Shake.FilePath
 
-import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
 import           AslBuild.Constants
-import           AslBuild.Jar
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
 import           AslBuild.Middleware
@@ -22,8 +20,6 @@ runDebugRule = "run-debug"
 runDebugRules :: Rules ()
 runDebugRules =
     runDebugRule ~> do
-        need [memcachedBin, memaslapBin, outputJarFile]
-
         let mcfs = MemcachedFlags
                 { memcachedPort = 11211
                 , memcachedAsDaemon = False
@@ -37,6 +33,8 @@ runDebugRules =
                 , mwServers           = [RemoteServerUrl localhostIp $ memcachedPort mcfs]
                 , mwVerbosity         = LogFine
                 , mwTraceFile         = tmpDir </> "debug-trace" <.> csvExt
+                , mwReadSampleRate = Nothing
+                , mwWriteSampleRate = Nothing
                 }
 
         let cfs = MemaslapSettings
@@ -44,7 +42,6 @@ runDebugRules =
                     { keysizeDistributions = [Distribution 16 16 1]
                     , valueDistributions = [Distribution 128 128 1]
                     , setProportion = 0.01
-                    , getProportion = 0.99
                     }
                 , msFlags = MemaslapFlags
                     { msServers = [RemoteServerUrl localhostIp $ mwPort mwfs]
@@ -53,17 +50,18 @@ runDebugRules =
                     , msOverwrite = 0.9
                     , msStatFreq = Just $ Seconds 1
                     , msWorkload = WorkFor $ Hours 1
+                    , msWindowSize = Kilo 1
                     , msConfigFile = tmpDir </> "debug-memaslap-config" <.> txtExt
                     }
                 }
 
         writeMemaslapConfig (msConfigFile $ msFlags cfs) (msConfig cfs)
 
-        serverPh <- cmd memcachedBin $ memcachedArgs mcfs
+        serverPh <- runMemcachedLocally mcfs
         waitMs 100
-        middlePh <- cmd javaCmd "-jar" outputJarFile $ middlewareArgs mwfs
+        middlePh <- runMiddlewareLocally mwfs
         waitMs 100
-        clientPh <- cmd memaslapBin $ memaslapArgs $ msFlags cfs
+        clientPh <- runMemaslapLocally $ msFlags cfs
 
 
         actionFinally (forever $ wait 1) $ do

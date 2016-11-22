@@ -37,6 +37,11 @@ public class ClientErrorResponse implements Response {
     return res;
   }
 
+  @Override
+  public boolean isWriteFailure() {
+    return true;
+  }
+
   private static final byte[] CLIENT_ERROR_STR = "CLIENT_ERROR".getBytes();
 
   @Override

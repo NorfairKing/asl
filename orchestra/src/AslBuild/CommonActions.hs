@@ -3,7 +3,8 @@ module AslBuild.CommonActions where
 
 import           Control.Concurrent
 import           Control.Monad
-import           System.Directory
+import           System.Directory           hiding (doesFileExist)
+import qualified System.Directory           as D
 import           System.Exit
 import           System.Process
 
@@ -13,6 +14,19 @@ import           Development.Shake.FilePath
 import           AslBuild.Memaslap
 import           AslBuild.Ssh
 import           AslBuild.Types
+
+onlyIfFileExists :: FilePath -> Rules a -> Rules (Maybe a)
+onlyIfFileExists file rule = do
+    exists <- liftIO $ D.doesFileExist file
+    if exists
+    then Just <$> rule
+    else return Nothing
+
+-- Depend on a file, but don't rebuild it evern once it exists.
+needsToExist :: FilePath -> Action ()
+needsToExist file = do
+    exists <- doesFileExist file
+    need [file | not exists]
 
 phPar :: [a] -> (a -> Action ProcessHandle) -> Action ()
 phPar ls func = do
@@ -31,12 +45,9 @@ waitMs i = do
     liftIO $ threadDelay $ i * 1000
 
 scriptAt :: CmdResult r => RemoteLogin -> Script -> Action r
-scriptAt rl s@Script{..} = do
+scriptAt rl s = do
     unit $ copyScriptOver rl s
-    let fullScript = unlines scriptContent
-    liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
-    -- Run the script
-    overSsh rl $ scriptPath s
+    runRemoteVerboseScript rl s
 
 scriptPath :: Script -> FilePath
 scriptPath Script{..} = "/tmp" </> scriptName <.> "bash"
@@ -57,10 +68,18 @@ copyScriptOver rl s@Script{..} = do
 parScriptAt :: [(RemoteLogin, Script)] -> Action ()
 parScriptAt ss = do
     phPar ss $ uncurry copyScriptOver
-    phPar ss $ \(rl, s) -> do
-        let fullScript = unlines $ scriptContent s
-        liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
-        overSsh rl $ scriptPath s
+    phPar ss $ uncurry runRemoteVerboseScript
+
+parScriptAtResult :: CmdResult r => [(RemoteLogin, Script)] -> Action [r]
+parScriptAtResult ss = do
+    phPar ss $ uncurry copyScriptOver
+    forP ss $ uncurry runRemoteVerboseScript
+
+runRemoteVerboseScript :: CmdResult b => RemoteLogin -> Script -> Action b
+runRemoteVerboseScript rl s =  do
+    let fullScript = unlines $ scriptContent s
+    liftIO $ putStrLn $ "Running on " ++ remoteLoginStr rl ++ ":\n" ++ fullScript
+    overSsh rl $ scriptPath s
 
 overSsh :: CmdResult r => RemoteLogin -> String -> Action r
 overSsh rl commandOverSsh = do
@@ -97,6 +116,10 @@ rsyncTo rl localThing remoteThing = do
 rsyncFrom :: CmdResult r => RemoteLogin -> FilePath -> FilePath -> Action r
 rsyncFrom rl remoteThing localThing = do
     need [customSshKeyFile, customSshConfigFile]
+
+    -- Ensure that the local directory exists
+    unit $ cmd "mkdir" "--parents" $ takeDirectory localThing
+
     cmd "rsync"
         "--compress"
         "--progress"

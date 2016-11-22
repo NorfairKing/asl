@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper, portrait, margin=1in]{geometry}
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\begin{document}
+
+\title{Advanced Systems Lab (Fall'16) -- Second
+Milestone}
+
+\author{Name: \emph{Your name}\\Legi number: \emph{Your legi
+number}}
+
+\date{
+\vspace{4cm}
+\textbf{Grading} \\
+\begin{tabular}{|c|c|}
+\hline  \textbf{Section} & \textbf{Points} \\ 
+\hline  1 &  \\ 
+\hline  2 &  \\ 
+\hline  3 &  \\ 
+\hline \hline Total & \\
+\hline 
+\end{tabular} 
+}
+
+\maketitle
+
+\newpage
+
+\section*{Notes on writing the report \small{(remove this page for submission)}}
+
+Before starting to work on this milestone please remember:
+\begin{itemize}
+\item The prerequisite to a successful completion to this milestone is to have a stable system and also the necessary logging functionalities in place. 
+\item Depending on the workload and goal of the experiment, you might need to change the sampling rate from the default level. Make sure to indicate when doing so.
+\item The choice of experiment length and repetitions is up to you to decide, please make sure that you do not include warm-up and cool-down phases in the measurements. There are many experiments to run in this milestone, try to make a tradeoff.  
+\item We recommend that you have scripts in place to deploy and run experiments.
+\item All experiments have to be executed on the Microsoft Azure cloud.
+\item When plotting graphs include errors or measures of accuracy whenever possible. 
+\item Keep the report compact and concise! The total length should not exceed 20 pages. Log listings are not counted in this length, but all text, figures and tables are. If you have many logs, compress them by experiment and reference the archive instead of the independent files.
+\end{itemize}
+
+In this milestone we expect to see the different experiments you ran to exercise the system, and with each experiment we expect a clear description of the system configuration used, the hypothesis on behavior and the explanation of the behavior observed (in terms of the different design decisions taken beforehand) -- \emph{missing either of these for an experiment might make you lose all points for that given experiment!} 
+
+Keep in mind that for a good explanation of the results of an experiment you might have to use one or more methods of data analysis presented in the lecture and in the book. You might have to combine measurements taken in the middleware with the ones at the clients to be able to provide a full picture.
+
+Please feel free to structure the three sections of this report as it makes most sense for your experiments and explanations, but please respect the goal of each section. Also, similarly to the first milestone, include tables and descriptions about your experimental setup before each set of experiments.
+
+\medskip
+
+\section*{Formatting guidelines (same as Milestone 1)}
+We expect you to use this template for the report, but in case you want to use Word or an other text processor, keep in mind the following:
+\begin{itemize}
+\item  We expect you to submit \textbf{a single PDF that has the same section structure as this template, and answers all points we outline here}. If you use this file, you should remove this page with notes, and the short description provided by us at the beginning of sections.
+\item Keep the same cover page as on this document and \textbf{fill out your name and legi number}. Leave the grading table empty.
+\item  The main text should be in \textbf{single-column format with 11pt font on A4 paper}. In case you don't start with one of the files provided by us, \textbf{for margins use 2.54 cm (1 inch) on all sides}.
+\end{itemize}
+
+\pagebreak
+
+\section{Maximum Throughput}
+
+Find the highest throughput of your system for 5 servers with no replication and a read-only workload configuration. What is the minimum number of threads and clients (rounded to multiple of 10) that together achieve this throughput? Explain why the system reaches its maximum throughput at these points and show how the performance changes around these configurations. Provide a detailed breakdown of the time spent in the middleware for each operation type.
+
+
+\section{Effect of Replication}
+
+Explore how the behavior of your system changes for a 5\%-write workload with S=3,5 and 7 server backends and the following three replication factors:
+\begin{itemize} 
+\item Write to $1$ (no replication) 
+\item Write to $\ceil{\frac{S}{2}}$ (half) 
+\item Write to all 
+\end{itemize}
+
+Answer at least the following questions: Are \texttt{get} and \texttt{set} requests impacted the same way by different setups? If yes/no, why? Which operations become more expensive inside the middleware as the configuration changes? How does the scalability of your system compare to that of an ideal implementation? Provide the graphs and tables necessary to support your claims.
+
+ 
+
+\section{Effect of Writes}
+
+In this section, you should study the changes in throughput and response time of your system as the percentage of write operations increases. Use a combination of 3 to 7 servers and vary the number of writes between 1\% and 10\% (e.g. 1\%, 5\% and 10\%). The experiments need to be carried out for the replication factors R=1 and R=all.  
+
+For what number of servers do you see the biggest impact (relative to base case) on performance? Investigate the main reason for the reduced performance and provide a detailed explanation of the behavior of the system. Provide the graphs and tables necessary to support your claims.
+
+ 
+\end{document}

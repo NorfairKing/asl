@@ -4,20 +4,20 @@ import           Development.Shake
 import           Development.Shake.FilePath
 
 import           AslBuild.Analysis
-import           AslBuild.Baseline
 import           AslBuild.BuildMemcached
 import           AslBuild.Constants
+import           AslBuild.Experiment
+import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.MaximumThroughput
+import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
-import           AslBuild.LocalMiddlewareMultiClientTest
-import           AslBuild.LocalMiddlewareMultipleClientsTest
-import           AslBuild.LocalMiddlewareMultipleServersTest
-import           AslBuild.LocalMiddlewareParseTest
-import           AslBuild.LocalMiddlewareReplicationTest
-import           AslBuild.LocalMiddlewareSimpleTest
+import           AslBuild.LocalMiddlewareTests
 import           AslBuild.Orc
 import           AslBuild.Reports
-import           AslBuild.StabilityTrace
+import           AslBuild.Reports.ExperimentFormat
 import           AslBuild.Test
 import           AslBuild.Utils
 
@@ -30,36 +30,45 @@ preCommitRule = "pre-commit"
 preCommitRules :: Rules ()
 preCommitRules = do
     preCommitRule ~> do
-        need [outputJarFile]
-        need [orcBin]
-        need [memcachedBin]
-        need [memaslapBin]
+        mapM_ (need . (:[]))
+            [ outputJarFile
+            , memcachedBin
+            , memaslapBin
 
-        need [codeHealthRule]
-        need [testRule]
-        need [documentationRule]
+            , codeHealthRule
 
-        need [localLogTestRule]
-        need [localMiddlewareParseTestRule]
-        need [localMiddlewareMultiClientTestRule]
-        need [localMiddlewareReplicationTestRule]
-        need [localMiddlewareSimpleTestRule]
-        need [localMiddlewareMultipleServersTestRule]
-        need [localMiddlewareMultipleClientsTestRule]
+            , testRule
+            , localLogTestRule
 
-        need [smallLocalBaselineExperimentRule]
-        need [smallLocalStabilityTraceRule]
+            , localMiddlewareTestsRule
+            ]
 
-        need [analysisRule]
-        need [reportsRule]
+        liftIO $ do
+            removeFiles "" [experimentLocalTmpDir smallLocalBaselineExperiment]
+            removeFiles "" [experimentLocalTmpDir smallLocalStabilityTrace]
+            removeFiles "" [experimentLocalTmpDir smallLocalMaximumThroughput]
+            removeFiles "" [experimentLocalTmpDir smallLocalReplicationEffect]
+            removeFiles "" [experimentLocalTmpDir smallLocalWriteEffect]
 
-        need [formatClientRule]
+        mapM_ (need . (:[]))
+            [ smallLocalBaselineExperimentRule
+            , smallLocalStabilityTraceRule
+            , smallLocalMaximumThroughputRule
+            , smallLocalReplicationEffectRule
+            , smallLocalWriteEffectRule
+
+            , analysisRule
+
+            , experimentTablesRule
+            , reportsRule
+
+            , formatClientRule
+            ]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.
 
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 
     codeHealth
-    documentation
     formatClient
 
 codeHealthRule :: String
@@ -133,13 +142,6 @@ sanityIn dir = do
         stackCmd "build"
         "--fast"
         "--ghc-options" [unwords ghcOpts]
-
-
-documentationRule :: String
-documentationRule = "documentation"
-
-documentation :: Rules ()
-documentation = documentationRule ~> cmd (Cwd aslDir) stackCmd "haddock"
 
 javaFormatterUrl :: FilePath
 javaFormatterUrl = "https://github.com/google/google-java-format/releases/download/google-java-format-1.0/google-java-format-1.0-all-deps.jar"

@@ -19,12 +19,16 @@ customSshPublicKeyFile = customSshKeyFile <.> "pub"
 customSshConfigFile :: FilePath
 customSshConfigFile = tmpDir </> "ssh_config.cfg"
 
+customKnownHostsFile :: FilePath
+customKnownHostsFile = tmpDir </> "ssh_known_hosts"
+
 sshRules :: Rules ()
 sshRules = do
     sshRule ~> need
         [ customSshKeyFile
         , customSshPublicKeyFile
         , customSshConfigFile
+        , customKnownHostsFile
         ]
 
     [customSshKeyFile, customSshPublicKeyFile] &%> \_ -> do
@@ -40,9 +44,14 @@ sshRules = do
             appendFile (home </> ".ssh" </> "authorized_keys") pubKey
 
 
-    customSshConfigFile %> \_ ->
+    customKnownHostsFile %> \_ ->
+        writeFile' customKnownHostsFile ""
+
+    customSshConfigFile %> \_ -> do
+        need [customKnownHostsFile, customSshPublicKeyFile]
         writeFile' customSshConfigFile $ unlines
             [ "Host *"
             , "  StrictHostKeyChecking no"
             , "  IdentityFile " ++ customSshPublicKeyFile
+            , "  UserKnownHostsFile " ++ customKnownHostsFile
             ]

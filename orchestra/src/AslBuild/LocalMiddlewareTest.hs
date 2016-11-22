@@ -11,10 +11,7 @@ import           System.Process
 
 import           Development.Shake
 
-import           AslBuild.BuildMemcached
 import           AslBuild.CommonActions
-import           AslBuild.Constants
-import           AslBuild.Jar
 import           AslBuild.LocalMiddlewareTest.Types
 import           AslBuild.Memaslap
 import           AslBuild.Memcached
@@ -33,22 +30,18 @@ runLocalMiddlewareTests setups = forM_ (indexed setups) $ \(ix, setup) -> do
 
 runLocalMiddlewareTest :: LocalMiddlewareTestSetup -> Action ()
 runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
-    need [memcachedBin, memaslapBin, outputJarFile]
-
     forM_ clientSetups $ \mss ->
         writeMemaslapConfig (msConfigFile $ msFlags mss) $ msConfig mss
 
-    serverPHs <- forM serverSetups $ \mcfs ->
-        cmd memcachedBin $ memcachedArgs mcfs
+    serverPHs <- forM serverSetups runMemcachedLocally
 
-    waitMs 500
+    waitMs 250
 
-    middlePH <- cmd javaCmd "-jar" outputJarFile $ middlewareArgs middlewareSetup
+    middlePH <- runMiddlewareLocally middlewareSetup
 
-    waitMs 500
+    waitMs 250
 
-    clientPHs <- forM clientSetups $ \mss ->
-        cmd memaslapBin $ memaslapArgs $ msFlags mss
+    clientPHs <- forM clientSetups $ runMemaslapLocally . msFlags
 
     let goOn = do
             wait runtime
@@ -56,7 +49,6 @@ runLocalMiddlewareTest LocalMiddlewareTestSetup{..} = do
 
     actionFinally goOn $ return ()
 
-    --liftIO $ mapM_ terminateProcess clientPHs
     forM_ (indexed clientPHs) $ \(ix, clientPH) -> do
         sec <- liftIO $ waitForProcess clientPH
         case sec of

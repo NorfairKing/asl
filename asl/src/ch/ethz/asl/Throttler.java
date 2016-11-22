@@ -12,6 +12,9 @@ public class Throttler {
   }
 
   public boolean countAndCheck() {
+    if (rate == 0) {
+      return false;
+    }
     return counter.getAndIncrement() % rate == 0;
   }
 }

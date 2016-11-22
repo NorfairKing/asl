@@ -1,8 +1,9 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 module AslBuild.Memaslap.Types where
 
-import           Data.Aeson     (FromJSON, ToJSON)
+import           Data.Aeson
 import           GHC.Generics
 
 import           AslBuild.Types
@@ -21,7 +22,6 @@ data MemaslapConfig
     { keysizeDistributions :: [Distribution]
     , valueDistributions   :: [Distribution]
     , setProportion        :: Double
-    , getProportion        :: Double
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MemaslapConfig
@@ -46,6 +46,7 @@ data MemaslapFlags
     , msStatFreq    :: Maybe TimeUnit
     , msWorkload    :: MemaslapWorkload
     , msConfigFile  :: FilePath
+    , msWindowSize  :: WindowSize
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   MemaslapFlags
@@ -58,6 +59,18 @@ data MemaslapWorkload
 
 instance ToJSON   MemaslapWorkload
 instance FromJSON MemaslapWorkload
+
+data WindowSize
+    = Unit Int
+    | Kilo Int
+    deriving (Show, Eq, Generic)
+
+instance ToJSON   WindowSize
+instance FromJSON WindowSize
+
+renderWindowSize :: WindowSize -> String
+renderWindowSize (Unit i) = show i
+renderWindowSize (Kilo i ) = show i ++ "k"
 
 data MemaslapLog
     = MemaslapLog
@@ -72,8 +85,8 @@ instance FromJSON MemaslapLog
 
 data StatsTriple
     = StatsTriple
-    { getStats  :: StatisticsLog
-    , setStats  :: StatisticsLog
+    { getStats  :: Maybe StatisticsLog
+    , setStats  :: Maybe StatisticsLog
     , bothStats :: StatisticsLog
     } deriving (Show, Eq, Generic)
 
@@ -99,17 +112,41 @@ data Statistics
     , minUs   :: Int
     , maxUs   :: Int
     , avgUs   :: Int
-    , stdDev  :: Double
+    , std     :: Double
     , geoDist :: Double
     } deriving (Show, Eq, Generic)
 
-instance ToJSON Statistics
-instance FromJSON Statistics
+instance ToJSON Statistics where
+    toJSON Statistics{..} = object
+        [ "time" .= time
+        , "ops" .= ops
+        , "tps" .= tps
+        , "net" .= net
+        , "getMiss" .= getMiss
+        , "minUs" .= minUs
+        , "maxUs" .= maxUs
+        , "avgUs" .= avgUs
+        , "stdDev" .= std
+        , "geoDist" .= geoDist
+        ]
+instance FromJSON Statistics where
+    parseJSON (Object o) = Statistics
+        <$> o .: "time"
+        <*> o .: "ops"
+        <*> o .: "tps"
+        <*> o .: "net"
+        <*> o .: "getMiss"
+        <*> o .: "minUs"
+        <*> o .: "maxUs"
+        <*> o .: "avgUs"
+        <*> o .: "stdDev"
+        <*> o .: "geoDist"
+    parseJSON _ = mempty
 
 data TotalStatsTrip
     = TotalStatsTrip
-    { totalGetStats  :: TotalStats
-    , totalSetStats  :: TotalStats
+    { totalGetStats  :: Maybe TotalStats
+    , totalSetStats  :: Maybe TotalStats
     , totalBothStats :: TotalStats
     } deriving (Show, Eq, Generic)
 
@@ -138,7 +175,7 @@ data FinalStats
     , finalWrittenBytes :: Int
     , finalReadBytes    :: Int
     , finalObjectBytes  :: Int
-    , finalRuntime      :: ()
+    , finalRuntime      :: Double
     , finalOps          :: Int
     , finalTps          :: Int
     , finalNetRate      :: ()

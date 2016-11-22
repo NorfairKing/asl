@@ -8,9 +8,21 @@ module AslBuild.Memaslap
 
 import           Data.List
 
+import           Development.Shake
+
+import           AslBuild.BuildMemcached
 import           AslBuild.Memaslap.LogParser
 import           AslBuild.Memaslap.Types
 import           AslBuild.Types
+
+runMemaslapLocally :: CmdResult r => MemaslapFlags -> Action r
+runMemaslapLocally flags = do
+    need [memaslapBin]
+    cmd $ memaslapCmds memaslapBin flags
+
+memaslapCmds :: FilePath -> MemaslapFlags -> [String]
+memaslapCmds path flags
+    = path : memaslapArgs flags
 
 memaslapArgs :: MemaslapFlags -> [String]
 memaslapArgs MemaslapFlags{..} =
@@ -18,14 +30,15 @@ memaslapArgs MemaslapFlags{..} =
     , "--threads=" ++ show msThreads
     , "--concurrency=" ++ show msConcurrency
     , "--overwrite=" ++ show msOverwrite
-    , case msStatFreq of
-        Just statFreq -> "--stat_freq=" ++ timeUnit statFreq
-        Nothing       -> ""
+    , "--win_size=" ++ renderWindowSize msWindowSize
+    , "--cfg_cmd=" ++ msConfigFile
     , case msWorkload of
         WorkFor msTime  -> "--time=" ++ timeUnit msTime
         NrRequests reqs -> "--execute_number=" ++ show reqs
-    , "--cfg_cmd=" ++ msConfigFile
     ]
+    ++ case msStatFreq of
+        Just statFreq -> ["--stat_freq=" ++ timeUnit statFreq]
+        Nothing       -> []
 
 msTimeUnsafe :: MemaslapWorkload -> TimeUnit
 msTimeUnsafe msWorkload = case msWorkload of
@@ -41,27 +54,19 @@ renderMemaslapConfig MemaslapConfig{..} =
     ] ++ map renderDistribution valueDistributions ++
     [ "cmd"
     , unwords ["0", show setProportion]
-    , unwords ["1", show getProportion]
+    , unwords ["1", show $ 1 - setProportion]
     ]
 
 renderDistribution :: Distribution -> String
 renderDistribution Distribution{..} = unwords
     [ show distrMin, show distrMax, show distrProp ]
 
-    --     -- Required because there are also set statistics.
-    -- let skippedFirsts = dropWhile (\l -> not $ "Total Statistics" `isPrefixOf` l) $ lines s
-    --     avgPrefix = "   Avg:"
-    --     stdPrefix = "   Std:"
-    -- let getDoubleFromPrefix prefix
-    --         = (read . drop (length prefix)) <$> find (\l -> prefix `isPrefixOf` l) skippedFirsts
-    -- expavg <- getDoubleFromPrefix avgPrefix
-    -- expstd <- getDoubleFromPrefix stdPrefix
-    -- let getTps = (read . (!! 6) . words) <$> find (\l -> "Run time" `isPrefixOf` l) skippedFirsts
-    -- exptps <- getTps
-    -- return MemaslapLog
-    --     { avg = expavg
-    --     , std = expstd
-    --     , tps = exptps
-    --     }
+defaultMemaslapConfig :: MemaslapConfig
+defaultMemaslapConfig = MemaslapConfig
+    { keysizeDistributions = [Distribution 16 16 1]
+    , valueDistributions = [Distribution 128 128 1]
+    , setProportion = 0.01
+    }
 
-
+singleDist :: Int -> [Distribution]
+singleDist size = [Distribution size size 1]

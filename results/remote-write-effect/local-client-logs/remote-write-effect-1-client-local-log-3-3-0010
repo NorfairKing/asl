@@ -1,0 +1,1010 @@
+servers : 10.0.0.10:23456
+threads count: 1
+concurrency: 35
+run time: 60s
+windows size: 1k
+set proportion: set_prop=0.10
+get proportion: get_prop=0.90
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        2014         2014         0.3        0          658      253963     14386      15206.99   10755.36
+Global   1        2014         2014         0.3        0          658      253963     14386      15206.99   10755.36
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        243          243          0.0        0          1802     79438      24667      17480.42   19699.79
+Global   1        243          243          0.0        0          1802     79438      24667      17480.42   19699.79
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        2257         2257         0.3        0          658      253963     15493      15788.53   11479.51
+Global   1        2257         2257         0.3        0          658      253963     15493      15788.53   11479.51
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        2562         2562         0.3        0          377      221456     11621      12256.01   9099.91
+Global   2        4576         2288         0.4        0          377      253963     12838      13701.04   9794.55
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        285          285          0.0        0          1628     41883      17789      7559.10    16094.13
+Global   2        528          264          0.0        0          1628     79438      20955      13522.57   17663.34
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        2847         2847         0.4        0          377      221456     12238      12012.87   9634.43
+Global   2        5104         2552         0.4        0          377      253963     13678      13902.64   10410.61
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        3040         3040         0.3        0          410      226648     9443       11528.46   6810.49
+Global   3        7616         2538         0.4        0          377      253963     11483      12983.85   8472.17
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        333          333          0.0        0          1293     88838      17409      13382.13   13506.21
+Global   3        861          287          0.0        0          1293     88838      19583      13571.88   15922.09
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        3373         3373         0.4        0          410      226648     10229      11961.16   7286.77
+Global   3        8477         2825         0.5        0          377      253963     12305      13272.15   9032.86
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        3985         3985         0.4        0          361      227061     8013       15817.91   4480.34
+Global   4        11601        2900         0.5        0          361      253963     10291      14117.94   6806.95
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        447          447          0.0        0          625      60344      9160       9992.56    6013.01
+Global   4        1308         327          0.1        0          625      88838      16021      13406.39   11414.95
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4432         4432         0.4        0          361      227061     8129       15333.95   4615.29
+Global   4        12909        3227         0.6        0          361      253963     10871      14153.46   7173.02
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4625         4625         0.4        0          318      236713     6658       11741.38   4333.88
+Global   5        16226        3245         0.6        0          318      253963     9255       13582.64   5985.00
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        511          511          0.0        0          970      30145      6585       3845.36    5253.76
+Global   5        1819         363          0.1        0          625      88838      13370      12302.94   9179.14
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5136         5136         0.5        0          318      236713     6651       11207.44   4417.68
+Global   5        18045        3609         0.7        0          318      253963     9670       13515.60   6248.66
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4618         4618         0.5        0          298      627499     7079       17128.81   4148.18
+Global   6        20844        3474         0.6        0          298      627499     8773       14471.31   5518.13
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        513          513          0.1        0          683      22818      6747       4643.64    5035.88
+Global   6        2332         388          0.1        0          625      88838      11913      11415.71   8043.53
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5131         5131         0.5        0          298      627499     7046       16316.12   4229.39
+Global   6        23176        3862         0.7        0          298      627499     9089       14224.80   5731.38
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4653         4653         0.5        0          271      223540     6734       14099.35   3771.50
+Global   7        25497        3642         0.6        0          271      627499     8401       14425.33   5147.90
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        517          517          0.1        0          489      22810      5777       4158.97    4155.06
+Global   7        2849         407          0.1        0          489      88838      10800      10741.49   7134.92
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5170         5170         0.6        0          271      223540     6639       13442.79   3808.21
+Global   7        28346        4049         0.7        0          271      627499     8642       14117.01   5319.59
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4342         4342         0.5        0          312      610255     7268       18391.88   3899.56
+Global   8        29839        3729         0.6        0          271      627499     8236       15072.59   4944.00
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        479          479          0.1        0          723      85596      7420       9790.05    4918.21
+Global   8        3328         416          0.1        0          489      88838      10313      10675.06   6762.90
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4821         4821         0.6        0          312      610255     7283       17724.39   3990.52
+Global   8        33167        4145         0.7        0          271      627499     8445       14703.65   5101.88
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5350         5350         0.5        0          330      615115     5952       13145.53   3742.73
+Global   9        35189        3909         0.7        0          271      627499     7889       14818.20   4739.14
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        599          599          0.1        0          981      27096      6401       4349.23    4839.50
+Global   9        3927         436          0.1        0          489      88838      9716       10071.54   6426.35
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5949         5949         0.6        0          330      615115     5997       12542.93   3840.85
+Global   9        39116        4346         0.8        0          271      627499     8072       14423.02   4886.27
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4807         4807         0.5        0          335      418559     6601       14259.23   3798.78
+Global   10       39996        3999         0.7        0          271      627499     7734       14758.01   4614.82
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        534          534          0.1        0          629      50098      6213       5168.96    4449.58
+Global   10       4461         446          0.1        0          489      88838      9297       9683.55    6149.71
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5341         5341         0.6        0          335      418559     6563       13625.82   3859.32
+Global   10       44457        4445         0.7        0          271      627499     7891       14337.68   4749.71
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4587         4587         0.6        0          318      236148     6837       15728.71   3830.62
+Global   11       44583        4053         0.6        0          271      627499     7642       14862.98   4527.23
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        513          513          0.1        0          701      31369      6446       4963.52    4688.58
+Global   11       4974         452          0.1        0          489      88838      9003       9348.04    5980.03
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5100         5100         0.6        0          318      236148     6798       14999.53   3909.29
+Global   11       49557        4505         0.7        0          271      627499     7778       14411.15   4655.48
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4102         4102         0.6        0          357      301980     7687       17518.87   4193.84
+Global   12       48685        4057         0.6        0          271      627499     7646       15104.47   4498.15
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        454          454          0.1        0          842      124267     9680       16704.12   5867.90
+Global   12       5428         452          0.1        0          489      124267     9060       10168.32   5970.57
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4556         4556         0.6        0          357      301980     7886       17447.65   4336.58
+Global   12       54113        4509         0.6        0          271      627499     7787       14690.91   4627.75
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        3935         3935         0.6        0          312      414744     7833       16427.58   4721.68
+Global   13       52620        4047         0.5        0          271      627499     7660       15207.31   4514.49
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        436          436          0.1        0          554      56918      8734       7001.92    6594.42
+Global   13       5864         451          0.1        0          489      124267     9036       9967.26    6014.85
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4371         4371         0.6        0          312      414744     7923       15744.58   4881.66
+Global   13       58484        4498         0.6        0          271      627499     7798       14771.72   4646.26
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4545         4545         0.6        0          313      233535     6843       13564.23   3961.58
+Global   14       57165        4083         0.6        0          271      627499     7595       15084.75   4467.84
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        511          511          0.1        0          810      80970      8443       9682.99    5720.22
+Global   14       6375         455          0.1        0          489      124267     8988       9945.75    5990.69
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5056         5056         0.6        0          313      233535     7005       13231.68   4111.43
+Global   14       63540        4538         0.7        0          271      627499     7734       14657.05   4601.27
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4010         4010         0.6        0          391      238844     7771       13078.66   4939.80
+Global   15       61175        4078         0.6        0          271      627499     7606       14961.74   4497.34
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        440          440          0.1        0          850      58109      8638       7879.95    6079.36
+Global   15       6815         454          0.1        0          489      124267     8965       9825.77    5996.37
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4450         4450         0.6        0          391      238844     7857       12661.93   5042.23
+Global   15       67990        4532         0.6        0          271      627499     7743       14534.29   4628.91
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4318         4318         0.6        0          372      218764     7284       13173.56   4346.93
+Global   16       65493        4093         0.6        0          271      627499     7585       14850.48   4487.27
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        477          477          0.1        0          1016     76598      8296       7965.39    5995.91
+Global   16       7292         455          0.1        0          489      124267     8922       9715.21    5996.34
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4795         4795         0.6        0          372      218764     7385       12753.90   4488.25
+Global   16       72785        4549         0.7        0          271      627499     7719       14424.18   4619.51
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4799         4799         0.6        0          361      231468     6424       12627.82   3870.81
+Global   17       70292        4134         0.7        0          271      627499     7506       14712.12   4442.22
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        537          537          0.1        0          710      54029      7548       6675.00    5443.04
+Global   17       7829         460          0.1        0          489      124267     8827       9544.39    5956.66
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5336         5336         0.6        0          361      231468     6537       12165.66   4005.90
+Global   17       78121        4595         0.7        0          271      627499     7638       14284.47   4574.76
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5054         5054         0.6        0          349      221814     6262       11779.08   4247.51
+Global   18       75346        4185         0.7        0          271      627499     7422       14537.46   4428.89
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        561          561          0.1        0          796      19062      6213       3621.61    4955.65
+Global   18       8390         466          0.1        0          489      124267     8653       9289.34    5883.83
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5615         5615         0.6        0          349      221814     6257       11233.51   4313.46
+Global   18       83736        4652         0.8        0          271      627499     7546       14104.40   4556.75
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4967         4967         0.6        0          339      218397     6201       10397.52   4199.66
+Global   19       80313        4227         0.7        0          271      627499     7347       14318.90   4414.36
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        553          553          0.1        0          676      28591      6849       4329.31    5390.60
+Global   19       8943         470          0.1        0          489      124267     8541       9072.42    5852.06
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5520         5520         0.6        0          339      218397     6266       9959.29    4306.02
+Global   19       89256        4697         0.8        0          271      627499     7466       13887.83   4540.83
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4914         4914         0.6        0          356      221075     6515       14274.78   3999.97
+Global   20       85227        4261         0.7        0          271      627499     7299       14317.61   4389.34
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        542          542          0.1        0          700      32675      6509       4712.33    4882.97
+Global   20       9485         474          0.1        0          489      124267     8425       8893.38    5791.83
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5456         5456         0.7        0          356      221075     6515       13627.83   4080.02
+Global   20       94712        4735         0.7        0          271      627499     7412       13874.26   4512.93
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4895         4895         0.6        0          360      231534     6476       13245.64   4029.68
+Global   21       90122        4291         0.7        0          271      627499     7254       14262.76   4369.00
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        544          544          0.1        0          620      35491      6321       4411.90    4869.38
+Global   21       10029        477          0.1        0          489      124267     8311       8722.42    5737.58
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5439         5439         0.7        0          360      231534     6460       12643.10   4106.70
+Global   21       100151       4769         0.7        0          271      627499     7360       13812.01   4489.87
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5163         5163         0.6        0          466      424392     6043       11888.74   3942.69
+Global   22       95285        4331         0.7        0          271      627499     7189       14146.62   4344.76
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        573          573          0.1        0          875      23456      6924       4032.19    5435.81
+Global   22       10602        481          0.1        0          489      124267     8236       8540.76    5720.85
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5736         5736         0.7        0          466      424392     6131       11353.93   4071.23
+Global   22       105887       4813         0.8        0          271      627499     7293       13693.17   4466.12
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4752         4752         0.6        0          421      255536     6689       14399.95   3734.67
+Global   23       100037       4349         0.7        0          271      627499     7165       14159.21   4313.65
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        531          531          0.1        0          630      76666      6843       7679.52    4680.56
+Global   23       11133        484          0.1        0          489      124267     8169       8507.07    5666.35
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5283         5283         0.7        0          421      255536     6704       13872.23   3820.39
+Global   23       111170       4833         0.7        0          271      627499     7265       13702.24   4433.10
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4973         4973         0.6        0          484      241058     6261       12744.07   3725.77
+Global   24       105010       4375         0.7        0          271      627499     7122       14096.75   4283.82
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        553          553          0.1        0          704      49307      6696       5878.72    4749.83
+Global   24       11686        486          0.1        0          489      124267     8100       8406.20    5619.24
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5526         5526         0.7        0          484      241058     6305       12231.90   3817.42
+Global   24       116696       4862         0.8        0          271      627499     7220       13637.43   4401.82
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4708         4708         0.6        0          289      221712     6639       12370.48   4159.60
+Global   25       109718       4388         0.6        0          271      627499     7101       14027.47   4278.42
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        521          521          0.1        0          735      52184      7726       6514.54    5605.05
+Global   25       12207        488          0.1        0          489      124267     8084       8334.41    5618.63
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5229         5229         0.7        0          289      221712     6747       11920.99   4285.06
+Global   25       121925       4877         0.7        0          271      627499     7200       13568.42   4396.75
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4825         4825         0.6        0          380      415026     6523       13533.25   4192.41
+Global   26       114543       4405         0.7        0          271      627499     7077       14007.25   4274.76
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        535          535          0.1        0          831      21444      6636       4107.13    5225.32
+Global   26       12742        490          0.1        0          489      124267     8023       8206.10    5601.54
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5360         5360         0.7        0          380      415026     6534       12905.44   4285.59
+Global   26       127285       4895         0.7        0          271      627499     7172       13541.74   4392.01
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4449         4449         0.6        0          295      614454     7010       16296.22   3886.97
+Global   27       118992       4407         0.6        0          271      627499     7074       14099.69   4259.59
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        494          494          0.1        0          713      51702      6985       6993.19    4591.23
+Global   27       13236        490          0.1        0          489      124267     7984       8166.47    5560.11
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4943         4943         0.7        0          295      614454     7008       15617.06   3952.20
+Global   27       132228       4897         0.7        0          271      627499     7165       13625.44   4374.72
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4866         4866         0.6        0          413      221103     6540       9787.39    4391.97
+Global   28       123858       4423         0.7        0          271      627499     7053       13955.81   4264.71
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        543          543          0.1        0          997      38867      7025       4507.35    5432.53
+Global   28       13779        492          0.1        0          489      124267     7946       8056.06    5555.03
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5409         5409         0.7        0          413      221103     6589       9392.98    4486.73
+Global   28       137637       4915         0.7        0          271      627499     7143       13484.31   4379.07
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4707         4707         0.6        0          299      223044     6478       11911.15   4389.35
+Global   29       128565       4433         0.6        0          271      627499     7032       13886.62   4269.21
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        525          525          0.1        0          664      28758      7156       4134.67    5812.31
+Global   29       14304        493          0.1        0          489      124267     7917       7947.73    5564.27
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5232         5232         0.7        0          299      223044     6546       11375.01   4514.78
+Global   29       142869       4926         0.7        0          271      627499     7121       13413.42   4383.97
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4673         4673         0.6        0          393      611941     6805       13945.39   4456.40
+Global   30       133238       4441         0.6        0          271      627499     7024       13888.72   4275.64
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        521          521          0.1        0          1018     35532      8392       5202.13    6550.39
+Global   30       14825        494          0.1        0          489      124267     7934       7867.56    5596.26
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5194         5194         0.7        0          393      611941     6964       13338.02   4631.96
+Global   30       148063       4935         0.7        0          271      627499     7115       13411.03   4392.44
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5059         5059         0.6        0          290      217581     6203       12314.99   3818.39
+Global   31       138297       4461         0.7        0          271      627499     6994       13835.10   4257.99
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        559          559          0.1        0          874      29604      6544       4565.55    4913.81
+Global   31       15384        496          0.1        0          489      124267     7884       7775.92    5569.88
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5618         5618         0.7        0          290      217581     6237       11774.82   3915.43
+Global   31       153681       4957         0.8        0          271      627499     7083       13355.68   4374.02
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5087         5087         0.6        0          481      215143     6079       7862.38    4172.43
+Global   32       143384       4480         0.7        0          271      627499     6962       13668.73   4254.92
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        565          565          0.1        0          767      46566      6937       5791.52    5107.34
+Global   32       15949        498          0.1        0          489      124267     7850       7716.65    5552.80
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5652         5652         0.7        0          481      215143     6165       7684.23    4257.62
+Global   32       159333       4979         0.8        0          271      627499     7051       13197.04   4369.83
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5203         5203         0.6        0          385      218728     6022       11728.46   3886.65
+Global   33       148587       4502         0.7        0          271      627499     6929       13606.57   4241.45
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        580          580          0.1        0          704      29577      6786       4613.96    5203.64
+Global   33       16529        500          0.1        0          489      124267     7813       7631.25    5540.16
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5783         5783         0.7        0          385      218728     6099       11222.22   4002.08
+Global   33       165116       5003         0.8        0          271      627499     7017       13134.38   4356.40
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        3621         3621         0.6        0          378      462358     8639       18807.58   5044.44
+Global   34       152208       4476         0.5        0          271      627499     6970       13755.38   4258.99
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        396          396          0.1        0          552      62691      7852       6439.16    5907.03
+Global   34       16925        497          0.1        0          489      124267     7814       7605.24    5548.48
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4017         4017         0.7        0          378      462358     8562       17971.34   5123.56
+Global   34       169133       4974         0.6        0          271      627499     7054       13271.57   4373.22
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4718         4718         0.6        0          376      636646     6623       17706.35   3883.03
+Global   35       156926       4483         0.6        0          271      636646     6959       13890.90   4247.17
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        527          527          0.1        0          1097     49624      7936       6567.32    5980.94
+Global   35       17452        498          0.1        0          489      124267     7817       7576.55    5561.07
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5245         5245         0.7        0          376      636646     6755       16925.98   4055.28
+Global   35       174378       4982         0.7        0          271      636646     7045       13396.08   4363.30
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4531         4531         0.6        0          369      416560     6765       14541.46   3808.83
+Global   36       161457       4484         0.6        0          271      636646     6954       13909.34   4234.21
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        501          501          0.1        0          622      160887     10148      20341.33   5662.81
+Global   36       17953        498          0.1        0          489      160887     7882       8214.30    5563.88
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5032         5032         0.7        0          369      416560     7102       15249.35   3962.24
+Global   36       179410       4983         0.7        0          271      636646     7047       13451.28   4351.51
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5334         5334         0.6        0          434      224728     5734       9237.14    3885.34
+Global   37       166791       4507         0.7        0          271      636646     6915       13786.10   4222.58
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        598          598          0.1        0          820      25042      7053       4626.71    5382.31
+Global   37       18551        501          0.1        0          489      160887     7856       8123.94    5557.93
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5932         5932         0.7        0          434      224728     5867       8890.10    4015.11
+Global   37       185342       5009         0.8        0          271      636646     7009       13331.22   4340.32
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5135         5135         0.6        0          366      218269     6163       10834.53   3947.74
+Global   38       171926       4524         0.7        0          271      636646     6892       13708.00   4214.10
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        570          570          0.1        0          895      35827      6641       4575.95    5053.85
+Global   38       19121        503          0.1        0          489      160887     7819       8044.19    5542.20
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5705         5705         0.7        0          366      218269     6211       10380.89   4046.38
+Global   38       191047       5027         0.8        0          271      636646     6985       13253.40   4331.24
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4175         4175         0.6        0          398      284497     7521       17538.92   3953.00
+Global   39       176101       4515         0.6        0          271      636646     6907       13811.35   4207.71
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        459          459          0.1        0          816      119721     8058       11250.87   5210.82
+Global   39       19580        502          0.1        0          489      160887     7825       8133.15    5534.20
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4634         4634         0.7        0          398      284497     7574       17019.98   4062.66
+Global   39       195681       5017         0.6        0          271      636646     6999       13355.10   4324.68
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4954         4954         0.6        0          524      218718     6283       11644.04   4044.08
+Global   40       181055       4526         0.7        0          271      636646     6890       13756.91   4203.15
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        557          557          0.1        0          629      33683      5945       4682.12    4413.64
+Global   40       20137        503          0.1        0          489      160887     7773       8063.42    5499.67
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5511         5511         0.7        0          524      218718     6249       11139.94   4079.99
+Global   40       201192       5029         0.8        0          271      636646     6978       13300.12   4317.79
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5042         5042         0.6        0          363      660011     6501       15873.40   3922.59
+Global   41       186097       4538         0.7        0          271      660011     6880       13818.35   4195.29
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        560          560          0.1        0          747      17533      5965       3695.58    4616.83
+Global   41       20697        504          0.1        0          489      160887     7724       7982.21    5473.70
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5602         5602         0.7        0          363      660011     6447       15105.21   3987.01
+Global   41       206794       5043         0.8        0          271      660011     6964       13352.27   4308.48
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4992         4992         0.6        0          370      229855     6167       9269.47    4212.63
+Global   42       191089       4549         0.7        0          271      660011     6861       13719.36   4195.74
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        552          552          0.1        0          1040     27722      7490       4747.18    5915.53
+Global   42       21249        505          0.1        0          489      160887     7718       7914.85    5484.75
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5544         5544         0.7        0          370      229855     6299       8930.85    4357.46
+Global   42       212338       5055         0.8        0          271      660011     6947       13255.82   4309.75
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4202         4202         0.6        0          484      222623     7496       8927.50    5356.40
+Global   43       195291       4541         0.6        0          271      660011     6875       13634.12   4217.85
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        469          469          0.1        0          925      21915      8135       4472.77    6579.65
+Global   43       21718        505          0.1        0          489      160887     7727       7856.65    5506.35
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4671         4671         0.7        0          484      222623     7560       8587.21    5468.17
+Global   43       217009       5046         0.6        0          271      660011     6960       13173.15   4331.89
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4363         4363         0.6        0          353      251677     7000       14727.21   3726.21
+Global   44       199654       4537         0.6        0          271      660011     6877       13659.28   4206.44
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        478          478          0.1        0          693      153598     7981       14374.02   4973.21
+Global   44       22196        504          0.1        0          489      160887     7732       8052.73    5494.28
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4841         4841         0.7        0          353      251677     7097       14694.10   3833.95
+Global   44       221850       5042         0.7        0          271      660011     6963       13208.18   4320.36
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4602         4602         0.6        0          283      612864     7010       16946.61   3825.44
+Global   45       204256       4539         0.6        0          271      660011     6880       13741.97   4197.45
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        517          517          0.1        0          519      43269      6844       6101.25    4496.31
+Global   45       22713        504          0.1        0          489      160887     7712       8014.39    5469.27
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5119         5119         0.7        0          283      612864     6993       16184.43   3888.38
+Global   45       226969       5043         0.7        0          271      660011     6964       13282.45   4310.11
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4940         4940         0.6        0          476      216373     6328       9977.67    4186.23
+Global   46       209196       4547         0.7        0          271      660011     6867       13665.26   4197.19
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        549          549          0.1        0          891      46232      7022       5227.73    5361.50
+Global   46       23262        505          0.1        0          489      160887     7696       7960.21    5466.70
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5489         5489         0.7        0          476      216373     6397       9611.06    4291.13
+Global   46       232458       5053         0.8        0          271      660011     6950       13208.11   4309.66
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4908         4908         0.6        0          390      219022     6331       12695.97   3872.11
+Global   47       214104       4555         0.7        0          271      660011     6855       13643.88   4189.44
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        543          543          0.1        0          657      72145      6920       7618.81    4851.91
+Global   47       23805        506          0.1        0          489      160887     7678       7953.56    5451.85
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5451         5451         0.7        0          390      219022     6390       12285.26   3960.10
+Global   47       237909       5061         0.7        0          271      660011     6937       13188.02   4301.31
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4958         4958         0.6        0          498      219843     6247       10566.85   4155.33
+Global   48       219062       4563         0.7        0          271      660011     6841       13582.35   4188.66
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        553          553          0.1        0          706      34038      7391       5266.40    5541.27
+Global   48       24358        507          0.1        0          489      160887     7672       7902.24    5453.86
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5511         5511         0.7        0          498      219843     6362       10165.92   4277.10
+Global   48       243420       5071         0.8        0          271      660011     6924       13127.56   4300.77
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5171         5171         0.6        0          389      630205     6135       15021.56   3690.81
+Global   49       224233       4576         0.7        0          271      660011     6825       13617.49   4176.46
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        575          575          0.1        0          762      18926      6585       4069.97    5032.90
+Global   49       24933        508          0.1        0          489      160887     7647       7836.59    5443.77
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5746         5746         0.7        0          389      630205     6180       14308.62   3807.16
+Global   49       249166       5085         0.8        0          271      660011     6907       13156.35   4288.69
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4746         4746         0.6        0          361      220594     6554       11425.70   4403.48
+Global   50       228979       4579         0.7        0          271      660011     6819       13575.88   4181.04
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        530          530          0.1        0          741      29667      6893       4521.13    5316.59
+Global   50       25463        509          0.1        0          489      160887     7631       7782.98    5441.09
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5276         5276         0.7        0          361      220594     6588       10931.20   4487.63
+Global   50       254442       5088         0.7        0          271      660011     6901       13113.78   4292.73
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4486         4486         0.6        0          343      416702     7075       13538.98   4532.53
+Global   51       233465       4577         0.6        0          271      660011     6824       13575.14   4187.53
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        497          497          0.1        0          824      43986      7625       5856.99    5754.67
+Global   51       25960        509          0.1        0          489      160887     7631       7750.40    5446.93
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4983         4983         0.7        0          343      416702     7130       12979.14   4641.74
+Global   51       259425       5086         0.7        0          271      660011     6905       13111.43   4299.18
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4643         4643         0.6        0          319      237006     6639       10100.17   4268.78
+Global   52       238108       4579         0.6        0          271      660011     6821       13515.63   4189.10
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        516          516          0.1        0          712      70707      7594       8152.68    5299.91
+Global   52       26476        509          0.1        0          489      160887     7630       7758.56    5444.03
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5159         5159         0.7        0          319      237006     6734       9926.40    4362.16
+Global   52       264584       5088         0.7        0          271      660011     6902       13056.58   4300.39
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4903         4903         0.6        0          318      224588     6438       14088.66   3799.76
+Global   53       243011       4585         0.7        0          271      660011     6813       13527.64   4180.86
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        541          541          0.1        0          778      41019      6422       5547.10    4604.36
+Global   53       27017        509          0.1        0          489      160887     7606       7722.08    5425.79
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5444         5444         0.7        0          318      224588     6436       13484.05   3872.98
+Global   53       270028       5094         0.7        0          271      660011     6892       13065.80   4291.33
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5024         5024         0.6        0          383      216872     6067       12285.14   3747.74
+Global   54       248035       4593         0.7        0          271      660011     6798       13503.94   4171.61
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        564          564          0.1        0          824      26268      6716       4325.88    5243.49
+Global   54       27581        510          0.1        0          489      160887     7588       7668.51    5422.00
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5588         5588         0.7        0          383      216872     6133       11730.60   3876.95
+Global   54       275616       5104         0.8        0          271      660011     6877       13040.30   4282.50
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4796         4796         0.6        0          363      218596     6803       14351.12   3822.31
+Global   55       252831       4596         0.7        0          271      660011     6798       13520.52   4164.70
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        527          527          0.1        0          745      74058      6541       6618.82    4550.78
+Global   55       28108        511          0.1        0          489      160887     7568       7651.73    5404.23
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5323         5323         0.7        0          363      218596     6777       13780.32   3888.90
+Global   55       280939       5107         0.7        0          271      660011     6875       13054.75   4274.69
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4712         4712         0.6        0          519      229248     6656       11410.49   4255.67
+Global   56       257543       4598         0.6        0          271      660011     6795       13485.08   4166.35
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        527          527          0.1        0          926      50119      7195       5774.22    5316.55
+Global   56       28635        511          0.1        0          489      160887     7561       7621.58    5402.60
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5239         5239         0.7        0          519      229248     6710       10976.21   4352.03
+Global   56       286178       5110         0.7        0          271      660011     6872       13019.67   4276.09
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4593         4593         0.6        0          426      429966     6740       12990.35   4488.69
+Global   57       262136       4598         0.6        0          271      660011     6794       13476.57   4171.79
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        510          510          0.1        0          1106     29287      7449       4428.22    5934.32
+Global   57       29145        511          0.1        0          489      160887     7559       7577.28    5411.48
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5103         5103         0.7        0          426      429966     6811       12404.85   4615.70
+Global   57       291281       5110         0.7        0          271      660011     6871       13009.10   4281.82
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4900         4900         0.6        0          342      220543     6402       12882.00   4003.41
+Global   58       267036       4604         0.7        0          271      660011     6787       13465.87   4168.64
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        546          546          0.1        0          828      46689      6546       5730.58    4798.31
+Global   58       29691        511          0.1        0          489      160887     7541       7547.93    5399.53
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5446         5446         0.7        0          342      220543     6416       12353.14   4076.77
+Global   58       296727       5115         0.7        0          271      660011     6863       12997.29   4277.96
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        3806         3806         0.6        0          265      306727     8660       24165.35   3575.82
+Global   59       270842       4590         0.5        0          265      660011     6813       13676.21   4159.66
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        421          421          0.1        0          469      20111      5669       4232.37    3869.68
+Global   59       30112        510          0.1        0          469      160887     7514       7515.67    5374.44
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4227         4227         0.7        0          265      306727     8363       22986.01   3604.06
+Global   59       300954       5100         0.6        0          265      660011     6884       13191.22   4267.68
+
+[1;1H[2J
+Get Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        4906         4906         0.6        0          333      642922     6573       16511.55   3429.37
+Global   60       275748       4595         0.7        0          265      660011     6809       13731.64   4145.40
+
+Set Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        546          546          0.1        0          697      19364      5732       4556.58    3891.21
+Global   60       30658        510          0.1        0          469      160887     7483       7476.16    5343.62
+
+Total Statistics
+Type     Time(s)  Ops          TPS(ops/s)   Net(M/s)   Get_miss   Min(us)  Max(us)    Avg(us)    Std_dev    Geo_dist  
+Period   1        5452         5452         0.7        0          333      642922     6489       15730.86   3473.04
+Global   60       306406       5106         0.7        0          265      660011     6877       13240.72   4252.06
+
+Get Statistics (275782 events)
+   Min:       265
+   Max:    660011
+   Avg:      6814
+   Geo:   4146.28
+   Std:  13759.25
+   Log2 Dist:
+       8:        0     1147    21343    68260
+      12:    32724    52001    91886     6139
+      16:     1066      319      869       17
+      20:       11
+
+Set Statistics (30659 events)
+   Min:       469
+   Max:    160887
+   Avg:      7483
+   Geo:   5343.79
+   Std:   7476.38
+   Log2 Dist:
+       8:        0        4      381     5733
+      12:     5454     4346    13193     1203
+      16:      269       65       11
+
+Total Statistics (306441 events)
+   Min:       265
+   Max:    660011
+   Avg:      6881
+   Geo:   4252.88
+   Std:  13266.78
+   Log2 Dist:
+       8:        0     1151    21724    73993
+      12:    38178    56347   105079     7342
+      16:     1335      384      880       17
+      20:       11
+
+cmd_get: 275813
+cmd_set: 30663
+get_misses: 0
+written_bytes: 10972644
+read_bytes: 45749302
+object_bytes: 4415472
+
+Run time: 60.2s Ops: 306476 TPS: 5087 Net_rate: 0.9M/s

@@ -2,9 +2,15 @@ module AslBuild.Constants where
 
 import           Development.Shake.FilePath
 
+import           System.Directory
+import           System.IO.Unsafe
+
 -- Username
 myNetzh :: String
 myNetzh = "tomk"
+
+myUsername :: String
+myUsername = "syd"
 
 -- Constants
 asl :: String
@@ -58,6 +64,9 @@ pdf = "pdf"
 tex :: String
 tex = "tex"
 
+bib :: String
+bib = "bib"
+
 csv :: String
 csv = "csv"
 
@@ -92,14 +101,20 @@ makefile = "Makefile"
 aslDir :: FilePath
 aslDir = ""
 
+{-# NOINLINE aslCacheDir #-}
 aslCacheDir :: FilePath
-aslCacheDir = "/tmp/asl"
+aslCacheDir = unsafePerformIO $ do
+    home <- getHomeDirectory
+    return $ home </> ".asl"
 
 outDir :: FilePath
 outDir = aslCacheDir </> out
 
 tmpDir :: FilePath
 tmpDir = aslCacheDir </> tmp
+
+remoteTmpDir :: FilePath
+remoteTmpDir = "/tmp/asl" </> tmp
 
 assignmentDir :: FilePath
 assignmentDir = aslDir </> "assignment"
@@ -110,17 +125,11 @@ resultsDir = aslDir </> "results"
 analysisDir :: FilePath
 analysisDir = aslDir </> "analysis"
 
-analysisPlotsDir :: FilePath
-analysisPlotsDir = analysisDir </> "plots"
-
 reportsDir :: FilePath
 reportsDir = aslDir </> reports
 
-report1Dir :: FilePath
-report1Dir = reportsDir </> "report1"
-
-report1PlotsDir :: FilePath
-report1PlotsDir = report1Dir </> "plots"
+reportsTmpDir :: FilePath
+reportsTmpDir = tmpDir </> "reports"
 
 codeSrcDir :: FilePath
 codeSrcDir = aslDir </> asl
@@ -142,6 +151,9 @@ pdfExt = pdf
 
 texExt :: Extension
 texExt = tex
+
+bibExt :: Extension
+bibExt = bib
 
 txtExt :: Extension
 txtExt = txt
@@ -175,6 +187,9 @@ propertiesExt = properties
 
 tarGzExt :: Extension
 tarGzExt = "tar.gz"
+
+jsonExt :: Extension
+jsonExt = "json"
 
 -- Rules
 cleanTarget :: String

@@ -3,6 +3,7 @@ package ch.ethz.asl;
 import ch.ethz.asl.request.RequestPacket;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -16,22 +17,22 @@ public class Instrumentor {
   private static final char NEWLINE = '\n';
   private final Throttler readCounter;
   private final Throttler writeCounter;
-  private static final int READ_SAMPLE_SIZE = 1000;
-  private static final int WRITE_SAMPLE_SIZE = READ_SAMPLE_SIZE;
-  private final Lock writerLock;
+  private static final String HEADER =
+      "Kind,ReceivedTime,ParsedTime,EnqueuedTime,DequeuedTime,AskedTime,RepliedTime,RespondedTime";
 
-  public Instrumentor(final String file) throws IOException {
-    this.file = file;
-    this.readCounter = new Throttler(READ_SAMPLE_SIZE);
-    this.writeCounter = new Throttler(WRITE_SAMPLE_SIZE);
-    this.writerLock = new ReentrantLock();
+  public Instrumentor(final String filepath, final int readSampleRate, final int writeSampleRate)
+      throws IOException {
+    this.file = filepath;
+    this.readCounter = new Throttler(readSampleRate);
+    this.writeCounter = new Throttler(writeSampleRate);
 
+    File file = new File(filepath);
+    file.getParentFile().mkdirs();
     FileWriter fstream = new FileWriter(file);
     writer = new BufferedWriter(fstream);
-    String header =
-        "Kind,ReceivedTime,ParsedTime,EnqueuedTime,DequeuedTime,AskedTime,RepliedTime,RespondedTime"
-            + NEWLINE;
-    writer.write(header);
+    writer.write(HEADER);
+    writer.newLine();
+    writer.flush();
   }
 
   public static long now() {
@@ -54,7 +55,7 @@ public class Instrumentor {
     }
     StringBuilder sb = new StringBuilder();
     if (packet.hasAlreadyFailed()) {
-      sb.append("FAILED\n");
+      sb.append("FAILED");
     } else {
       try {
         sb.append(packet.getRequest().getKind().toString());
@@ -72,14 +73,14 @@ public class Instrumentor {
         sb.append(packet.getRepliedAt());
         sb.append(COMMA);
         sb.append(packet.getRespondedAt());
-        sb.append(NEWLINE);
       } catch (NoSuchElementException e) {
-        sb = new StringBuilder("FAILED\n");
+        sb = new StringBuilder("FAILED");
       }
     }
-    writerLock.lock();
-    writer.write(sb.toString());
-    writer.flush();
-    writerLock.unlock();
+    synchronized (writer) {
+      writer.write(sb.toString());
+      writer.newLine();
+      writer.flush();
+    }
   }
 }

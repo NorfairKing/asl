@@ -68,12 +68,14 @@ ansiThingy = do
 statsTriple :: Parser StatsTriple
 statsTriple = do
     ansiThingy
-    void $ string "Get Statistics"
-    void endOfLine
-    gl <- statisticsLog
-    void $ string "Set Statistics"
-    void endOfLine
-    sl <- statisticsLog
+    gl <- optionMaybe $ try $ do
+        void $ string "Get Statistics"
+        void endOfLine
+        statisticsLog
+    sl <- optionMaybe $ try $ do
+        void $ string "Set Statistics"
+        void endOfLine
+        statisticsLog
     void $ string "Total Statistics"
     void endOfLine
     tl <- statisticsLog
@@ -137,7 +139,7 @@ statistics = do
         , minUs = mn
         , maxUs = mx
         , avgUs = av
-        , stdDev = st
+        , std = st
         , geoDist = ge
         }
 
@@ -149,10 +151,12 @@ doubleOrNan =
 
 totalStatsT :: Parser TotalStatsTrip
 totalStatsT = do
-    void $ string "Get Statistics "
-    gts <- totalStats
-    void $ string "Set Statistics "
-    sts <- totalStats
+    gts <- optionMaybe $ try $ do
+        void $ string "Get Statistics "
+        totalStats
+    sts <- optionMaybe $ try $ do
+        void $ string "Set Statistics "
+        totalStats
     void $ string "Total Statistics "
     bts <- totalStats
     return TotalStatsTrip
@@ -203,9 +207,11 @@ final = do
     wb <- titled "written_bytes:"
     rb <- titled "read_bytes:"
     ob <- titled "object_bytes:"
-    void $ string "Run time: "
-    void double
-    void anyChar
+    rt <- do
+        void $ string "Run time: "
+        v <- double
+        void $ char 's'
+        return v
     spaces
     void $ string "Ops:"
     spaces
@@ -224,7 +230,7 @@ final = do
         , finalWrittenBytes = wb
         , finalReadBytes = rb
         , finalObjectBytes = ob
-        , finalRuntime = ()
+        , finalRuntime = rt
         , finalOps = os
         , finalTps = ts
         , finalNetRate = ()

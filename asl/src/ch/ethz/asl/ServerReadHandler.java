@@ -1,10 +1,11 @@
 package ch.ethz.asl;
 
+import ch.ethz.asl.generic_parsing.NotEnoughDataException;
+import ch.ethz.asl.generic_parsing.ParseFailedException;
 import ch.ethz.asl.request.Request;
 import ch.ethz.asl.request.RequestPacket;
-import ch.ethz.asl.response.Response;
-import ch.ethz.asl.response.ServerErrorResponse;
-import ch.ethz.asl.response.SuccessfulResponse;
+import ch.ethz.asl.response.*;
+import ch.ethz.asl.response.response_parsing.ResponseParser;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -38,10 +39,8 @@ public class ServerReadHandler {
   }
 
   public void handle(final RequestPacket req) throws InterruptedException {
-    log.finer(
-        "Putting on read queue for server" + serverAddress + " now sized " + readqueue.size());
     readqueue.put(req);
-    log.finer("Put on read queue for server " + serverAddress + " now sized " + readqueue.size());
+    req.setEnqueued();
   }
 
   class ReadWorker implements Runnable {
@@ -55,13 +54,11 @@ public class ServerReadHandler {
 
     private void connect() {
       SocketAddress address = serverAddress.getSocketAddress();
-      log.fine("Read connecting to: " + address);
       serverConnection = null;
       try {
         serverConnection = SocketChannel.open();
         serverConnection.configureBlocking(true);
         serverConnection.connect(address);
-        log.fine("Reader connected to: " + address);
       } catch (IOException e) {
         e.printStackTrace();
         shutdown();
@@ -70,6 +67,9 @@ public class ServerReadHandler {
 
     @Override
     public void run() {
+      Thread.currentThread()
+          .setName(
+              "ReadWorker " + readWorkerIndex + " for read requests to server " + serverAddress);
       while (true) {
         if (ServerReadHandler.this.serverHandler.isShuttingDown()) {
           log.info(
@@ -90,33 +90,25 @@ public class ServerReadHandler {
 
     private void handleOneRequest() throws InterruptedException {
       RequestPacket packet;
-      log.finer(
-          readWorkerIndex
-              + " dequeuing from readqueue for server "
-              + serverAddress
-              + " now sized "
-              + readqueue.size());
       packet = readqueue.take();
-      log.finer(
-          readWorkerIndex
-              + " dequeud from readqueue for server "
-              + serverAddress
-              + " now sized "
-              + readqueue.size());
       packet.setDequeued();
-      log.finer("Handling to get response.");
       Response resp = handleToGetResponse(packet);
-      log.finer("Got read response.");
       try {
         packet.respond(resp);
       } catch (ExecutionException | IOException e) {
         e.printStackTrace(); // FIXME handle this somehow
       }
-      log.finer(
-          "Readworker " + readWorkerIndex + " for server " + serverAddress + " done with request.");
     }
 
     private Response handleToGetResponse(final RequestPacket packet) {
+      Response preliminaryResponse = sendToServer(packet);
+      if (preliminaryResponse != null) {
+        return preliminaryResponse;
+      }
+      return getReplyFromServer(packet);
+    }
+
+    private Response sendToServer(final RequestPacket packet) {
       Request req = packet.getRequest();
       ByteBuffer rbuf = req.render();
       rbuf.position(0);
@@ -128,14 +120,15 @@ public class ServerReadHandler {
         shutdown();
         return new ServerErrorResponse("Failed to write to server: " + serverAddress);
       }
-      log.finer("Wrote " + bytesWritten + " bytes to server " + serverAddress);
       if (bytesWritten <= 0) {
         shutdown();
         return new ServerErrorResponse("Wrote " + bytesWritten + " bytes to server.");
       }
-      log.finest(new String(rbuf.array()));
       packet.setAsked();
+      return null;
+    }
 
+    private Response getReplyFromServer(RequestPacket packet) {
       ByteBuffer bbuf2 = ByteBuffer.allocate(BUFFER_SIZE);
       int bytesRead2;
       try {
@@ -145,13 +138,21 @@ public class ServerReadHandler {
         shutdown();
         return new ServerErrorResponse("Failed to receive from server: " + serverAddress);
       }
-      log.finer("Read " + bytesRead2 + " bytes from server " + serverAddress);
       if (bytesRead2 <= 0) {
         shutdown();
         return new ServerErrorResponse(bytesRead2 + " bytes read from server " + serverAddress);
       }
-      log.finest(new String(bbuf2.array()));
-      return new SuccessfulResponse(ByteBuffer.wrap(bbuf2.array(), 0, bytesRead2));
+      Response resp;
+      try {
+        resp = ResponseParser.parseResponse(bbuf2);
+      } catch (NotEnoughDataException e) { // TODO handle this better.
+        resp = new ClientErrorResponse("Not enough data.");
+        packet.setFailed();
+      } catch (ParseFailedException e) {
+        resp = new ErrorResponse();
+        packet.setFailed();
+      }
+      return resp;
     }
   }
 }

@@ -10,9 +10,7 @@ import ch.ethz.asl.request.SetRequest;
 
 import java.nio.ByteBuffer;
 
-import static ch.ethz.asl.generic_parsing.GenericParser.SPACE;
-import static ch.ethz.asl.generic_parsing.GenericParser.parseUntilNewline;
-import static ch.ethz.asl.generic_parsing.GenericParser.parseUntilSpace;
+import static ch.ethz.asl.generic_parsing.GenericParser.*;
 
 public class RequestParser {
 
@@ -30,136 +28,32 @@ public class RequestParser {
 
     switch (byteBuffer.get(0)) {
       case 'g':
-        if (position <= 1) {
-          throw new NotEnoughDataException();
-        }
-
-        switch (byteBuffer.get(1)) {
-          case 'e':
-            if (position <= 2) {
-              throw new NotEnoughDataException();
-            }
-
-            switch (byteBuffer.get(2)) {
-              case 't':
-                if (position <= 3) {
-                  throw new NotEnoughDataException();
-                }
-
-                switch (byteBuffer.get(3)) {
-                  case ' ':
-                    return parseGetRequest(byteBuffer);
-                  default:
-                    throw new ParseFailedException();
-                }
-              default:
-                throw new ParseFailedException();
-            }
-          default:
-            throw new ParseFailedException();
-        }
+        ParseProgress getpp = parseLiteral(KEYWORD_GET, byteBuffer, 1, 1);
+        ParseProgress getspp = parseLiteral(SPACE, byteBuffer, 0, getpp.nextoffset);
+        return parseGetRequest(byteBuffer, getspp.nextoffset);
       case 's':
-        if (position <= 1) {
-          throw new NotEnoughDataException();
-        }
-
-        switch (byteBuffer.get(1)) {
-          case 'e':
-            if (position <= 2) {
-              throw new NotEnoughDataException();
-            }
-
-            switch (byteBuffer.get(2)) {
-              case 't':
-                if (position <= 3) {
-                  throw new NotEnoughDataException();
-                }
-
-                switch (byteBuffer.get(3)) {
-                  case ' ':
-                    return parseSetRequest(byteBuffer);
-                }
-                break;
-              default:
-                throw new ParseFailedException();
-            }
-            break;
-          default:
-            throw new ParseFailedException();
-        }
-        break;
+        ParseProgress setpp = parseLiteral(KEYWORD_SET, byteBuffer, 1, 1);
+        ParseProgress setspp = parseLiteral(SPACE, byteBuffer, 0, setpp.nextoffset);
+        return parseSetRequest(byteBuffer, setspp.nextoffset);
       case 'd':
-        if (position <= 1) {
-          throw new NotEnoughDataException();
-        }
-
-        switch (byteBuffer.get(1)) {
-          case 'e':
-            if (position <= 2) {
-              throw new NotEnoughDataException();
-            }
-
-            switch (byteBuffer.get(2)) {
-              case 'l':
-                if (position <= 3) {
-                  throw new NotEnoughDataException();
-                }
-
-                switch (byteBuffer.get(3)) {
-                  case 'e':
-                    if (position <= 4) {
-                      throw new NotEnoughDataException();
-                    }
-
-                    switch (byteBuffer.get(4)) {
-                      case 't':
-                        if (position <= 5) {
-                          throw new NotEnoughDataException();
-                        }
-
-                        switch (byteBuffer.get(5)) {
-                          case 'e':
-                            if (position <= 6) {
-                              throw new NotEnoughDataException();
-                            }
-
-                            switch (byteBuffer.get(6)) {
-                              case ' ':
-                                return parseDeleteRequest(byteBuffer);
-                              default:
-                                throw new ParseFailedException();
-                            }
-                          default:
-                            throw new ParseFailedException();
-                        }
-                      default:
-                        throw new ParseFailedException();
-                    }
-                  default:
-                    throw new ParseFailedException();
-                }
-              default:
-                throw new ParseFailedException();
-            }
-          default:
-            throw new ParseFailedException();
-        }
+        ParseProgress delpp = parseLiteral(KEYWORD_DELETE, byteBuffer, 1, 1);
+        ParseProgress delspp = parseLiteral(SPACE, byteBuffer, 0, delpp.nextoffset);
+        return parseDeleteRequest(byteBuffer, delspp.nextoffset);
       default:
-        throw new ParseFailedException();
+        throw new ParseFailedException(byteBuffer);
     }
-    throw new ParseFailedException();
   }
 
-  static GetRequest parseGetRequest(ByteBuffer byteBuffer)
+  static GetRequest parseGetRequest(ByteBuffer byteBuffer, int offset)
       throws NotEnoughDataException, ParseFailedException {
-    ParseProgress keyProgress = parseUntilNewline(byteBuffer, KEYWORD_SET.length + SPACE.length);
+    ParseProgress keyProgress = parseUntilNewline(byteBuffer, offset);
     byte[] key = keyProgress.res;
     return new GetRequest(key);
   }
 
-  static SetRequest parseSetRequest(ByteBuffer byteBuffer)
+  static SetRequest parseSetRequest(ByteBuffer byteBuffer, int offset)
       throws NotEnoughDataException, ParseFailedException {
-    ParseProgress keyProgress = parseUntilSpace(byteBuffer, KEYWORD_SET.length + SPACE.length);
+    ParseProgress keyProgress = parseUntilSpace(byteBuffer, offset);
     byte[] key = keyProgress.res;
     int keyOffset = keyProgress.nextoffset;
     ParseProgress flagsProgress = parseUntilSpace(byteBuffer, keyOffset);
@@ -176,9 +70,9 @@ public class RequestParser {
     return new SetRequest(key, flags, exptime, length, value);
   }
 
-  static DeleteRequest parseDeleteRequest(ByteBuffer byteBuffer)
+  static DeleteRequest parseDeleteRequest(ByteBuffer byteBuffer, int offset)
       throws NotEnoughDataException, ParseFailedException {
-    ParseProgress keyProgress = parseUntilNewline(byteBuffer, KEYWORD_DELETE.length + SPACE.length);
+    ParseProgress keyProgress = parseUntilNewline(byteBuffer, offset);
     byte[] key = keyProgress.res;
     return new DeleteRequest(key);
   }
