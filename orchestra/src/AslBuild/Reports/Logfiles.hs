@@ -39,7 +39,7 @@ loglistingFileFor ecf = reportsTmpDir </> experimentTarget ecf ++ "-logfile-list
 
 genLogfileListingFor :: ExperimentConfig a => a -> String
 genLogfileListingFor ecf = unlines
-    $ map (inHline . uncurry (\a b -> a ++ " & {\\footnotesize \\url{https://gitlab.inf.ethz.ch/" ++ myNetzh ++ "/asl-fall16-project/blob/master/results/" ++ b ++ "}}"))
+    $ map (inHline . uncurry (\a b -> a ++ " & {\\footnotesize \\url{https://gitlab.inf.ethz.ch/" ++ myNetzh ++ "/asl-fall16-project/blob/master/" ++ b ++ "}}"))
     [ (experimentClientLogsShort ecf, experimentClientLogsLong ecf)
     , (experimentMiddleTracesShort ecf, experimentMiddleTracesLong ecf)
     ]
@@ -51,7 +51,7 @@ experimentClientLogsShort :: ExperimentConfig a => a -> String
 experimentClientLogsShort ecf = dropRemotePrefix (experimentTarget ecf) ++ "-client-logs"
 
 experimentClientLogsLong :: ExperimentConfig a => a -> String
-experimentClientLogsLong ecf = localClientLogDir ecf ++ "/*"
+experimentClientLogsLong ecf = localClientLogDir ecf
 
 experimentMiddleTracesShort :: ExperimentConfig a => a -> String
 experimentMiddleTracesShort ecf = dropRemotePrefix (experimentTarget ecf) ++ "-middle-traces"
@@ -60,7 +60,7 @@ dropRemotePrefix :: String -> String
 dropRemotePrefix = drop (length "remote-")
 
 experimentMiddleTracesLong :: ExperimentConfig a => a -> String
-experimentMiddleTracesLong ecf = localMiddleTraceDir ecf ++ "/*" <.> csvExt
+experimentMiddleTracesLong ecf = localMiddleTraceDir ecf
 
 logfileListingFileForReportName :: Int -> String
 logfileListingFileForReportName i = "report-" ++ show i ++ "-logfile-listings" <.> texExt
