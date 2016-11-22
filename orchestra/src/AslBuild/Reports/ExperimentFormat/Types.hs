@@ -70,7 +70,7 @@ workloadLineFor MemaslapConfig{..} =
         else show distrMin ++ "-" ++ show distrMax
 
 writePercentageLine :: [Double] -> String
-writePercentageLine pers = "Write percentage & " ++ showMinMaxPercentageList pers
+writePercentageLine pers = "Write percentage & " ++ showPercentageList pers
 
 logfileLines :: ExperimentConfig a => a -> [String]
 logfileLines ecf =
