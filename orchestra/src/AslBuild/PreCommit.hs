@@ -62,6 +62,7 @@ preCommitRules = do
             , experimentTablesRule
             , reportsRule
 
+            , formatCabalFileRule
             , formatClientRule
             ]
         unit $ cmd (Cwd aslDir) gitCmd "add" "." -- Re-add files that were formatted.
@@ -69,6 +70,7 @@ preCommitRules = do
         unit $ cmd (Cwd aslDir) "scripts/lines.sh"
 
     codeHealth
+    formatCabalFile
     formatClient
 
 codeHealthRule :: String
@@ -148,6 +150,16 @@ javaFormatterUrl = "https://github.com/google/google-java-format/releases/downlo
 
 javaFormatter :: FilePath
 javaFormatter = tmpDir </> "google-java-format-1.0-all-deps.jar"
+
+formatCabalFileRule :: String
+formatCabalFileRule = "format-cabal"
+
+formatCabalFile :: Rules ()
+formatCabalFile =
+    formatCabalFileRule ~> do
+        let cabalPath = aslBuildDir </> "orchestra.cabal"
+        need [cabalPath]
+        cmd "cabal" "format" cabalPath
 
 formatClientRule :: String
 formatClientRule = "format-client"

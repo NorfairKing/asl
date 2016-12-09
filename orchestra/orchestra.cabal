@@ -1,146 +1,148 @@
-name:                orchestra
-version:             0.1.0.0
-synopsis:            Orchestration of the AS System
-description:         Please see README.md
-homepage:            https://github.com/NorfairKing/asl
-author:              Tom Sydney Kerckhove
-maintainer:          syd.kerckhove@gmail.com
-license:             AllRightsReserved
-license-file:        LICENSE
-copyright:           Copyright: (c) 2016 Tom Sydney Kerckhove
-category:            Build
-build-type:          Simple
-cabal-version:       >=1.10
-
-library
-  hs-source-dirs:      src
-  exposed-modules:
-      AslBuild
-    , AslBuild.Analysis
-    , AslBuild.Analysis.BuildR
-    , AslBuild.Analysis.Common
-    , AslBuild.Analysis.MaximumThroughput
-    , AslBuild.Analysis.Memaslap
-    , AslBuild.Analysis.Memaslap.Types
-    , AslBuild.Analysis.PipeUtils
-    , AslBuild.Analysis.ReplicationEffect
-    , AslBuild.Analysis.ReplicationEffect.Types
-    , AslBuild.Analysis.StabilityTrace
-    , AslBuild.Analysis.Trace
-    , AslBuild.Analysis.Trace.Types
-    , AslBuild.Analysis.TraceSlice
-    , AslBuild.Analysis.TraceSlice.Pipes
-    , AslBuild.Analysis.TraceSlice.Script
-    , AslBuild.Analysis.TraceSlice.Types
-    , AslBuild.Analysis.TraceSlice.Utils
-    , AslBuild.Analysis.Types
-    , AslBuild.Analysis.Utils
-    , AslBuild.Analysis.WriteEffect
-    , AslBuild.Analysis.WriteEffect.Types
-    , AslBuild.Build
-    , AslBuild.BuildMemcached
-    , AslBuild.Clean
-    , AslBuild.Client
-    , AslBuild.Client.Types
-    , AslBuild.CommitHash
-    , AslBuild.CommonActions
-    , AslBuild.Constants
-    , AslBuild.Create
-    , AslBuild.Experiment
-    , AslBuild.Experiment.Types
-    , AslBuild.Experiments
-    , AslBuild.Experiments.Baseline
-    , AslBuild.Experiments.Baseline.Types
-    , AslBuild.Experiments.MaximumThroughput
-    , AslBuild.Experiments.MaximumThroughput.Types
-    , AslBuild.Experiments.ReplicationEffect
-    , AslBuild.Experiments.ReplicationEffect.Types
-    , AslBuild.Experiments.StabilityTrace
-    , AslBuild.Experiments.StabilityTrace.Types
-    , AslBuild.Experiments.WriteEffect
-    , AslBuild.Experiments.WriteEffect.Types
-    , AslBuild.Jar
-    , AslBuild.LocalLogTest
-    , AslBuild.LocalMiddlewareTest
-    , AslBuild.LocalMiddlewareTest.MultiClientTest
-    , AslBuild.LocalMiddlewareTest.MultipleClientsTest
-    , AslBuild.LocalMiddlewareTest.MultipleServersTest
-    , AslBuild.LocalMiddlewareTest.ParseTest
-    , AslBuild.LocalMiddlewareTest.ReplicationFailureTest
-    , AslBuild.LocalMiddlewareTest.ReplicationTest
-    , AslBuild.LocalMiddlewareTest.SimpleTest
-    , AslBuild.LocalMiddlewareTest.Types
-    , AslBuild.LocalMiddlewareTests
-    , AslBuild.Memaslap
-    , AslBuild.Memaslap.LogParser
-    , AslBuild.Memaslap.Types
-    , AslBuild.Memcached
-    , AslBuild.Memcached.Types
-    , AslBuild.Middle
-    , AslBuild.Middle.Types
-    , AslBuild.Middleware
-    , AslBuild.Middleware.Types
-    , AslBuild.Orc
-    , AslBuild.PreCommit
-    , AslBuild.Provision
-    , AslBuild.Reports
-    , AslBuild.Reports.Common
-    , AslBuild.Reports.ExperimentFormat
-    , AslBuild.Reports.ExperimentFormat.Types
-    , AslBuild.Reports.Logfiles
-    , AslBuild.Reports.MileStone1
-    , AslBuild.Reports.MileStone2
-    , AslBuild.Reports.MileStone3
-    , AslBuild.RunDebug
-    , AslBuild.Server
-    , AslBuild.Server.Types
-    , AslBuild.Ssh
-    , AslBuild.Test
-    , AslBuild.Types
-    , AslBuild.Utils
-    , AslBuild.VisualVm
-    , AslBuild.Vm
-    , AslBuild.Vm.Data
-    , AslBuild.Vm.Names
-    , AslBuild.Vm.Start
-    , AslBuild.Vm.Stop
-    , AslBuild.Vm.Types
-  build-depends:
-      base                          >= 4.7    && < 5
-    , shake                         >= 0.15   && < 0.16
-    , aeson
-    , aeson-pretty
-    , bytestring                    >= 0.10   && < 0.11
-    , cassava                       >= 0.4    && < 0.5
-    , containers                    >= 0.5    && < 0.6
-    , directory                     >= 1.2    && < 1.3
-    , filepath                      >= 1.4    && < 1.5
-    , hashable                      >= 1.2    && < 1.3
-    , mtl
-    , network
-    , optparse-applicative          >= 0.13   && < 0.14
-    , parsec                        >= 3.1    && < 3.2
-    , pipes                         >= 4.1    && < 4.2
-    , pipes-bytestring              >= 2.1    && < 2.2
-    , pipes-csv                     >= 1.4    && < 1.5
-    , process                       >= 1.4    && < 1.5
-    , split                         >= 0.2    && < 0.3
-    , statistics                    >= 0.13   && < 0.14
-    , text                          >= 1.2    && < 1.3
-    , threads                       >= 0.5    && < 0.6
-    , unordered-containers          >= 0.2    && < 0.3
-    , vector                        >= 0.11   && < 0.12
-  default-language:    Haskell2010
-
-executable orc
-  hs-source-dirs:      app
-  main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base
-    , orchestra
-  default-language:    Haskell2010
+name: orchestra
+version: 0.1.0.0
+cabal-version: >=1.10
+build-type: Simple
+license: AllRightsReserved
+license-file: LICENSE
+copyright: Copyright: (c) 2016 Tom Sydney Kerckhove
+maintainer: syd.kerckhove@gmail.com
+homepage: https://github.com/NorfairKing/asl
+synopsis: Orchestration of the AS System
+description:
+    Please see README.md
+category: Build
+author: Tom Sydney Kerckhove
 
 source-repository head
-  type:     git
-  location: https://github.com/NorfairKing/asl
+    type: git
+    location: https://github.com/NorfairKing/asl
+
+library
+    exposed-modules:
+        AslBuild
+        AslBuild.Analysis
+        AslBuild.Analysis.BuildR
+        AslBuild.Analysis.Common
+        AslBuild.Analysis.MaximumThroughput
+        AslBuild.Analysis.Memaslap
+        AslBuild.Analysis.Memaslap.Types
+        AslBuild.Analysis.PipeUtils
+        AslBuild.Analysis.ReplicationEffect
+        AslBuild.Analysis.ReplicationEffect.Types
+        AslBuild.Analysis.StabilityTrace
+        AslBuild.Analysis.Trace
+        AslBuild.Analysis.Trace.Types
+        AslBuild.Analysis.TraceSlice
+        AslBuild.Analysis.TraceSlice.Pipes
+        AslBuild.Analysis.TraceSlice.Script
+        AslBuild.Analysis.TraceSlice.Types
+        AslBuild.Analysis.TraceSlice.Utils
+        AslBuild.Analysis.Types
+        AslBuild.Analysis.Utils
+        AslBuild.Analysis.WriteEffect
+        AslBuild.Analysis.WriteEffect.Types
+        AslBuild.Build
+        AslBuild.BuildMemcached
+        AslBuild.Clean
+        AslBuild.Client
+        AslBuild.Client.Types
+        AslBuild.CommitHash
+        AslBuild.CommonActions
+        AslBuild.Constants
+        AslBuild.Create
+        AslBuild.Experiment
+        AslBuild.Experiment.Types
+        AslBuild.Experiments
+        AslBuild.Experiments.Baseline
+        AslBuild.Experiments.Baseline.Types
+        AslBuild.Experiments.MaximumThroughput
+        AslBuild.Experiments.MaximumThroughput.Types
+        AslBuild.Experiments.ReplicationEffect
+        AslBuild.Experiments.ReplicationEffect.Types
+        AslBuild.Experiments.StabilityTrace
+        AslBuild.Experiments.StabilityTrace.Types
+        AslBuild.Experiments.WriteEffect
+        AslBuild.Experiments.WriteEffect.Types
+        AslBuild.Jar
+        AslBuild.LocalLogTest
+        AslBuild.LocalMiddlewareTest
+        AslBuild.LocalMiddlewareTest.MultiClientTest
+        AslBuild.LocalMiddlewareTest.MultipleClientsTest
+        AslBuild.LocalMiddlewareTest.MultipleServersTest
+        AslBuild.LocalMiddlewareTest.ParseTest
+        AslBuild.LocalMiddlewareTest.ReplicationFailureTest
+        AslBuild.LocalMiddlewareTest.ReplicationTest
+        AslBuild.LocalMiddlewareTest.SimpleTest
+        AslBuild.LocalMiddlewareTest.Types
+        AslBuild.LocalMiddlewareTests
+        AslBuild.Memaslap
+        AslBuild.Memaslap.LogParser
+        AslBuild.Memaslap.Types
+        AslBuild.Memcached
+        AslBuild.Memcached.Types
+        AslBuild.Middle
+        AslBuild.Middle.Types
+        AslBuild.Middleware
+        AslBuild.Middleware.Types
+        AslBuild.Orc
+        AslBuild.PreCommit
+        AslBuild.Provision
+        AslBuild.Reports
+        AslBuild.Reports.Common
+        AslBuild.Reports.ExperimentFormat
+        AslBuild.Reports.ExperimentFormat.Types
+        AslBuild.Reports.Logfiles
+        AslBuild.Reports.MileStone1
+        AslBuild.Reports.MileStone2
+        AslBuild.Reports.MileStone3
+        AslBuild.RunDebug
+        AslBuild.Server
+        AslBuild.Server.Types
+        AslBuild.Ssh
+        AslBuild.Test
+        AslBuild.Types
+        AslBuild.Utils
+        AslBuild.VisualVm
+        AslBuild.Vm
+        AslBuild.Vm.Data
+        AslBuild.Vm.Names
+        AslBuild.Vm.Start
+        AslBuild.Vm.Stop
+        AslBuild.Vm.Types
+    build-depends:
+        base >=4.7 && <5,
+        shake >=0.15 && <0.16,
+        aeson -any,
+        aeson-pretty -any,
+        bytestring >=0.10 && <0.11,
+        cassava >=0.4 && <0.5,
+        containers >=0.5 && <0.6,
+        directory >=1.2 && <1.3,
+        filepath >=1.4 && <1.5,
+        hashable >=1.2 && <1.3,
+        mtl -any,
+        network -any,
+        optparse-applicative >=0.13 && <0.14,
+        parsec >=3.1 && <3.2,
+        pipes >=4.1 && <4.2,
+        pipes-bytestring >=2.1 && <2.2,
+        pipes-csv >=1.4 && <1.5,
+        process >=1.4 && <1.5,
+        split >=0.2 && <0.3,
+        statistics >=0.13 && <0.14,
+        text >=1.2 && <1.3,
+        threads >=0.5 && <0.6,
+        unordered-containers >=0.2 && <0.3,
+        vector >=0.11 && <0.12
+    default-language: Haskell2010
+    hs-source-dirs: src
+
+executable orc
+    main-is: Main.hs
+    build-depends:
+        base -any,
+        orchestra -any
+    default-language: Haskell2010
+    hs-source-dirs: app
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+
