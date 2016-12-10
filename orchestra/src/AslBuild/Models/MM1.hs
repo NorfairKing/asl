@@ -6,6 +6,7 @@ import           Development.Shake
 
 import           AslBuild.Analysis.Utils
 import           AslBuild.Experiment
+import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Utils
 
@@ -17,15 +18,26 @@ mm1Rule = "mm1-models"
 
 mm1Rules :: Rules ()
 mm1Rules = do
-    mm1Rule ~> need [ruleForStabilityTraces]
+    mm1Rule ~> need
+        [ ruleForStabilityTraces
+        , ruleForMaximumThroughputs
+        ]
 
     subRules
         mm1RulesFor
         ruleForStabilityTraces
         allStabilityTraceExperiments
 
+    subRules
+        mm1RulesFor
+        ruleForMaximumThroughputs
+        allMaximumThroughputExperiments
+
 ruleForStabilityTraces :: String
 ruleForStabilityTraces = "stability-trace-mm1-models"
+
+ruleForMaximumThroughputs :: String
+ruleForMaximumThroughputs = "maximum-throughput-mm1-models"
 
 mm1RuleFor :: ExperimentConfig a => a -> String
 mm1RuleFor ecf = experimentTarget ecf ++ "-mm1-model"
