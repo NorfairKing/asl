@@ -6,6 +6,7 @@ module AslBuild.Analysis.Types where
 
 import           GHC.Generics
 
+import           Data.Aeson   (FromJSON, ToJSON)
 import           Data.Csv
 
 data AvgResults
@@ -20,6 +21,9 @@ data Avg
     { avg    :: Double
     , stdDev :: Double
     } deriving (Show, Eq, Generic)
+
+instance FromJSON Avg
+instance ToJSON   Avg
 
 instance ToNamedRecord Avg where
     toNamedRecord Avg{..} = namedRecord

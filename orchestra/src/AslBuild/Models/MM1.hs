@@ -6,6 +6,7 @@ import           Data.List
 import           System.IO
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           Pipes                               (Pipe, (>->))
 import qualified Pipes                               as P
@@ -44,31 +45,37 @@ ruleForStabilityTraces = "stability-trace-mm1-models"
 mm1RuleFor :: ExperimentConfig a => a -> String
 mm1RuleFor ecf = experimentTarget ecf ++ "-mm1-model"
 
+mm1MiddlewareModelFileFor :: ExperimentConfig a => a -> FilePath -> FilePath
+mm1MiddlewareModelFileFor ecf = changeFilename (++ "-mm1-middleware") . (`replaceDirectory` experimentAnalysisTmpDir ecf)
+
 mm1RulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
 mm1RulesFor ecf = onlyIfResultsExist ecf $ do
-    let mm1target = mm1RuleFor ecf
-    mm1target ~> do
-        slocs <- readResultsSummaryLocationsForCfg ecf
-        forP_ slocs $ \sloc -> do
-            mm1Model <- calcMM1Model sloc
+    slocs <- readResultsSummaryLocationsForCfg ecf
+    mm1ModelFiles <- forM slocs $ \sloc -> do
+        let modelFile = mm1MiddlewareModelFileFor ecf sloc
+        modelFile %> \outf -> do
+            mm1Model <- calcMiddlewareMM1Model sloc
             liftIO $ print mm1Model
+            writeJSON outf mm1Model
+        return modelFile
 
+    let mm1target = mm1RuleFor ecf
+    mm1target ~> need mm1ModelFiles
     return mm1target
 
-
-calcMM1Model :: MonadIO m => FilePath -> m MM1Model
-calcMM1Model sloc = do
+calcMiddlewareMM1Model :: MonadIO m => FilePath -> m MM1Model
+calcMiddlewareMM1Model sloc = do
     ers <- readResultsSummary sloc
     case merMiddleResultsFile ers of
         Nothing -> fail "Cannot compute M/M/1 model without middleware trace."
         Just traceFile -> do
             setup <- readExperimentSetupForSummary ers
-            arrAvg <- calcArrivalAvg setup traceFile
-            serAvg <- calcServiceRateAvg traceFile
+            arrAvg <- calcMiddlewareArrivalAvg setup traceFile
+            serAvg <- calcMiddlewareServiceRateAvg traceFile
             pure $ MM1Model arrAvg serAvg
 
-calcArrivalAvg :: MonadIO m => ExperimentSetup -> FilePath -> m Avg
-calcArrivalAvg setup = do
+calcMiddlewareArrivalAvg :: MonadIO m => ExperimentSetup -> FilePath -> m Avg
+calcMiddlewareArrivalAvg setup = do
     -- We need write percentage and sample rates.
     let wps = map (setProportion . msConfig . cMemaslapSettings) $ clientSetups setup
     unless (length (nub wps) == 1) $ fail "Clients used didn't all use the same write percentage."
@@ -80,18 +87,18 @@ calcArrivalAvg setup = do
     (rsr, wsr) <- case (,) <$> mwReadSampleRate mwf <*> mwWriteSampleRate mwf of
         Nothing -> fail "need to predefine sample rates to get arrival rate."
         Just t -> pure t
-    bucketizedAverageOf (requestsPerLine wp rsr wsr) requestReceivedTime
+    bucketizedInMiddlewareAverageOf (grequestsPerResultLine wp rsr wsr) requestReceivedTime
 
-calcServiceRateAvg :: MonadIO m => FilePath -> m Avg
-calcServiceRateAvg = averageOf $ \mrl ->
+calcMiddlewareServiceRateAvg :: MonadIO m => FilePath -> m Avg
+calcMiddlewareServiceRateAvg = averageInMiddlewareOf $ \mrl ->
     1 / (fromIntegral (requestRepliedTime mrl - requestDequeuedTime mrl) / (1000 * 1000 * 1000))
 
-averageOf :: MonadIO m => (MiddleResultLine -> Double) -> FilePath -> m Avg
-averageOf projection = avgWithFold $ P.map projection
+averageInMiddlewareOf :: MonadIO m => (MiddleResultLine -> Double) -> FilePath -> m Avg
+averageInMiddlewareOf projection = avgInMiddlewareWithFold $ P.map projection
 
-bucketizedAverageOf :: MonadIO m => Double -> (MiddleResultLine -> Integer) -> FilePath -> m Avg
-bucketizedAverageOf correctionFactor projection
-    = avgWithFold $ bucketizer projection >-> P.map ((* correctionFactor) . genericLength)
+bucketizedInMiddlewareAverageOf :: MonadIO m => Double -> (MiddleResultLine -> Integer) -> FilePath -> m Avg
+bucketizedInMiddlewareAverageOf correctionFactor projection
+    = avgInMiddlewareWithFold $ bucketizer projection >-> P.map ((* correctionFactor) . genericLength)
 
 
 -- If we find a write line, that means wss writes have been processed
@@ -99,7 +106,7 @@ bucketizedAverageOf correctionFactor projection
 --
 -- For every line, there are wp write lines and rp read lines, so wp * wss writes and rp * rss
 -- reads have been processed.
-requestsPerLine
+grequestsPerResultLine
     :: Double
         -- ^ Write percentage
     -> Int
@@ -107,12 +114,12 @@ requestsPerLine
     -> Int
         -- ^ Write sample rate
     -> Double
-requestsPerLine wp rss wss =
+grequestsPerResultLine wp rss wss =
     let rp = 1 - wp -- read percentage
-    in wp * fromIntegral wss + rp * fromIntegral rss
+    in (wp * fromIntegral wss) + (rp * fromIntegral rss)
 
-avgWithFold :: MonadIO m => Pipe MiddleResultLine Double IO () -> FilePath -> m Avg
-avgWithFold pipe traceFile = do
+avgInMiddlewareWithFold :: MonadIO m => Pipe MiddleResultLine Double IO () -> FilePath -> m Avg
+avgInMiddlewareWithFold pipe traceFile = do
     let withFold fold = liftIO $ withFile traceFile ReadMode $ \inHandle -> do
             let prod =
                         P.decodeByName (PB.fromHandle inHandle)
