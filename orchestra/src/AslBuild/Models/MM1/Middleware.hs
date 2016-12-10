@@ -40,7 +40,7 @@ calcMiddlewareMM1Model sloc = do
             pure $ MM1Model arrAvg serAvg
 
 calcMiddlewareArrivalAvg :: MonadIO m => ExperimentSetup -> FilePath -> m Avg
-calcMiddlewareArrivalAvg setup = do
+calcMiddlewareArrivalAvg setup traceFile = do
     -- We need write percentage and sample rates.
     let wps = map (setProportion . msConfig . cMemaslapSettings) $ clientSetups setup
     unless (length (nub wps) == 1) $ fail "Clients used didn't all use the same write percentage."
@@ -52,7 +52,8 @@ calcMiddlewareArrivalAvg setup = do
     (rsr, wsr) <- case (,) <$> mwReadSampleRate mwf <*> mwWriteSampleRate mwf of
         Nothing -> fail "need to predefine sample rates to get arrival rate."
         Just t -> pure t
-    bucketizedInMiddlewareAverageOf (grequestsPerResultLine wp rsr wsr) requestReceivedTime
+    let correctionFactor = requestsPerResultLine wp rsr wsr
+    bucketizedInMiddlewareAverageOf correctionFactor requestReceivedTime traceFile
 
 calcMiddlewareServiceRateAvg :: MonadIO m => FilePath -> m Avg
 calcMiddlewareServiceRateAvg = averageInMiddlewareOf $ \mrl ->
@@ -71,7 +72,7 @@ bucketizedInMiddlewareAverageOf correctionFactor projection
 --
 -- For every line, there are wp write lines and rp read lines, so wp * wss writes and rp * rss
 -- reads have been processed.
-grequestsPerResultLine
+requestsPerResultLine
     :: Double
         -- ^ Write percentage
     -> Int
@@ -79,7 +80,7 @@ grequestsPerResultLine
     -> Int
         -- ^ Write sample rate
     -> Double
-grequestsPerResultLine wp rss wss =
+requestsPerResultLine wp rss wss =
     let rp = 1 - wp -- read percentage
     in (wp * fromIntegral wss) + (rp * fromIntegral rss)
 
@@ -117,11 +118,27 @@ bucketizer projection = do
         help seccounter acc = do
             line <- P.await
             let s = sec $ diff first line
+            -- If this line belongs in this bucket,
             if s <= seccounter
+            -- Then add it to this bucket.
             then help seccounter $ acc ++ [line]
+            -- Otherwise, yield the bucket we have currently
             else do
                 P.yield acc
-                help s []
+                -- Then increment the second counter
+                let increment counter = do
+                        -- If the line fits into the next bucket
+                        let counter' = counter + 1
+                        if s <= counter'
+                        -- Then that's going to be the second counter
+                        then pure counter'
+                        -- Otherwise, yield an empty bucket here.
+                        else do
+                            P.yield []
+                            increment counter'
+                seccounter' <- increment seccounter
+                -- Now that we've found the bucket that this line belongs in, put it in there.
+                help seccounter' [line]
 
     sec :: Integer -> Integer
     sec = (`div` (1000 * 1000 * 1000))
