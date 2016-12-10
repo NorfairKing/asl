@@ -16,6 +16,9 @@ data AvgResults
     , bothResults :: Avg
     } deriving (Show, Eq, Generic)
 
+instance FromJSON AvgResults
+instance ToJSON   AvgResults
+
 data Avg
     = Avg
     { avg    :: Double

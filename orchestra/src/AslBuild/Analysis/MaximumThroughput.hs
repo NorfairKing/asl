@@ -75,10 +75,12 @@ rulesForThroughputAnalysis mtc = onlyIfResultsExist mtc $ do
     let simpleCsv = simplifiedCsvFor mtc
     simpleCsv %> \_ -> do
         summaryPaths <- readResultsSummaryLocations $ resultSummariesLocationFile mtc
+        let combinedResultsFiles = map (combineClientResultsFile mtc) summaryPaths
+        need combinedResultsFiles
         ls <- forP summaryPaths $ \summaryPath -> do
             ers <- readResultsSummary summaryPath
             es <- readExperimentSetupForSummary ers
-            res <- throughputResults mtc $ erClientLogFiles ers
+            res <- readCombinedClientResults $ combineClientResultsFile mtc summaryPath
             return $ simplifiedCsvLine es res
 
         writeCSV simpleCsv ls

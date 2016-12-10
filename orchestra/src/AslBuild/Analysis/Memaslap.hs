@@ -6,11 +6,13 @@ module AslBuild.Analysis.Memaslap
     ) where
 
 import           Control.Monad
+import           Control.Monad.IO.Class
 import           Data.Maybe
 import qualified Data.Vector                            as V
 import qualified Statistics.Sample                      as S
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Memaslap.Types
 import           AslBuild.Analysis.Types
@@ -51,28 +53,37 @@ memaslapLogsRulesFor ecf = onlyIfResultsExist ecf $ do
                 case mlog of
                     Nothing -> fail $ "could not parse logfile: " ++ logFile
                     Just parsedLog -> writeJSON (localClientResultsFile ecf logFile) parsedLog
-        return resultsFiles
+
+        let combinedResultsFile = combineClientResultsFile ecf sloc
+        combinedResultsFile %> \_ -> do
+            need resultsFiles
+            rs <- forP resultsFiles $ \resultsFile -> do
+                clr <- readClientResults resultsFile
+                let trips = triples clr
+                let tprs = pureClientResults trips
+                return tprs
+            writeJSON combinedResultsFile $ combineClientResults rs
+
+        return $ combinedResultsFile : resultsFiles
 
     let target = memaslapLogRuleTargetFor ecf
     target ~> need (concat resultFiles)
     return target
 
+combineClientResultsFile :: ExperimentConfig a => a -> FilePath -> FilePath
+combineClientResultsFile ecf = (`replaceDirectory` localClientResultsDir ecf) . changeFilename (++ "-combined-results")
 
-throughputResults :: ExperimentConfig a => a -> [FilePath] -> Action MemaslapClientResults
-throughputResults ecf clrfs = do
-    let resultsFiles = map (localClientResultsFile ecf) clrfs
-    need resultsFiles
-    rs <- forP resultsFiles $ \resultsFile -> do
-        clr <- readClientResults resultsFile
-        let trips = triples clr
-        let tprs = pureClientResults trips
-        return tprs
-    return $ combineClientResults rs
+readCombinedClientResults :: MonadIO m => FilePath -> m MemaslapClientResults
+readCombinedClientResults = readJSON
 
 combineClientResults :: [MemaslapClientResults] -> MemaslapClientResults
 combineClientResults cs = MemaslapClientResults
     { tpsResults  = combineAvgResults $ map tpsResults cs
     , respResults = combineAvgResults $ map respResults cs
+    , minTps = sum $ map minTps cs
+    , maxTps = sum $ map maxTps cs -- Yes, take the sum, not the maximum.
+    , minResp = minimum $ map minResp cs
+    , maxResp = maximum $ map maxResp cs
     }
 
 combineAvgResults :: [AvgResults] -> AvgResults
@@ -99,8 +110,18 @@ pureClientResults sts =
             , setResults = mkAvg func <$> mapM setStats sts
             , bothResults = mkAvg func $ map bothStats sts
             }
+        tpss = map (fromIntegral . tps . periodStats . bothStats) sts
+        maxtps = maximum tpss
+        mintps = minimum tpss
+
+        maxresp = maximum $ map (fromIntegral . maxUs . periodStats . bothStats) sts
+        minresp = minimum $ map (fromIntegral . minUs . periodStats . bothStats) sts
     in MemaslapClientResults
         { tpsResults = mkAvgResults tps
         , respResults = mkAvgResults avgUs
+        , maxTps = maxtps
+        , minTps = mintps
+        , maxResp = maxresp
+        , minResp = minresp
         }
 

@@ -8,6 +8,7 @@ module AslBuild.Experiment
     , genMiddleSetup
     , genServerSetups
     , getVmsForExperiments
+    , localClientResultsDir
     , localClientResultsFile
     , localClientLogDir
     , localMiddleTraceDir

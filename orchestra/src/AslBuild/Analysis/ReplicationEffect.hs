@@ -96,10 +96,12 @@ rulesForReplicationAnalysis rec = onlyIfResultsExist rec $ do
     let simplifiedCsv = simplifiedReplicationCsv rec
     simplifiedCsv %> \outFile -> do
         slocs <- readResultsSummaryLocationsForCfg rec
+        let combinedResultsFiles = map (combineClientResultsFile rec) slocs
+        need combinedResultsFiles
         lines_ <- forP slocs $ \sloc -> do
             ers <- readResultsSummary sloc
             setup <- readExperimentSetupForSummary ers
-            res <- throughputResults rec $ erClientLogFiles ers
+            res <- readCombinedClientResults $ combineClientResultsFile rec sloc
             simplifiedCsvLines setup res
 
         writeCSV outFile $ concat lines_
