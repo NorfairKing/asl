@@ -28,6 +28,8 @@ import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.List                  (intercalate)
 import           Data.Maybe
+import           Path.IO                    (forgivingAbsence)
+import qualified System.Directory           as IO (doesFileExist)
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -74,18 +76,18 @@ runExperiments ecf eSetups vmsNeeded =
     -- Intentionally no parallelism here.
     forM_ (indexed eSetups) $ \(ix, es) -> do
         let resSumFile = esResultsSummaryFile es
-        alreadyDone <- doesFileExist resSumFile
-        if alreadyDone
-        then do
-            putLoud $ unwords
-                [ "Not rerunning experiment"
-                , show ix
-                , "because its results file already exists:"
-                ]
-            putLoud resSumFile
-        else do
-            printBanner ecf ix eSetups
-            retryAsNeeded es
+        alreadyDone <- liftIO $ forgivingAbsence $ IO.doesFileExist resSumFile
+        case alreadyDone of
+            Just True -> do
+                putLoud $ unwords
+                    [ "Not rerunning experiment"
+                    , show ix
+                    , "because its results file already exists:"
+                    ]
+                putLoud resSumFile
+            _ -> do
+                printBanner ecf ix eSetups
+                retryAsNeeded es
   where
     retryAsNeeded es = go 1
       where

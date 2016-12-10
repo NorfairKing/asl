@@ -36,8 +36,8 @@ instance ExperimentConfig StabilityTraceCfg where
                 { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
                     { mwReplicationFactor = length servers
                     , mwVerbosity = logLevel
-                    , mwReadSampleRate = Just 10000
-                    , mwWriteSampleRate = Just 10000
+                    , mwReadSampleRate = Just 1000
+                    , mwWriteSampleRate = Just 1000
                     }
                 }
 

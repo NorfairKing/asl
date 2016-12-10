@@ -24,6 +24,7 @@ import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Types
 import           AslBuild.Utils
@@ -32,6 +33,7 @@ traceRules :: Rules ()
 traceRules = do
     mapM_ durationsRulesFor allMaximumThroughputExperiments
     mapM_ durationsRulesFor allReplicationEffectExperiments
+    mapM_ durationsRulesFor allStabilityTraceExperiments
     mapM_ durationsRulesFor allWriteEffectExperiments
 
 durationsRulesFor :: ExperimentConfig a => a -> Rules ()

@@ -11,6 +11,7 @@ import           AslBuild.Experiments
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareTests
+import           AslBuild.Models
 import           AslBuild.Orc
 import           AslBuild.PreCommit
 import           AslBuild.Provision
@@ -43,6 +44,7 @@ theShake  = do
     visualVmRules
     runDebugRules
     analysisRules
+    modelsRules
     sshRules
     createRules
     provisionRules
