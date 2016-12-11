@@ -11,11 +11,9 @@ import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
-import           AslBuild.Client.Types
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Memaslap.Types
 import           AslBuild.Reports.Utils
 import           AslBuild.Utils
 
@@ -102,7 +100,7 @@ estimateMM1Model ecf sloc = do
     let mtps = avg $ bothResults $ tpsResults res
         -- mrst = avg $ bothResults $ respResults res
         -- Number of clients
-    let nrc = fromIntegral $ sum $ map ((\f -> msThreads f * msConcurrency f) . msFlags . cMemaslapSettings) $ clientSetups setup
+    let nrc = fromIntegral $ nrUsers setup
     let λ = mtps
     let μ = ((1 + nrc) * λ) / nrc
     pure $ MM1Model λ μ

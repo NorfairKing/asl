@@ -21,6 +21,7 @@ module AslBuild.Experiment
     , readClientResults
     , experimentResultsDir
     , experimentLocalTmpDir
+    , nrUsers
     , module AslBuild.Experiment.Types
     ) where
 
@@ -435,3 +436,7 @@ readExperimentSetup = readJSON
 
 readClientResults :: MonadIO m => FilePath -> m MemaslapLog
 readClientResults = readJSON
+
+nrUsers :: ExperimentSetup -> Int
+nrUsers = sum . map ((\f -> msThreads f * msConcurrency f) . msFlags . cMemaslapSettings) . clientSetups
+

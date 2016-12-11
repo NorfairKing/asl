@@ -8,6 +8,7 @@ import           AslBuild.Clean
 import           AslBuild.CommitHash
 import           AslBuild.Create
 import           AslBuild.Experiments
+import           AslBuild.IRTL
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
 import           AslBuild.LocalMiddlewareTests
@@ -45,6 +46,7 @@ theShake  = do
     runDebugRules
     analysisRules
     modelsRules
+    irtlRules
     sshRules
     createRules
     provisionRules
