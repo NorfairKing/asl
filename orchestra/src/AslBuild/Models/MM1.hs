@@ -6,6 +6,8 @@ import           Text.Printf
 
 import           Development.Shake
 
+import           AslBuild.Analysis.Memaslap
+import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Experiment
@@ -119,21 +121,38 @@ mm1ReportRulesFor ecf = do
 makeMM1ReportContent :: ExperimentConfig a => a -> Action String
 makeMM1ReportContent ecf = do
     slocs <- readResultsSummaryLocationsForCfg ecf
-    let mm1ModelFiles = map (mm1ClientsModelFileFor ecf) slocs
-    mm1Models <- mapM readMM1ModelFile mm1ModelFiles
-    pure $ unlines $ flip map mm1Models $ \mm1 -> tabularWithHeader
-        [ "Measure", "Model"]
-        [ [ "Arrival rate (transactions / second)", showDub $ avg $ arrivalRate mm1]
-        , [ "Service rate (transactions / second)", showDub $ avg $ serviceRate mm1]
-        , [ "Traffic intensity (no unit)", showDub $ mm1TrafficIntensity mm1]
-        , [ "Mean response time (microseconds)", showDub $ time $ mm1MeanResponseTime mm1]
-        , [ "Std Dev response time (microseconds)", showDub $ time $ mm1StdDevResponseTime mm1]
-        , [ "Mean waiting time (microseconds)", showDub $ time $ mm1MeanWaitingTime mm1]
-        , [ "Std Dev waiting time (microseconds)", showDub $ time $ mm1StdDevWaitingTime mm1]
-        ]
+    (unlines <$>) $ forP slocs $ \sloc -> do
+        ers <- readResultsSummary sloc
+
+        mrf <- case merMiddleResultsFile ers of
+            Nothing -> fail "must have a middleware to evaluate mm1 model."
+            Just m -> pure m
+
+        let avgDurFile = avgDurationFile ecf mrf
+        let mm1ModelFile = mm1ClientsModelFileFor ecf sloc
+        let mm1MModelFile = mm1MiddlewareModelFileFor ecf sloc
+        let combinedResultsFile = combineClientResultsFile ecf sloc
+        need [avgDurFile, mm1ModelFile, mm1MModelFile, combinedResultsFile]
+        mm1 <- readMM1ModelFile mm1ModelFile
+        mm1m <- readMM1ModelFile mm1MModelFile
+        res <- readCombinedClientResults combinedResultsFile
+        avgDurs <- readJSON avgDurFile
+
+        pure $ tabularWithHeader
+            [ "Measure", "Model", "Measurement", "Relative difference"]
+            [ line "Arrival rate (transactions / second)"  (avg $ arrivalRate mm1)             (avg $ arrivalRate mm1m)
+            , line "Service rate (transactions / second)"  (avg $ serviceRate mm1)             (avg $ serviceRate mm1m)
+            , line "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)           (avg (arrivalRate mm1m) / avg (serviceRate mm1m))
+            , line "Mean response time (microseconds)"     (time $ mm1MeanResponseTime mm1)    (avg $ bothResults $ respResults res)
+            , line "Std Dev response time (microseconds)"  (time $ mm1StdDevResponseTime mm1)  (stdDev $ bothResults $ respResults res)
+            , line "Mean waiting time (microseconds)"      (time $ mm1MeanWaitingTime mm1)     (untilDequeuedTime avgDurs)
+            , line "Std Dev waiting time (microseconds)"   (time $ mm1StdDevWaitingTime mm1)   0
+            ]
   where
+    line :: String -> Double -> Double -> [String]
+    line title model real = [title, showDub model, showDub real, showDub ((real / model) - 1)]
     time :: Double -> Double
     time = (* (1000 * 1000))
     showDub :: Double -> String
-    showDub = printf "%.2f"
+    showDub = printf "$%.2f$"
 
