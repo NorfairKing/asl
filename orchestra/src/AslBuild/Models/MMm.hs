@@ -10,7 +10,6 @@ import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Utils
 
-import           AslBuild.Models.MMm.Clients
 import           AslBuild.Models.MMm.Middleware
 
 mmmRule :: String
@@ -42,10 +41,9 @@ mmmRuleFor ecf = experimentTarget ecf ++ "-mmm-model"
 mmmRulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
 mmmRulesFor ecf = onlyIfResultsExist ecf $ do
     middleRule <- mmmmiddlewareRulesFor ecf
-    clientsRule <- mmmClientsRulesFor ecf
 
     let mmmtarget = mmmRuleFor ecf
-    mmmtarget ~> need [middleRule, clientsRule]
+    mmmtarget ~> need [middleRule]
     return mmmtarget
 
 mmmmiddlewareRuleFor :: ExperimentConfig a => a -> String
@@ -62,22 +60,5 @@ mmmmiddlewareRulesFor ecf = do
         return modelFile
 
     let mmmtarget = mmmmiddlewareRuleFor ecf
-    mmmtarget ~> need mmmModelFiles
-    return mmmtarget
-
-mmmClientsRuleFor :: ExperimentConfig a => a -> String
-mmmClientsRuleFor ecf = experimentTarget ecf ++ "-clients-mmm-model"
-
-mmmClientsRulesFor :: ExperimentConfig a => a -> Rules String
-mmmClientsRulesFor ecf = do
-    slocs <- readResultsSummaryLocationsForCfg ecf
-    mmmModelFiles <- forM slocs $ \sloc -> do
-        let modelFile = mmmClientsModelFileFor ecf sloc
-        modelFile %> \outf -> do
-            mmmModel <- calcClientsMMmModel ecf sloc
-            writeJSON outf mmmModel
-        return modelFile
-
-    let mmmtarget = mmmClientsRuleFor ecf
     mmmtarget ~> need mmmModelFiles
     return mmmtarget

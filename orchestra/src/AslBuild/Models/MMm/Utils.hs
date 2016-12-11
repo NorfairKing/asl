@@ -2,7 +2,6 @@ module AslBuild.Models.MMm.Utils where
 
 import           Control.Monad.IO.Class
 
-import           AslBuild.Analysis.Types
 import           AslBuild.Experiment
 
 import           AslBuild.Models.MM1.Types (MM1Model (..))
@@ -26,4 +25,4 @@ fromMM1 nrs mm1 = MMmModel
     }
 
 mmmTraficIntensity :: MMmModel -> Double
-mmmTraficIntensity mmm = avg (MMm.arrivalRate mmm) / (fromIntegral (MMm.nrServers mmm) * avg (MMm.serviceRate mmm))
+mmmTraficIntensity mmm = MMm.arrivalRate mmm / (fromIntegral (MMm.nrServers mmm) * MMm.serviceRate mmm)

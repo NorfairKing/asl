@@ -41,8 +41,8 @@ calcMiddlewareMM1Model sloc = do
     arrAvg <- calcMiddlewareArrivalAvg setup traceFile
     serAvg <- calcMiddlewareServiceRateAvg traceFile
     -- Adjust for the problem with multiple workers
-    let correction (Avg a s) = Avg (a * genericLength ss * fromIntegral (mwNrThreads (mMiddlewareFlags ms) + 1)) s
-    pure $ MM1Model arrAvg (correction serAvg)
+    let correction = (* (genericLength ss * fromIntegral (mwNrThreads (mMiddlewareFlags ms) + 1)))
+    pure $ MM1Model (avg arrAvg) (correction $ avg serAvg)
 
 calcMiddlewareArrivalAvg :: MonadIO m => ExperimentSetup -> FilePath -> m Avg
 calcMiddlewareArrivalAvg setup traceFile = do

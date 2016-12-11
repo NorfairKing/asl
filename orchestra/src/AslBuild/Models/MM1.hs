@@ -5,20 +5,18 @@ import           Control.Monad.IO.Class
 import           Text.Printf
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
-import           AslBuild.Client.Types
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Memaslap.Types
 import           AslBuild.Reports.Utils
 import           AslBuild.Utils
 
-import           AslBuild.Models.MM1.Clients
 import           AslBuild.Models.MM1.Middleware
 import           AslBuild.Models.MM1.Report
 import           AslBuild.Models.MM1.Types
@@ -61,16 +59,48 @@ mm1RuleFor ecf = experimentTarget ecf ++ "-mm1-model"
 
 mm1RulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
 mm1RulesFor ecf = onlyIfResultsExist ecf $ do
+    estimateRule <- mm1EstimationRulesFor ecf
     middleRule <- mm1MiddlewareRulesFor ecf
-    clientsRule <- mm1ClientsRulesFor ecf
     reportRule <- mm1ReportRulesFor ecf
 
     let mm1target = mm1RuleFor ecf
-    mm1target ~> need [middleRule, clientsRule, reportRule]
+    mm1target ~> need [estimateRule, middleRule, reportRule]
     return mm1target
 
 readMM1ModelFile :: MonadIO m => FilePath -> m MM1Model
 readMM1ModelFile = readJSON
+
+mm1EstimationRuleFor :: ExperimentConfig a => a -> String
+mm1EstimationRuleFor ecf = experimentTarget ecf ++ "-middleware-mm1-estimation"
+
+mm1ModelEstimateFileFor :: ExperimentConfig a => a -> FilePath -> FilePath
+mm1ModelEstimateFileFor ecf = changeFilename (++ "-mm1-estimate") . (`replaceDirectory` experimentAnalysisTmpDir ecf)
+
+mm1EstimationRulesFor :: ExperimentConfig a => a -> Rules String
+mm1EstimationRulesFor ecf = do
+    slocs <- readResultsSummaryLocationsForCfg ecf
+    mm1ModelFiles <- forM slocs $ \sloc -> do
+        let modelFile = mm1ModelEstimateFileFor ecf sloc
+        modelFile %> \outf -> do
+            mm1Model <- estimateMM1Model ecf sloc
+            writeJSON outf mm1Model
+        return modelFile
+
+    let mm1target = mm1EstimationRuleFor ecf
+    mm1target ~> need mm1ModelFiles
+    return mm1target
+
+estimateMM1Model :: ExperimentConfig a => a -> FilePath -> Action MM1Model
+estimateMM1Model ecf sloc = do
+    let combinedResultsFile = combineClientResultsFile ecf sloc
+    need [combinedResultsFile]
+    res <- readCombinedClientResults combinedResultsFile
+    let v = 105
+    let λ = avg $ bothResults $ tpsResults res
+    let μ = ((1 + v) * λ) / v
+    pure $ MM1Model λ μ
+
+
 
 mm1MiddlewareRuleFor :: ExperimentConfig a => a -> String
 mm1MiddlewareRuleFor ecf = experimentTarget ecf ++ "-middleware-mm1-model"
@@ -86,23 +116,6 @@ mm1MiddlewareRulesFor ecf = do
         return modelFile
 
     let mm1target = mm1MiddlewareRuleFor ecf
-    mm1target ~> need mm1ModelFiles
-    return mm1target
-
-mm1ClientsRuleFor :: ExperimentConfig a => a -> String
-mm1ClientsRuleFor ecf = experimentTarget ecf ++ "-clients-mm1-model"
-
-mm1ClientsRulesFor :: ExperimentConfig a => a -> Rules String
-mm1ClientsRulesFor ecf = do
-    slocs <- readResultsSummaryLocationsForCfg ecf
-    mm1ModelFiles <- forM slocs $ \sloc -> do
-        let modelFile = mm1ClientsModelFileFor ecf sloc
-        modelFile %> \outf -> do
-            mm1Model <- calcClientsMM1Model ecf sloc
-            writeJSON outf mm1Model
-        return modelFile
-
-    let mm1target = mm1ClientsRuleFor ecf
     mm1target ~> need mm1ModelFiles
     return mm1target
 
@@ -125,41 +138,42 @@ makeMM1ReportContent ecf = do
     slocs <- readResultsSummaryLocationsForCfg ecf
     (unlines <$>) $ forP slocs $ \sloc -> do
         ers <- readResultsSummary sloc
-        setup <- readExperimentSetupForSummary ers
         mrf <- case merMiddleResultsFile ers of
             Nothing -> fail "must have a middleware to evaluate mm1 model."
             Just m -> pure m
 
         let avgDurFile = avgDurationFile ecf mrf
-        let mm1ModelFile = mm1ClientsModelFileFor ecf sloc
+        let mm1ModelFile = mm1ModelEstimateFileFor ecf sloc
         let mm1MModelFile = mm1MiddlewareModelFileFor ecf sloc
         let combinedResultsFile = combineClientResultsFile ecf sloc
         need [avgDurFile, mm1ModelFile, mm1MModelFile, combinedResultsFile]
         mm1 <- readMM1ModelFile mm1ModelFile
-        mm1m <- readMM1ModelFile mm1MModelFile
         res <- readCombinedClientResults combinedResultsFile
-        avgDurs <- readJSON avgDurFile :: Action (Durations Avg)
-        let nrJobs = fromIntegral $ sum $ map ((\f -> msThreads f * msConcurrency f) . msFlags . cMemaslapSettings) $ clientSetups setup
+        -- avgDurs <- readJSON avgDurFile :: Action (Durations Avg)
+        -- let nrJobs = fromIntegral $ sum $ map ((\f -> msThreads f * msConcurrency f) . msFlags . cMemaslapSettings) $ clientSetups setup
 
         pure $ tabularWithHeader
             [ "Measure", "Model", "Measurement", "Relative difference"]
-            [ line "Arrival rate (transactions / second)"  (avg $ arrivalRate mm1)             (avg $ arrivalRate mm1m)
-            , line "Service rate (transactions / second)"  (avg $ serviceRate mm1)             (avg $ serviceRate mm1m)
-            , line "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)           (avg (arrivalRate mm1m) / avg (serviceRate mm1m))
+            [ mo "Arrival rate (transactions / second)"  (arrivalRate mm1)
+            , mo "Service rate (transactions / second)"  (serviceRate mm1)
+            , mo "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)
             , line "Mean response time ($\\mu s$)"         (timeFromModel $ mm1MeanResponseTime mm1)    (avg $ bothResults $ respResults res)
             , line "Std Dev response time ($\\mu s$)"      (timeFromModel $ mm1StdDevResponseTime mm1)  (stdDev $ bothResults $ respResults res)
-            , line "Mean waiting time ($\\mu s$)"          (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle $ avg $ untilDequeuedTime avgDurs)
-            , line "Std Dev waiting time ($\\mu s$)"       (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle $ stdDev $ untilDequeuedTime avgDurs)
-            , line "Mean number of jobs in the system"     (mm1MeanNrJobs mm1)                 nrJobs
-            , line "Std Dev number of jobs in the system"  (mm1StdDevNrJobs mm1)               0
+            -- , line "Mean waiting time ($\\mu s$)"          (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle $ avg $ untilDequeuedTime avgDurs)
+            -- , line "Std Dev waiting time ($\\mu s$)"       (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle $ stdDev $ untilDequeuedTime avgDurs)
+            -- , line "Mean number of jobs in the system"     (mm1MeanNrJobs mm1)                 nrJobs
+            -- , line "Std Dev number of jobs in the system"  (mm1StdDevNrJobs mm1)               0
             ]
   where
+    -- Model only
+    mo :: String -> Double -> [String]
+    mo title model = [title, showDub model, "", ""]
     line :: String -> Double -> Double -> [String]
     line title model real = [title, showDub model, showDub real, showDub ((real / model) - 1)]
     timeFromModel :: Double -> Double
     timeFromModel = (* (1000 * 1000))
-    timeFromMiddle :: Double -> Double
-    timeFromMiddle = (/ 1000)
+    -- timeFromMiddle :: Double -> Double
+    -- timeFromMiddle = (/ 1000)
     showDub :: Double -> String
     showDub = printf "$%.2f$"
 

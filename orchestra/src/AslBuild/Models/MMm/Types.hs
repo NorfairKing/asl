@@ -6,13 +6,10 @@ import           GHC.Generics
 
 import           Data.Aeson
 
-import           AslBuild.Analysis.Types
-
-
 data MMmModel
     = MMmModel
-    { arrivalRate :: Avg -- λ: In messages / second
-    , serviceRate :: Avg -- μ: In messages / second
+    { arrivalRate :: Double -- λ: In messages / second
+    , serviceRate :: Double -- μ: In messages / second
     , nrServers   :: Int -- m: in #
     } deriving (Show, Eq, Generic)
 
