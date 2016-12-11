@@ -100,8 +100,12 @@ combineTpsAvgs as = Avg
     }
 
 pureClientResults :: [StatsTriple] -> MemaslapClientResults
-pureClientResults sts =
-    let mkAvg :: (Statistics -> Int) -> [StatisticsLog] -> Avg
+pureClientResults allresults =
+    let l = length allresults
+        -- Drop fourths on either side
+        sts = drop (l `div` 4) $ take (l `div` 2) $ allresults
+
+        mkAvg :: (Statistics -> Int) -> [StatisticsLog] -> Avg
         mkAvg func sl = Avg { avg = S.mean vec, stdDev = S.stdDev vec }
           where vec = V.fromList $ map (fromIntegral . func . periodStats) sl
         mkAvgResults :: (Statistics -> Int) -> AvgResults

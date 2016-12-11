@@ -169,8 +169,8 @@ simplifiedCostCsvLines rec ExperimentSetup{..} ExperimentResultSummary{..} = do
     let readDursFile = avgReadDurationFile rec erMiddleResultsFile
     let writeDursFile = avgWriteDurationFile rec erMiddleResultsFile
     need [readDursFile, writeDursFile]
-    avgReadDurs <- readJSON readDursFile
-    avgWriteDurs <- readJSON writeDursFile
+    avgReadDurs <- fmap (round . avg) <$> readAvgDurationsFile readDursFile
+    avgWriteDurs <- fmap (round . avg) <$> readAvgDurationsFile writeDursFile
     let (ms, sss) = fromRight backendSetup
     return $ concatMap
         (uncurry $ makeDurLines

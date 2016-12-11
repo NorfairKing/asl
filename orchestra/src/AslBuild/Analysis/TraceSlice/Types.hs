@@ -19,6 +19,9 @@ data DurTup a
     , durs      :: Durations a
     } deriving (Show, Eq, Generic)
 
+instance Functor DurTup where
+    fmap f dt = dt { durs = fmap f (durs dt) }
+
 instance FromField a => FromNamedRecord (DurTup a) where
     parseNamedRecord m = DurTup
         <$> m .: "nrClients"

@@ -100,21 +100,11 @@ timeTransformer = do
                 }
             }
 
+readAvgDurationsFile :: MonadIO m => FilePath -> m (Durations Avg)
+readAvgDurationsFile = readJSON
+
 calcAvgDur :: MonadIO m => FilePath -> m (Durations Avg)
 calcAvgDur path = do
-    -- (sumdurs, i) <- liftIO $ withFile path ReadMode $ \inHandle -> do
-    --     let prod =
-    --                 P.decodeByName (PB.fromHandle inHandle)
-    --             >-> errorIgnorer
-    --             >-> P.map durations
-
-    --     let go :: (Durations Integer, Int) -> Durations Integer -> (Durations Integer, Int)
-    --         go (s, l) d = (s `mappend` d, l + 1)
-
-    --     P.fold go (mempty :: Durations Integer, 0) id prod
-
-    -- return $ sumdurs `divide` i
-
     let withFold fold = liftIO $ withFile path ReadMode $ \inHandle -> do
              let prod =
                          P.decodeByName (PB.fromHandle inHandle)

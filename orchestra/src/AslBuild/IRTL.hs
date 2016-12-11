@@ -9,7 +9,9 @@ import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Experiment
+import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.WriteEffect
 
 irtlRule :: String
@@ -20,7 +22,13 @@ irtlRules = do
     irtlRule ~> need
         [ ruleForReplicationEffects
         , ruleForWriteEffects
+        , ruleForMaxixumThroughputs
+        , ruleForStabilityTraces
         ]
+    subRules
+        irtlRulesFor
+        ruleForMaxixumThroughputs
+        allMaximumThroughputExperiments
 
     subRules
         irtlRulesFor
@@ -32,11 +40,22 @@ irtlRules = do
         ruleForWriteEffects
         allWriteEffectExperiments
 
+    subRules
+        irtlRulesFor
+        ruleForStabilityTraces
+        allStabilityTraceExperiments
+
+ruleForMaxixumThroughputs :: String
+ruleForMaxixumThroughputs = "maximum-throughput-irtl"
+
 ruleForReplicationEffects :: String
 ruleForReplicationEffects = "replication-effect-irtl"
 
 ruleForWriteEffects :: String
 ruleForWriteEffects = "write-effect-irtl"
+
+ruleForStabilityTraces :: String
+ruleForStabilityTraces = "stability-trace-irtl"
 
 irtlRuleFor :: ExperimentConfig a => a -> String
 irtlRuleFor ecf = experimentTarget ecf ++ "-irtl"
@@ -61,8 +80,9 @@ irtlRulesFor ecf = onlyIfResultsExist ecf $ do
             let n = nrUsers setup
                 r = (/ (1000 * 1000)) $ avg $ bothResults $ respResults res
                 x = avg $ bothResults $ tpsResults res
-                z = r - (fromIntegral n / x)
+                z = ((fromIntegral n) / x) - r
 
-            -- liftIO $ print (n, r, x)
+            liftIO $ print (n, r, x)
             liftIO $ putStrLn $ printf "%.2f μs" (z * 1000 * 1000)
+            liftIO $ print $ (((fromIntegral n) / x), r)
     return rule

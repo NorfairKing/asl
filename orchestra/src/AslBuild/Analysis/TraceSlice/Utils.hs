@@ -14,6 +14,7 @@ import           AslBuild.Analysis.PipeUtils
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.TraceSlice.Pipes
 import           AslBuild.Analysis.TraceSlice.Types
+import           AslBuild.Analysis.Types
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Utils
@@ -37,5 +38,5 @@ oneTup mtc summaryPath = do
         Nothing -> return Nothing
         Just erMiddleResultsFile -> do
             setup <- readExperimentSetupForSummary ers
-            avgDur <- readJSON $ avgDurationFile mtc erMiddleResultsFile
-            return $ Just (setup, avgDur)
+            avgDur <- readAvgDurationsFile $ avgDurationFile mtc erMiddleResultsFile
+            return $ Just (setup, fmap (round . avg) avgDur)
