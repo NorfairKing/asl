@@ -11,11 +11,6 @@ import           Data.Csv
 
 import           AslBuild.Types
 
-class Monoid a => Mean a where
-    combines :: [a] -> a
-    divide :: Integral i => a -> i -> a
-    uncombine :: a -> a -> a
-
 data MiddleDurationsLine
     = MiddleDurationsLine
     { reqKind     :: RequestKind
@@ -54,6 +49,17 @@ data Durations a
     , untilRespondedTime :: a
     } deriving (Show, Eq, Generic)
 
+instance Functor Durations where
+    fmap f dur = Durations
+        { untilParsedTime    = f $ untilParsedTime dur
+        , untilEnqueuedTime  = f $ untilEnqueuedTime dur
+        , untilDequeuedTime  = f $ untilDequeuedTime dur
+        , untilAskedTime     = f $ untilAskedTime dur
+        , untilRepliedTime   = f $ untilRepliedTime dur
+        , untilRespondedTime = f $ untilRespondedTime dur
+        }
+
+
 instance ToJSON a => ToJSON (Durations a)
 instance FromJSON a => FromJSON (Durations a)
 
@@ -87,57 +93,42 @@ instance DefaultOrdered (Durations a) where
         , "untilResponded"
         ]
 
-instance Num a => Monoid (Durations a) where
-    mempty = Durations
-        { untilParsedTime    = 0
-        , untilEnqueuedTime  = 0
-        , untilDequeuedTime  = 0
-        , untilAskedTime     = 0
-        , untilRepliedTime   = 0
-        , untilRespondedTime = 0
+binop :: (a -> b -> c) -> Durations a -> Durations b -> Durations c
+binop func d1 d2 = Durations
+        { untilParsedTime    = untilParsedTime d1 `func` untilParsedTime d2
+        , untilEnqueuedTime  = untilEnqueuedTime d1 `func` untilEnqueuedTime d2
+        , untilDequeuedTime  = untilDequeuedTime d1 `func` untilDequeuedTime d2
+        , untilAskedTime     = untilAskedTime d1 `func` untilAskedTime d2
+        , untilRepliedTime   = untilRepliedTime d1 `func` untilRepliedTime d2
+        , untilRespondedTime = untilRespondedTime d1 `func` untilRespondedTime d2
         }
-    mappend d1 d2 =
-        let s func = func d1 + func d2
-        in Durations
-            { untilParsedTime    = s untilParsedTime
-            , untilEnqueuedTime  = s untilEnqueuedTime
-            , untilDequeuedTime  = s untilDequeuedTime
-            , untilAskedTime     = s untilAskedTime
-            , untilRepliedTime   = s untilRepliedTime
-            , untilRespondedTime = s untilRespondedTime
-            }
 
-instance (Num a, Divisive a) => Mean (Durations a) where
-    combines ds =
-        let s func = sum $ map func ds
-        in Durations
-            { untilParsedTime    = s untilParsedTime
-            , untilEnqueuedTime  = s untilEnqueuedTime
-            , untilDequeuedTime  = s untilDequeuedTime
-            , untilAskedTime     = s untilAskedTime
-            , untilRepliedTime   = s untilRepliedTime
-            , untilRespondedTime = s untilRespondedTime
-            }
-    divide d i =
-        let s func = func d `divi` i
-        in Durations
-            { untilParsedTime    = s untilParsedTime
-            , untilEnqueuedTime  = s untilEnqueuedTime
-            , untilDequeuedTime  = s untilDequeuedTime
-            , untilAskedTime     = s untilAskedTime
-            , untilRepliedTime   = s untilRepliedTime
-            , untilRespondedTime = s untilRespondedTime
-            }
-    uncombine d1 d2 =
-        let s func = func d1 - func d2
-        in Durations
-            { untilParsedTime    = s untilParsedTime
-            , untilEnqueuedTime  = s untilEnqueuedTime
-            , untilDequeuedTime  = s untilDequeuedTime
-            , untilAskedTime     = s untilAskedTime
-            , untilRepliedTime   = s untilRepliedTime
-            , untilRespondedTime = s untilRespondedTime
-            }
+constDur :: a -> Durations a
+constDur i = Durations
+    { untilParsedTime    = i
+    , untilEnqueuedTime  = i
+    , untilDequeuedTime  = i
+    , untilAskedTime     = i
+    , untilRepliedTime   = i
+    , untilRespondedTime = i
+    }
+
+instance Num a => Num (Durations a) where
+    (+) = binop (+)
+    (-) = binop (-)
+    (*) = binop (*)
+    abs = fmap abs
+    signum = fmap signum
+    negate = fmap negate
+    fromInteger = constDur . fromInteger
+
+instance Fractional a => Fractional (Durations a) where
+    (/) = binop (/)
+    fromRational = constDur . fromRational
+
+instance Floating a => Floating (Durations a) where
+    pi = constDur pi
+    (**) = binop (**)
 
 class Divisive a where
     divi :: Integral i => a -> i -> a
@@ -148,3 +139,5 @@ instance Divisive Integer where
 instance Divisive Float where
     divi a i = a / fromIntegral i
 
+instance Divisive Double where
+    divi a i = a / fromIntegral i

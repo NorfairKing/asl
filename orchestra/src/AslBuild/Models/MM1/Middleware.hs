@@ -31,13 +31,18 @@ mm1MiddlewareModelFileFor ecf = changeFilename (++ "-mm1-middleware") . (`replac
 calcMiddlewareMM1Model :: MonadIO m => FilePath -> m MM1Model
 calcMiddlewareMM1Model sloc = do
     ers <- readResultsSummary sloc
-    case merMiddleResultsFile ers of
+    setup <- readExperimentSetupForSummary ers
+    traceFile <- case merMiddleResultsFile ers of
         Nothing -> fail "Cannot compute M/M/1 model without middleware trace."
-        Just traceFile -> do
-            setup <- readExperimentSetupForSummary ers
-            arrAvg <- calcMiddlewareArrivalAvg setup traceFile
-            serAvg <- calcMiddlewareServiceRateAvg traceFile
-            pure $ MM1Model arrAvg serAvg
+        Just tf -> pure tf
+    (ms, ss) <- case backendSetup setup of
+        Left _ -> fail "Cannot compute M/M/1 model without middleware setup."
+        Right tup -> pure tup
+    arrAvg <- calcMiddlewareArrivalAvg setup traceFile
+    serAvg <- calcMiddlewareServiceRateAvg traceFile
+    -- Adjust for the problem with multiple workers
+    let correction (Avg a s) = Avg (a * genericLength ss * fromIntegral (mwNrThreads (mMiddlewareFlags ms) + 1)) s
+    pure $ MM1Model arrAvg (correction serAvg)
 
 calcMiddlewareArrivalAvg :: MonadIO m => ExperimentSetup -> FilePath -> m Avg
 calcMiddlewareArrivalAvg setup traceFile = do

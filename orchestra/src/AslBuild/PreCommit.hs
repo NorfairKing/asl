@@ -138,6 +138,7 @@ sanityIn dir = do
             , "-fwarn-incomplete-patterns"
             , "-fwarn-unused-do-bind"
             , "-fno-warn-orphans"
+            , "-fno-warn-missing-methods"
             ]
 
     cmd (Cwd dir)

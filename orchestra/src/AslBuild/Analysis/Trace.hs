@@ -19,6 +19,7 @@ import qualified Pipes.Prelude                          as P
 
 import           AslBuild.Analysis.PipeUtils
 import           AslBuild.Analysis.Trace.Types
+import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
@@ -99,21 +100,54 @@ timeTransformer = do
                 }
             }
 
-calcAvgDur :: MonadIO m => FilePath -> m (Durations Integer)
+calcAvgDur :: MonadIO m => FilePath -> m (Durations Avg)
 calcAvgDur path = do
-    (sumdurs, i) <- liftIO $ withFile path ReadMode $ \inHandle -> do
-        let prod =
-                    P.decodeByName (PB.fromHandle inHandle)
-                >-> errorIgnorer
-                >-> P.map durations
+    -- (sumdurs, i) <- liftIO $ withFile path ReadMode $ \inHandle -> do
+    --     let prod =
+    --                 P.decodeByName (PB.fromHandle inHandle)
+    --             >-> errorIgnorer
+    --             >-> P.map durations
 
-        let go :: (Durations Integer, Int) -> Durations Integer -> (Durations Integer, Int)
-            go (s, l) d = (s `mappend` d, l + 1)
+    --     let go :: (Durations Integer, Int) -> Durations Integer -> (Durations Integer, Int)
+    --         go (s, l) d = (s `mappend` d, l + 1)
 
-        P.fold go (mempty :: Durations Integer, 0) id prod
+    --     P.fold go (mempty :: Durations Integer, 0) id prod
 
-    return $ sumdurs `divide` i
+    -- return $ sumdurs `divide` i
 
+    let withFold fold = liftIO $ withFile path ReadMode $ \inHandle -> do
+             let prod =
+                         P.decodeByName (PB.fromHandle inHandle)
+                     >-> errorIgnorer
+                     >-> P.map durations
+                     >-> P.map (fmap (fromIntegral :: Integer -> Double))
+
+             fold prod
+    a <- withFold $ \prod -> do
+        let goa (n, tot) v = (n + 1, tot + v)
+
+        (n, tot) <- P.fold goa (0 :: Integer, 0 :: Durations Double) id prod
+        let a = tot / fromIntegral n
+        pure a
+
+    s <- withFold $ \prod -> do
+        let gos (n, sumsqe) v = (n + 1, sumsqe + ((a - v) ** 2))
+
+        (n, sumsqe) <- P.fold gos (0 :: Integer, 0 :: Durations Double) id prod
+        let s = sqrt $ sumsqe / fromIntegral n
+        pure s
+    pure $ avgOfDurs a s
+
+avgOfDurs :: Durations Double -> Durations Double -> Durations Avg
+avgOfDurs da dst = Durations
+    { untilParsedTime = av untilParsedTime
+    , untilEnqueuedTime  = av untilEnqueuedTime
+    , untilDequeuedTime  = av untilDequeuedTime
+    , untilAskedTime     = av untilAskedTime
+    , untilRepliedTime   = av untilRepliedTime
+    , untilRespondedTime = av untilRespondedTime
+    }
+  where av func = Avg (func da) (func dst)
 
 
 

@@ -33,3 +33,13 @@ mm1StdDevWaitingTime mm1 = sqrt $ ((2 - ρ) * ρ) / ((μ ** 2) * ((1 - ρ) ** 2)
   where
     ρ = mm1TrafficIntensity mm1
     μ = avg (serviceRate mm1)
+
+mm1MeanNrJobs :: MM1Model -> Double
+mm1MeanNrJobs mm1 = ρ / (1 - ρ)
+  where
+    ρ = mm1TrafficIntensity mm1
+
+mm1StdDevNrJobs :: MM1Model -> Double
+mm1StdDevNrJobs mm1 = sqrt $ ρ / ((1 - ρ) ** 2)
+  where
+    ρ = mm1TrafficIntensity mm1

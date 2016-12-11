@@ -10,9 +10,11 @@ import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
+import           AslBuild.Client.Types
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Memaslap.Types
 import           AslBuild.Reports.Utils
 import           AslBuild.Utils
 
@@ -123,7 +125,7 @@ makeMM1ReportContent ecf = do
     slocs <- readResultsSummaryLocationsForCfg ecf
     (unlines <$>) $ forP slocs $ \sloc -> do
         ers <- readResultsSummary sloc
-
+        setup <- readExperimentSetupForSummary ers
         mrf <- case merMiddleResultsFile ers of
             Nothing -> fail "must have a middleware to evaluate mm1 model."
             Just m -> pure m
@@ -136,23 +138,28 @@ makeMM1ReportContent ecf = do
         mm1 <- readMM1ModelFile mm1ModelFile
         mm1m <- readMM1ModelFile mm1MModelFile
         res <- readCombinedClientResults combinedResultsFile
-        avgDurs <- readJSON avgDurFile
+        avgDurs <- readJSON avgDurFile :: Action (Durations Avg)
+        let nrJobs = fromIntegral $ sum $ map ((\f -> msThreads f * msConcurrency f) . msFlags . cMemaslapSettings) $ clientSetups setup
 
         pure $ tabularWithHeader
             [ "Measure", "Model", "Measurement", "Relative difference"]
             [ line "Arrival rate (transactions / second)"  (avg $ arrivalRate mm1)             (avg $ arrivalRate mm1m)
             , line "Service rate (transactions / second)"  (avg $ serviceRate mm1)             (avg $ serviceRate mm1m)
             , line "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)           (avg (arrivalRate mm1m) / avg (serviceRate mm1m))
-            , line "Mean response time (microseconds)"     (time $ mm1MeanResponseTime mm1)    (avg $ bothResults $ respResults res)
-            , line "Std Dev response time (microseconds)"  (time $ mm1StdDevResponseTime mm1)  (stdDev $ bothResults $ respResults res)
-            , line "Mean waiting time (microseconds)"      (time $ mm1MeanWaitingTime mm1)     (untilDequeuedTime avgDurs)
-            , line "Std Dev waiting time (microseconds)"   (time $ mm1StdDevWaitingTime mm1)   0
+            , line "Mean response time ($\\mu s$)"         (timeFromModel $ mm1MeanResponseTime mm1)    (avg $ bothResults $ respResults res)
+            , line "Std Dev response time ($\\mu s$)"      (timeFromModel $ mm1StdDevResponseTime mm1)  (stdDev $ bothResults $ respResults res)
+            , line "Mean waiting time ($\\mu s$)"          (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle $ avg $ untilDequeuedTime avgDurs)
+            , line "Std Dev waiting time ($\\mu s$)"       (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle $ stdDev $ untilDequeuedTime avgDurs)
+            , line "Mean number of jobs in the system"     (mm1MeanNrJobs mm1)                 nrJobs
+            , line "Std Dev number of jobs in the system"  (mm1StdDevNrJobs mm1)               0
             ]
   where
     line :: String -> Double -> Double -> [String]
     line title model real = [title, showDub model, showDub real, showDub ((real / model) - 1)]
-    time :: Double -> Double
-    time = (* (1000 * 1000))
+    timeFromModel :: Double -> Double
+    timeFromModel = (* (1000 * 1000))
+    timeFromMiddle :: Double -> Double
+    timeFromMiddle = (/ 1000)
     showDub :: Double -> String
     showDub = printf "$%.2f$"
 

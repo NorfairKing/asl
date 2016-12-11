@@ -3,6 +3,8 @@
 
 \input{../common.tex}
 
+\usepackage{float}
+
 \begin{document}
 
 \title{Advanced Systems Lab (Fall'16) -- Third Milestone}
@@ -33,16 +35,33 @@
 
 % Build an M/M/1 model of your entire system based on the stability trace that you had to run for the first milestone. Explain the characteristics and behavior of the model built, and compare it with the experimental data (collected both outside and inside the middleware). Analyze the modeled and real-life behavior of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments). Make sure to follow the model-related guidelines described in the Notes!
 
+To make a M/M/1 model of the system under test, we have to treat the system under test as a black box.
+The black box is drawn from the clients, across the network, across the middleware, across the network and across the servers.
+We then pretend everything in this black box corresponds to a system as modeled by an M/M/1 model, and try to estimate the parameters of the M/M/1 model.
+The arrival rate $\lambda$ is estimated by looking at the average throughput as seen by the clients.
+The service rate $\mu$ is estimated by looking at the maximum throughput as seen by the clients.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-stability-trace-mm1.tex}}
+\end{figure}
+
+Traffic intensity is calculated from arrival rate and service rate in both collumns.
+
+the rest of the measures are calculated from the model in the case of the model.
+
+Mean response time, std dev response time are taken from the client.
+Mean waiting time and std dev reps are taken from the middleware.
+
+Mean number of jobs in the system is equal to the number of clients in total at the client.
+Std dev number of jobs is set to 0 because in a closed system the number of jobs in the system is constant
+and equal to the number of clients.
+
 \section{Analysis of System Based on Scalability Data}\label{sec:analysis-scalability}
 
 % Length: 1-4 pages
 
 % Starting from the different configurations that you used in the second milestone, build M/M/m queuing models of the system as a whole. Detail the characteristics of these series of models and compare them with experimental data. The goal is the analysis of the model and the real scalability of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments). Make sure to follow the model-related guidelines described in the Notes!
-
-\begin{figure}
-  \centering
-  \input{\model{remote-stability-trace-mm1.tex}}
-\end{figure}
 
 \section{System as Network of Queues}\label{sec:network-of-queues}
 
