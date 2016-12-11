@@ -19,6 +19,9 @@ calcClientsMM1Model ecf sloc = do
     let combinedResultsFile = combineClientResultsFile ecf sloc
     need [combinedResultsFile]
     res <- readCombinedClientResults combinedResultsFile
-    let arrAvg = bothResults $ tpsResults res -- Arrival rate is estimated as average throughput
-    let serAvg = Avg (maxTps res) (read "Infinity") -- Service rate is estimated as maximum throughput
+    let v = 105
+    let λ = avg $ bothResults $ tpsResults res
+    let μ = ((1 + v) * λ) / v
+    let arrAvg = Avg λ (read "Infinity") -- Arrival rate is estimated as average throughput
+    let serAvg = Avg μ (read "Infinity") -- Service rate is estimated as maximum throughput
     pure $ MM1Model arrAvg serAvg
