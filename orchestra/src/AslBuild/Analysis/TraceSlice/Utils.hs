@@ -17,7 +17,6 @@ import           AslBuild.Analysis.TraceSlice.Types
 import           AslBuild.Analysis.Types
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
-import           AslBuild.Utils
 
 buildAvgDursFile :: MonadIO m => MaximumThroughputCfg -> FilePath -> m ()
 buildAvgDursFile ecf outFile = do
