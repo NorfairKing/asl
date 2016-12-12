@@ -14,10 +14,18 @@ x = res$totalDuration
 x = x / 1000
 
 startPng(outFile)
-hist(x, breaks=25, prob=TRUE, xlim=c(min(x), max(x)/2))
-lines(density(x), col="blue", lwd=2) # add a density estimate with defaults
+hist(x, breaks=25, xlim=c(min(x), max(x)/2))
+# lines(density(x), col="blue", lwd=2) # add a density estimate with defaults
 
 mn <- mean(x)
 md <- median(x)
 abline(v = mn, col = "red", lwd = 2)
 abline(v = md, col = "green", lwd = 2)
+
+my.legend.size <- legend("topright"
+  , c("mean", "median")
+  , lty=c(1,1) # gives the legend appropriate symbols (lines)
+  , lwd=c(2.5,2.5)
+  , col=c("red", "green")) # gives the legend lines the correct color and width
+title("Histogram of total time spend in middleware")
+

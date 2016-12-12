@@ -1,7 +1,11 @@
 module AslBuild.IRTL where
 
 import           Control.Monad
+import           Control.Monad.Catch
+import           Control.Monad.IO.Class
 import           Data.List
+import           Data.Maybe
+import           Path.IO
 import           System.Directory
 import           Text.Printf
 
@@ -105,15 +109,18 @@ irtlPlotDirForReport i = reportPlotsDir i </> "total-duration-histos"
 irtlPlotFor :: ExperimentConfig a => a -> FilePath
 irtlPlotFor ecf = irtlPlotDir ecf </> experimentTarget ecf ++ "-histogram-0" <.> pngExt
 
+listIrtlPlots :: (MonadIO m, MonadCatch m, ExperimentConfig a) => a -> m [FilePath]
+listIrtlPlots ecf = fromMaybe [] <$> forgivingAbsence (map (irtlPlotDir ecf </>) <$> liftIO (listDirectory $ irtlPlotDir ecf))
+
 useIrtlPlotInReport :: ExperimentConfig a => a -> Int -> Rules ()
 useIrtlPlotInReport ecf i = do
-    fsInDir <- map (irtlPlotDir ecf </>) <$> liftIO (listDirectory $ irtlPlotDir ecf)
+    fsInDir <- liftIO $ listIrtlPlots ecf
     let fs = nub $ irtlPlotFor ecf : fsInDir
     forM_ fs $ \f -> (f `replaceDirectory` irtlPlotDirForReport i) `byCopying` f
 
 dependOnIrtlPlotForReport :: ExperimentConfig a => a -> Int -> Action ()
 dependOnIrtlPlotForReport ecf i = do
-    fsInDir <- map (irtlPlotDir ecf </>) <$> liftIO (listDirectory $ irtlPlotDir ecf)
+    fsInDir <- liftIO $ listIrtlPlots ecf
     let fs = nub $ irtlPlotFor ecf : fsInDir
     need $ map (`replaceDirectory` irtlPlotDirForReport i)  fs
 
