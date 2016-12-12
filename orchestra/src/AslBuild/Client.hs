@@ -44,10 +44,12 @@ setupClientConfigs clientSetups = do
 startClientsOn :: [ClientSetup] -> Action [ProcessHandle]
 startClientsOn clientSetups =
     parScriptAtResult $ flip map clientSetups $ \ClientSetup{..} ->
-        let line = unwords $
-                remoteMemaslap : memaslapArgs (msFlags cMemaslapSettings)
-                ++ [">", cRemoteLog, "2>&1"]
-            s = script [line]
+        let s = script
+                [ "mkdir -p " ++ takeDirectory cRemoteLog
+                , unwords $
+                    remoteMemaslap : memaslapArgs (msFlags cMemaslapSettings)
+                    ++ [">", cRemoteLog, "2>&1"]
+                ]
         in (cRemoteLogin, s)
 
 

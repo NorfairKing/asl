@@ -47,13 +47,13 @@ smallRemoteWriteEffectRule :: String
 smallRemoteWriteEffectRule = "small-remote-write-effect"
 
 smallRemoteWriteEffect :: WriteEffectCfg
-smallRemoteWriteEffect = WriteEffectCfg
-    { hlConfig = HighLevelConfig
+smallRemoteWriteEffect = remoteWriteEffect
+    { hlConfig = (hlConfig remoteWriteEffect)
         { target = smallRemoteWriteEffectRule
         , nrServers = 1
         , nrClients = 1
-        , location = Remote
         , resultsPersistence = Volatile
+        , repititions = 1
         }
     , serverCounts = [1]
     , writePercentages = [0.01]
@@ -72,6 +72,7 @@ remoteWriteEffect = WriteEffectCfg
         , nrClients = 2
         , location = Remote
         , resultsPersistence = Persistent
+        , repititions = 3
         }
     , serverCounts = [3, 5, 7] -- [3 .. 7]
     , writePercentages = [0.01, 0.05, 0.1] -- map (* 0.01) [1 .. 10]

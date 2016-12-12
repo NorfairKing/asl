@@ -49,13 +49,13 @@ smallRemoteBaselineExperimentRule :: String
 smallRemoteBaselineExperimentRule = "small-remote-baseline-experiment"
 
 smallRemoteBaselineExperiment :: BaselineExperimentRuleCfg
-smallRemoteBaselineExperiment = BaselineExperimentRuleCfg
-    { hlConfig = HighLevelConfig
+smallRemoteBaselineExperiment = remoteBaselineExperiment
+    { hlConfig = (hlConfig remoteBaselineExperiment)
         { target = smallRemoteBaselineExperimentRule
         , nrServers = 1
         , nrClients = 1
-        , location = Remote
         , resultsPersistence = Volatile
+        , repititions = 1
         }
     , blRuntime = Seconds 5
     , concurrencies = [1]
@@ -73,6 +73,7 @@ remoteBaselineExperiment = BaselineExperimentRuleCfg
         , nrClients = 2
         , location = Remote
         , resultsPersistence = Persistent
+        , repititions = 3
         }
     , blRuntime = Seconds 30
     , concurrencies = [1, 5 .. 128]
