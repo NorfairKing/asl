@@ -11,41 +11,41 @@ thinkTimeRules = mapM_ generateTargetFor allThinkTimeExperiments
 
 allThinkTimeExperiments :: [ThinkTimeCfg]
 allThinkTimeExperiments =
-    [ smallLocalThinkTimeExperiment
-    , localThinkTimeExperiment
-    , smallRemoteThinkTimeExperiment
-    , remoteThinkTimeExperiment
+    [ smallLocalThinkTime
+    , localThinkTime
+    , smallRemoteThinkTime
+    , remoteThinkTime
     ]
 
-smallLocalThinkTimeExperiment :: ThinkTimeCfg
-smallLocalThinkTimeExperiment = smallRemoteThinkTimeExperiment
-    { hlConfig = (hlConfig smallRemoteThinkTimeExperiment)
+smallLocalThinkTime :: ThinkTimeCfg
+smallLocalThinkTime = smallRemoteThinkTime
+    { hlConfig = (hlConfig smallRemoteThinkTime)
         { target = "small-local-think-time"
         , location = Local
         }
     }
 
 
-localThinkTimeExperiment :: ThinkTimeCfg
-localThinkTimeExperiment = remoteThinkTimeExperiment
-    { hlConfig = (hlConfig remoteThinkTimeExperiment)
+localThinkTime :: ThinkTimeCfg
+localThinkTime = remoteThinkTime
+    { hlConfig = (hlConfig remoteThinkTime)
         { target = "local-think-time"
         , resultsPersistence = Volatile
         , location = Local
         }
     }
 
-smallRemoteThinkTimeExperiment :: ThinkTimeCfg
-smallRemoteThinkTimeExperiment = remoteThinkTimeExperiment
-    { hlConfig = (hlConfig remoteThinkTimeExperiment)
+smallRemoteThinkTime :: ThinkTimeCfg
+smallRemoteThinkTime = remoteThinkTime
+    { hlConfig = (hlConfig remoteThinkTime)
         { target = "small-remote-think-time"
         , resultsPersistence = Volatile
         }
     , ttRuntime = Seconds 10
     }
 
-remoteThinkTimeExperiment :: ThinkTimeCfg
-remoteThinkTimeExperiment = ThinkTimeCfg
+remoteThinkTime :: ThinkTimeCfg
+remoteThinkTime = ThinkTimeCfg
     { hlConfig = HighLevelConfig
         { target = "remote-think-time"
         , nrClients = 1

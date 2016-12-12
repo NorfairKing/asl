@@ -11,6 +11,7 @@ import           AslBuild.Experiments.Baseline
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.ThinkTime
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Jar
 import           AslBuild.LocalLogTest
@@ -49,13 +50,15 @@ preCommitRules = do
             removeFiles "" [experimentLocalTmpDir smallLocalMaximumThroughput]
             removeFiles "" [experimentLocalTmpDir smallLocalReplicationEffect]
             removeFiles "" [experimentLocalTmpDir smallLocalWriteEffect]
+            removeFiles "" [experimentLocalTmpDir smallLocalThinkTime]
 
         mapM_ (need . (:[]))
-            [ smallLocalBaselineExperimentRule
-            , smallLocalStabilityTraceRule
-            , smallLocalMaximumThroughputRule
-            , smallLocalReplicationEffectRule
-            , smallLocalWriteEffectRule
+            [ experimentTarget smallLocalBaselineExperiment
+            , experimentTarget smallLocalStabilityTrace
+            , experimentTarget smallLocalMaximumThroughput
+            , experimentTarget smallLocalReplicationEffect
+            , experimentTarget smallLocalWriteEffect
+            , experimentTarget smallLocalThinkTime
 
             , analysisRule
 
