@@ -132,7 +132,7 @@ irtlPlotRulesFor ecf = do
         slocs <- readResultsSummaryLocationsForCfg ecf
         forM_ (indexed slocs) $ \(ix, sloc) -> do
             ers <- readResultsSummary sloc
-            setup <- readExperimentSetupForSummary ers
+            -- setup <- readExperimentSetupForSummary ers
             erMiddleResultsFile <- case merMiddleResultsFile ers of
                 Nothing -> fail "Missing middleware trace"
                 Just r -> pure r
@@ -177,11 +177,11 @@ makeIrtTable ecf = do
             nd = fromIntegral n
             ra = unmematime $ avg $ bothResults $ respResults res
             xa = avg $ bothResults $ tpsResults res
-            za = (nd / xa) - ra
+            -- za = (nd / xa) - ra
 
-            rm = unmematime $ minResp res
-            xm = maxTps res
-            zm = (nd / xm) - rm
+            -- rm = unmematime $ minResp res
+            -- xm = maxTps res
+            -- zm = (nd / xm) - rm
 
             unmematime = (/ (1000 * 1000))
             mematime = (* (1000 * 1000))
