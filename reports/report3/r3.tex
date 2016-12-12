@@ -126,12 +126,18 @@ and equal to the number of clients.
 
 % Check the validity of all experiments from one of the three sections in your Milestone 2 report using the interactive law (choose a section in which your system has at least 9 different configurations). Analyze the results and explain them in detail.
 
+We assume that the think time is negligible.
+TODO: think time benchmark: 1 middleware, client and server, log every request, then think time is time between end of previous and start of next request.
+
+TODO: Correct for the tail distribution?
+
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-write-effect-irtl-table.tex}}
 \end{figure}
 
-TODO: Show the tail distribution
-TODO: Correct for it?
-
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{\plot{total-duration-histos/remote-write-effect-histogram-9.png}}
+\end{figure}
 \end{document}

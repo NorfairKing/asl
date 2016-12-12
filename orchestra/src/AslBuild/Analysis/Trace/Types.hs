@@ -141,3 +141,11 @@ instance Divisive Float where
 
 instance Divisive Double where
     divi a i = a / fromIntegral i
+
+newtype TotalDuration = TotalDuration { unTotalDuration :: Integer }
+
+instance ToNamedRecord TotalDuration where
+    toNamedRecord td = namedRecord [ "totalDuration" .= unTotalDuration td]
+
+instance DefaultOrdered TotalDuration where
+    headerOrder _ = header [ "totalDuration" ]

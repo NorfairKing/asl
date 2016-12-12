@@ -2,6 +2,7 @@ module AslBuild.Reports.MileStone3 where
 
 import           Development.Shake
 
+import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.IRTL
@@ -16,7 +17,9 @@ report3Rules = report 3 texPreAction customRules
     customRules = do
         remoteStabilityTrace `useMM1ModelInReport` 3
         remoteWriteEffect `useIrtlGenfileInReport` 3
+        remoteWriteEffect `useIrtlPlotInReport` 3
     texPreAction = do
         remoteStabilityTrace `dependOnMM1ModelForReport` 3
         remoteWriteEffect `dependOnIrtlGenfileForReport` 3
+        remoteWriteEffect `dependOnIrtlPlotForReport` 3
         need [architecturePng]

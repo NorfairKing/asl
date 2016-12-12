@@ -68,6 +68,13 @@ durationsRulesForMiddleResults ecf erMiddleResultsFile = do
         putLoud $ unwords ["Gathering write durations from", rawDurs, "into", outFile]
         transformCsvFileAction rawDurs outFile $ P.filter $ \mdl -> reqKind mdl == WRITE
 
+    let totalDur = totalDurFile ecf erMiddleResultsFile
+    totalDur %> \outFile -> do
+        putLoud $ unwords ["Gathering total durations from", erMiddleResultsFile, "into", outFile]
+        transformCsvFileAction erMiddleResultsFile outFile $ P.map $ \mrl ->
+            TotalDuration $ requestRespondedTime mrl - requestReceivedTime mrl
+
+
     avgDurationFile ecf erMiddleResultsFile `asAvgDurationFileOf` rawDurs
     avgReadDurationFile ecf erMiddleResultsFile `asAvgDurationFileOf` readDurs
     avgWriteDurationFile ecf erMiddleResultsFile `asAvgDurationFileOf` writeDurs
@@ -171,3 +178,6 @@ avgReadDurationFile ecf = changeFilename (++ "-read") . avgDurationFile ecf
 
 avgWriteDurationFile :: ExperimentConfig a => a -> FilePath -> FilePath
 avgWriteDurationFile ecf = changeFilename (++ "-write") . avgDurationFile ecf
+
+totalDurFile :: ExperimentConfig a => a -> FilePath -> FilePath
+totalDurFile ecf = changeFilename (++ "-total") . rawDurationsFile ecf
