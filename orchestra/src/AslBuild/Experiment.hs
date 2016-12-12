@@ -4,6 +4,7 @@ module AslBuild.Experiment
     , defaultConcurrency
     , defaultMiddleThreads
     , genExperimentSetup
+    , modif
     , genClientSetup
     , genMiddleSetup
     , genServerSetups
@@ -66,9 +67,10 @@ generateTargetFor ecf = do
         (eSetups, vmsNeeded) <- genExperimentSetups ecf
 
         provisionVms vmsNeeded
-        runExperiments ecf eSetups vmsNeeded
+        -- TODO re-do so that repititions are not all executed after eachother
+        runExperiments ecf (concat eSetups) vmsNeeded
 
-        writeJSON rFile $ map esResultsSummaryFile eSetups
+        writeJSON rFile $ map (map esResultsSummaryFile) eSetups
 
 retryPolicy :: Int
 retryPolicy = 3
@@ -292,8 +294,8 @@ getVmsForExperiments ecf useMiddle = do
             let tups = map (login &&& private)
             return (tups cs, tups ms, tups ss, map login $ cs ++ ms ++ ss)
 
-genServerSetups :: [(RemoteLogin, String)] -> [ServerSetup]
-genServerSetups sers = flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSetup
+genServerSetups :: [(RemoteLogin, String)] -> (Int -> [ServerSetup])
+genServerSetups sers _ = flip map (indexed sers) $ \(six, (sLogin, _)) -> ServerSetup
     { sRemoteLogin = sLogin
     , sIndex = six
     , sMemcachedFlags = MemcachedFlags
@@ -310,25 +312,25 @@ genMiddleSetup
     :: ExperimentConfig a
     => a
     -> (RemoteLogin, String)
-    -> [ServerSetup]
+    -> (Int -> [ServerSetup])
     -> [(RemoteLogin, String)]
     -> (String -> FilePath)
-    -> MiddleSetup
-genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally = MiddleSetup
+    -> (Int -> MiddleSetup)
+genMiddleSetup ecf (mLogin, mPrivate) servers sers signGlobally r = MiddleSetup
     { mRemoteLogin = mLogin
-    , mLocalTrace = localMiddleTraceDir ecf </> traceFileName <.> csvExt
+    , mLocalTrace = localMiddleTraceDir ecf </> traceFileName </> repStr r <.> csvExt
     , mMiddlewareFlags = MiddlewareFlags
         { mwIp = mPrivate
         , mwPort = middlePort
         , mwNrThreads = defaultMiddleThreads
-        , mwReplicationFactor = length servers
+        , mwReplicationFactor = length (servers r)
         , mwServers = map
             (\(ServerSetup{..}, (_, sPrivate)) ->
                 RemoteServerUrl
                     sPrivate
                     (memcachedPort sMemcachedFlags))
-            (zip servers sers)
-        , mwTraceFile = experimentRemoteTmpDir ecf </> traceFileName <.> csvExt
+            (zip (servers r) sers)
+        , mwTraceFile = experimentRemoteTmpDir ecf </> traceFileName </> repStr r <.> csvExt
         , mwVerbosity = LogOff
         , mwReadSampleRate = Just 1000
         , mwWriteSampleRate = Just 1000
@@ -349,24 +351,27 @@ localClientResultsDir ecf = experimentLocalTmpDir ecf </> "client-results"
 localClientResultsFile :: ExperimentConfig a => a -> FilePath -> FilePath
 localClientResultsFile ecf fp = (fp `replaceDirectory` localClientResultsDir ecf) ++ "-results" <.> jsonExt
 
+modif :: (a -> b) -> (b -> b) -> (a -> b)
+modif = flip (.)
+
 genClientSetup
     :: (ExperimentConfig a)
     => a
     -> [(RemoteLogin, String)]
-    -> RemoteServerUrl
+    -> (Int -> RemoteServerUrl)
     -> (String -> FilePath)
     -> TimeUnit
-    -> [ClientSetup]
-genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
+    -> (Int -> [ClientSetup])
+genClientSetup ecf cls surl signGlobally runtime r = flip map (indexed cls) $ \(cix, (cLogin, _)) ->
     let target = experimentTarget ecf
         sign f = signGlobally $ intercalate "-" [target, show cix, f]
     in ClientSetup
         { cRemoteLogin = cLogin
         , cIndex = cix
         , cLocalLog
-            = localClientLogDir ecf </> sign "client-local-log"
+            = localClientLogDir ecf </> sign "client-local-log" </> repStr r
         , cRemoteLog
-            = experimentRemoteTmpDir ecf </> sign "memaslap-remote-log"
+            = experimentRemoteTmpDir ecf </> sign "memaslap-remote-log" </> repStr r
         , cLocalMemaslapConfigFile
             = experimentLocalTmpDir ecf </> "memaslap-configs" </> sign "memaslap-config"
         , cMemaslapSettings = MemaslapSettings
@@ -374,7 +379,7 @@ genClientSetup ecf cls surl signGlobally runtime = flip map (indexed cls) $ \(ci
                 { setProportion = 0.05
                 }
             , msFlags = MemaslapFlags
-                { msServers = [surl]
+                { msServers = [surl r]
                 , msThreads = 1
                 , msConcurrency = defaultConcurrency
                 , msOverwrite = 0.9
@@ -402,26 +407,27 @@ genExperimentSetup
     :: ExperimentConfig a
     => a
     -> TimeUnit
-    -> [ClientSetup]
-    -> MiddleSetup
-    -> [ServerSetup]
+    -> (Int -> [ClientSetup])
+    -> (Int -> MiddleSetup)
+    -> (Int -> [ServerSetup])
     -> (String -> FilePath)
-    -> ExperimentSetup
-genExperimentSetup ecf runtime clients middle servers signGlobally = ExperimentSetup
-    { esRuntime = runtime
-    , esResultsSummaryFile
-        = localExperimentSummariesDir ecf </> signGlobally "summary" <.> jsonExt
-    , esSetupFile
-        = localExperimentSetupsDir ecf </> signGlobally "setup" <.> jsonExt
-    , clientSetups = clients
-    , backendSetup = Right (middle, servers)
-    }
+    -> [ExperimentSetup]
+genExperimentSetup ecf runtime clients middle servers signGlobally = flip map [1 .. repititions (highLevelConfig ecf)] $ \r ->
+    ExperimentSetup
+        { esRuntime = runtime
+        , esResultsSummaryFile
+            = localExperimentSummariesDir ecf </> signGlobally "summary" </> repStr r <.> jsonExt
+        , esSetupFile
+            = localExperimentSetupsDir ecf </> signGlobally "setup" </> repStr r <.> jsonExt
+        , clientSetups = clients r
+        , backendSetup = Right (middle r, servers r)
+        }
 
-readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [FilePath]
+readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [[FilePath]]
 readResultsSummaryLocationsForCfg = readResultsSummaryLocations . resultSummariesLocationFile
 
-readResultsSummaryLocations :: MonadIO m => FilePath -> m [FilePath]
-readResultsSummaryLocations = readJSON
+readResultsSummaryLocations :: MonadIO m => FilePath -> m [[FilePath]]
+readResultsSummaryLocations = readJSOND (:[]) -- TODO once all the old data is gone, set this to regular 'readJSON'.
 
 {-# DEPRECATED #-}
 readResultsSummary :: MonadIO m => FilePath -> m ExperimentResultSummary
@@ -440,3 +446,5 @@ readClientResults = readJSON
 nrUsers :: ExperimentSetup -> Int
 nrUsers = sum . map ((\f -> msThreads f * msConcurrency f) . msFlags . cMemaslapSettings) . clientSetups
 
+repStr :: Int -> String
+repStr r = "rep-" ++ show r

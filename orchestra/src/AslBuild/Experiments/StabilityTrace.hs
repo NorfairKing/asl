@@ -49,13 +49,13 @@ smallRemoteStabilityTraceRule :: String
 smallRemoteStabilityTraceRule = "small-remote-stability-trace"
 
 smallRemoteStabilityTrace :: StabilityTraceCfg
-smallRemoteStabilityTrace = StabilityTraceCfg
-    { hlConfig = HighLevelConfig
+smallRemoteStabilityTrace = remoteStabilityTrace
+    { hlConfig = (hlConfig remoteStabilityTrace)
         { target = smallRemoteStabilityTraceRule
-        , nrServers = 3
-        , nrClients = 3
-        , location = Remote
+        , nrServers = 1
+        , nrClients = 1
         , resultsPersistence = Volatile
+        , repititions = 1
         }
     , runtime = Seconds 10
     , logLevel = LogOff
@@ -73,6 +73,7 @@ remoteStabilityTrace = StabilityTraceCfg
         , nrClients = 3
         , location = Remote
         , resultsPersistence = Persistent
+        , repititions = 3
         }
     , runtime = Hours 1
     , logLevel = LogOff

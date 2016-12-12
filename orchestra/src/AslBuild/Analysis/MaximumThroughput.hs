@@ -74,10 +74,11 @@ rulesForThroughputAnalysis mtc = onlyIfResultsExist mtc $ do
 
     let simpleCsv = simplifiedCsvFor mtc
     simpleCsv %> \_ -> do
+        -- TODO combine repititions
         summaryPaths <- readResultsSummaryLocations $ resultSummariesLocationFile mtc
-        let combinedResultsFiles = map (combineClientResultsFile mtc) summaryPaths
+        let combinedResultsFiles = map (combineClientResultsFile mtc) $ concat summaryPaths
         need combinedResultsFiles
-        ls <- forP summaryPaths $ \summaryPath -> do
+        ls <- forP (concat summaryPaths) $ \summaryPath -> do
             ers <- readResultsSummary summaryPath
             es <- readExperimentSetupForSummary ers
             res <- readCombinedClientResults $ combineClientResultsFile mtc summaryPath

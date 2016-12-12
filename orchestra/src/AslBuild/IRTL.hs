@@ -129,7 +129,8 @@ irtlPlotRulesFor ecf = do
     let plot = irtlPlotFor ecf
     plot %> \_ -> do
         need [totalDurationsScript, commonRLib, rBin]
-        slocs <- readResultsSummaryLocationsForCfg ecf
+        -- TODO combine repititions
+        slocs <- concat <$> readResultsSummaryLocationsForCfg ecf
         forM_ (indexed slocs) $ \(ix, sloc) -> do
             ers <- readResultsSummary sloc
             -- setup <- readExperimentSetupForSummary ers
@@ -160,8 +161,9 @@ irtlGenfileRulesFor ecf = do
 
 makeIrtTable :: ExperimentConfig a => a -> Action String
 makeIrtTable ecf = do
+    -- TODO combine repititions
     slocs <- readResultsSummaryLocationsForCfg ecf
-    ls <- forM slocs $ \sloc -> do
+    ls <- forM (concat slocs) $ \sloc -> do
         let combinedResultsFile = combineClientResultsFile ecf sloc
         need [combinedResultsFile]
         res <- readCombinedClientResults combinedResultsFile

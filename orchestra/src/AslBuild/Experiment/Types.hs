@@ -22,7 +22,7 @@ import           AslBuild.Types
 
 class ExperimentConfig a where
     highLevelConfig :: a -> HighLevelConfig
-    genExperimentSetups :: a -> Action ([ExperimentSetup], [RemoteLogin])
+    genExperimentSetups :: a -> Action ([[ExperimentSetup]], [RemoteLogin])
 
 experimentTarget :: ExperimentConfig a => a -> String
 experimentTarget = target . highLevelConfig
@@ -34,6 +34,7 @@ data HighLevelConfig
     , nrServers          :: Int
     , location           :: Location
     , resultsPersistence :: Persistence
+    , repititions        :: Int
     } deriving (Show, Eq, Generic)
 
 instance ToJSON   HighLevelConfig

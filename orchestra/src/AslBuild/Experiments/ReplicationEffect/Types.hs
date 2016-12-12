@@ -36,23 +36,23 @@ instance ExperimentConfig ReplicationEffectCfg where
                 let replicationFactor = max 1 $ ceiling $ fromIntegral curNrServers * replicationFactorFactor
                 let signGlobally f = intercalate "-" [f, show replicationFactor, show curNrServers]
 
-                let servers = take curNrServers $ genServerSetups sers
+                let servers = take curNrServers . genServerSetups sers
 
                 let setProp = 0.05
                 let rSampleRate = 1000
                 let wSampleRate = floor $ setProp * fromIntegral rSampleRate
 
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
-                let middle = defaultMiddle
-                        { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
+                let middle = modif defaultMiddle $ \m -> m
+                        { mMiddlewareFlags = (mMiddlewareFlags m)
                             { mwReplicationFactor = replicationFactor
                             , mwReadSampleRate = Just rSampleRate
                             , mwWriteSampleRate = Just wSampleRate
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally reRuntime
-                let clients = flip map defaultClients $ \cs -> cs
+                let defaultClients = genClientSetup stc cls (middleRemoteServer . middle) signGlobally reRuntime
+                let clients = modif defaultClients $ \defcs -> flip map defcs $ \cs -> cs
                         { cMemaslapSettings = (cMemaslapSettings cs)
                             { msConfig = (msConfig $ cMemaslapSettings cs)
                                 { setProportion = setProp

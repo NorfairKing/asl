@@ -35,8 +35,8 @@ instance ExperimentConfig MaximumThroughputCfg where
                 let servers = genServerSetups sers
 
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
-                let middle = defaultMiddle
-                        { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
+                let middle = modif defaultMiddle $ \m -> m
+                        { mMiddlewareFlags = (mMiddlewareFlags m)
                             { mwReplicationFactor = 1
                             , mwNrThreads = curMiddleThreads
                             , mwWriteSampleRate = Just 0
@@ -44,8 +44,8 @@ instance ExperimentConfig MaximumThroughputCfg where
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally mtRuntime
-                let clients = flip map defaultClients $ \cs ->
+                let defaultClients = genClientSetup stc cls (middleRemoteServer . middle) signGlobally mtRuntime
+                let clients = modif defaultClients $ \defcs -> flip map defcs $ \cs ->
                         let sets = cMemaslapSettings cs
                             config = msConfig sets
                             flags = msFlags sets

@@ -54,8 +54,8 @@ traceSlicePlotsFor = return . traceSlicePlotsForSingleExperiment
 
 rulesForTraceSliceAnalysis :: MaximumThroughputCfg -> Rules (Maybe String)
 rulesForTraceSliceAnalysis ecf = onlyIfResultsExist ecf $ do
-
-    summaryPaths <- readResultsSummaryLocationsForCfg ecf
+    -- TODO combine repititions
+    summaryPaths <- concat <$> readResultsSummaryLocationsForCfg ecf
     ers <-  mapM readResultsSummary summaryPaths
     emrs <- case mapM merMiddleResultsFile ers of
         Nothing -> fail "should have a middleware."

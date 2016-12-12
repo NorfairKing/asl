@@ -78,8 +78,9 @@ mm1ModelEstimateFileFor ecf = changeFilename (++ "-mm1-estimate") . (`replaceDir
 
 mm1EstimationRulesFor :: ExperimentConfig a => a -> Rules String
 mm1EstimationRulesFor ecf = do
+    -- TODO combine the repititions first?
     slocs <- readResultsSummaryLocationsForCfg ecf
-    mm1ModelFiles <- forM slocs $ \sloc -> do
+    mm1ModelFiles <- forM (concat slocs) $ \sloc -> do
         let modelFile = mm1ModelEstimateFileFor ecf sloc
         modelFile %> \outf -> do
             mm1Model <- estimateMM1Model ecf sloc
@@ -112,8 +113,9 @@ mm1MiddlewareRuleFor ecf = experimentTarget ecf ++ "-middleware-mm1-model"
 
 mm1MiddlewareRulesFor :: ExperimentConfig a => a -> Rules String
 mm1MiddlewareRulesFor ecf = do
+    -- TODO combine repititions
     slocs <- readResultsSummaryLocationsForCfg ecf
-    mm1ModelFiles <- forM slocs $ \sloc -> do
+    mm1ModelFiles <- forM (concat slocs) $ \sloc -> do
         let modelFile = mm1MiddlewareModelFileFor ecf sloc
         modelFile %> \outf -> do
             mm1Model <- calcMiddlewareMM1Model sloc
@@ -140,8 +142,9 @@ mm1ReportRulesFor ecf = do
 
 makeMM1ReportContent :: ExperimentConfig a => a -> Action String
 makeMM1ReportContent ecf = do
+    -- TODO combine repititions
     slocs <- readResultsSummaryLocationsForCfg ecf
-    (unlines <$>) $ forP slocs $ \sloc -> do
+    (unlines <$>) $ forP (concat slocs) $ \sloc -> do
         ers <- readResultsSummary sloc
         mrf <- case merMiddleResultsFile ers of
             Nothing -> fail "must have a middleware to evaluate mm1 model."

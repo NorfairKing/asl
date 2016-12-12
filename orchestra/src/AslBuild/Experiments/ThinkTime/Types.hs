@@ -27,14 +27,14 @@ instance ExperimentConfig ThinkTimeCfg where
         let signGlobally = id
         let servers = genServerSetups sers
         let defaultMiddle = genMiddleSetup ttc mid servers sers signGlobally
-        let middle = defaultMiddle
-                { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
+        let middle = modif defaultMiddle $ \m -> m
+                { mMiddlewareFlags = (mMiddlewareFlags m)
                     { mwReadSampleRate = Just 1
                     , mwWriteSampleRate = Just 1
                     , mwNrThreads = 1
                     }
                 }
-        let defaultClients = genClientSetup ttc cls (middleRemoteServer middle) signGlobally ttRuntime
+        let defaultClients = genClientSetup ttc cls (middleRemoteServer . middle) signGlobally ttRuntime
         let clients = defaultClients
         let setup = genExperimentSetup ttc ttRuntime clients middle servers signGlobally
         pure ([setup], vmsNeeded)

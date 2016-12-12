@@ -38,14 +38,14 @@ instance ExperimentConfig BaselineExperimentRuleCfg where
                 curConcurrency <- concurrencies
                 let signGlobally f = intercalate "-" [f, show curConcurrency]
 
-                let [server] = genServerSetups sers
+                let servers = genServerSetups sers
                 let defaultClients = genClientSetup
                         ecf
                         cls
-                        (RemoteServerUrl serPrivateIp $ memcachedPort $ sMemcachedFlags server)
+                        (RemoteServerUrl serPrivateIp . memcachedPort . sMemcachedFlags . (\[s] -> s) . servers)
                         signGlobally
                         blRuntime
-                let clients = flip map defaultClients $ \cs ->
+                let clients = modif defaultClients $ \defcs -> flip map defcs $ \cs ->
                         let sets = cMemaslapSettings cs
                             config = msConfig sets
                             flags = msFlags sets
@@ -59,7 +59,7 @@ instance ExperimentConfig BaselineExperimentRuleCfg where
                                 }
                             }
                         }
-                return $ genBaselineExperimentSetup ecf blRuntime clients server signGlobally
+                return $ genBaselineExperimentSetup ecf blRuntime clients ((\[s] -> s) . servers) signGlobally
         return (setups, vmsNeeded)
 
 -- TODO Unify with the same thing in 'AslBuild.Experiment'
@@ -67,19 +67,20 @@ genBaselineExperimentSetup
     :: ExperimentConfig a
     => a
     -> TimeUnit
-    -> [ClientSetup]
-    -> ServerSetup
+    -> (Int -> [ClientSetup])
+    -> (Int -> ServerSetup)
     -> (String -> FilePath)
-    -> ExperimentSetup
-genBaselineExperimentSetup ecf runtime clients server signGlobally = ExperimentSetup
-    { esRuntime = runtime
-    , esResultsSummaryFile
-        = experimentResultsDir ecf </> "summaries" </> signGlobally "summary" <.> jsonExt
-    , esSetupFile
-        = experimentResultsDir ecf </> "setups" </> signGlobally "setup" <.> jsonExt
-    , clientSetups = clients
-    , backendSetup = Left server
-    }
+    -> [ExperimentSetup]
+genBaselineExperimentSetup ecf runtime clients server signGlobally = flip map [1 .. repititions (highLevelConfig ecf)] $ \r ->
+    ExperimentSetup
+        { esRuntime = runtime
+        , esResultsSummaryFile
+            = experimentResultsDir ecf </> "summaries" </> signGlobally "summary" </> "rep-" ++ show r <.> jsonExt
+        , esSetupFile
+            = experimentResultsDir ecf </> "setups" </> signGlobally "setup" </> "rep-" ++ show r <.> jsonExt
+        , clientSetups = clients r
+        , backendSetup = Left $ server r
+        }
 
 
 

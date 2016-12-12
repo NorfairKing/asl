@@ -48,13 +48,13 @@ smallRemoteMaximumThroughputRule :: String
 smallRemoteMaximumThroughputRule = "small-remote-maximum-throughput"
 
 smallRemoteMaximumThroughput :: MaximumThroughputCfg
-smallRemoteMaximumThroughput = MaximumThroughputCfg
-    { hlConfig = HighLevelConfig
+smallRemoteMaximumThroughput = remoteMaximumThroughput
+    { hlConfig = (hlConfig remoteMaximumThroughput)
         { target = smallRemoteMaximumThroughputRule
         , nrServers = 1
         , nrClients = 1
-        , location = Remote
         , resultsPersistence = Volatile
+        , repititions = 1
         }
     , threadConcTups = do
         middleThreads <- [1]
@@ -75,6 +75,7 @@ remoteMaximumThroughput = MaximumThroughputCfg
         , nrClients = 2
         , location = Remote
         , resultsPersistence = Persistent
+        , repititions = 3
         }
     , threadConcTups = do
         middleThreads <- [1, 5 .. 21]

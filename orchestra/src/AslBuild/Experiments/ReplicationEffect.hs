@@ -47,13 +47,13 @@ smallRemoteReplicationEffectRule :: String
 smallRemoteReplicationEffectRule = "small-remote-replication-effect"
 
 smallRemoteReplicationEffect :: ReplicationEffectCfg
-smallRemoteReplicationEffect = ReplicationEffectCfg
-    { hlConfig = HighLevelConfig
+smallRemoteReplicationEffect = remoteReplicationEffect
+    { hlConfig = (hlConfig remoteReplicationEffect)
         { target = smallRemoteReplicationEffectRule
         , nrServers = 1
         , nrClients = 1
-        , location = Remote
         , resultsPersistence = Volatile
+        , repititions = 1
         }
     , serverCounts = [1]
     , replicationFactors = [0]
@@ -72,6 +72,7 @@ remoteReplicationEffect = ReplicationEffectCfg
         , nrClients = 2
         , location = Remote
         , resultsPersistence = Persistent
+        , repititions = 3
         }
     , serverCounts = [3, 5, 7]
     , replicationFactors = [0, 0.5, 1]

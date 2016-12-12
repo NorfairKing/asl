@@ -40,7 +40,8 @@ traceRules = do
 durationsRulesFor :: ExperimentConfig a => a -> Rules ()
 durationsRulesFor ecf = void $ onlyIfResultsExist ecf $ do
     summaryPaths <- readResultsSummaryLocationsForCfg ecf
-    erss <- forM summaryPaths readResultsSummary
+    -- TODO extend this to have seperate average files for all repititions together and per repitition
+    erss <- forM (concat summaryPaths) readResultsSummary
 
     mapM_ (durationsRulesForExperimentResults ecf) erss
 

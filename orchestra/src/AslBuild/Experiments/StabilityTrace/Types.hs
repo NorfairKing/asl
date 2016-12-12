@@ -32,17 +32,17 @@ instance ExperimentConfig StabilityTraceCfg where
 
         let signGlobally = id
         let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
-        let middle = defaultMiddle
-                { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
-                    { mwReplicationFactor = length servers
+        let middle r = (defaultMiddle r)
+                { mMiddlewareFlags = (mMiddlewareFlags $ defaultMiddle r)
+                    { mwReplicationFactor = length $ servers r
                     , mwVerbosity = logLevel
                     , mwReadSampleRate = Just 10000
                     , mwWriteSampleRate = Just 10000
                     }
                 }
 
-        let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally runtime
-        let clients = flip map defaultClients $ \cs -> cs
+        let defaultClients = genClientSetup stc cls (middleRemoteServer . middle) signGlobally runtime
+        let clients = modif defaultClients $ \defcs -> flip map defcs $ \cs -> cs
                 { cMemaslapSettings = (cMemaslapSettings cs)
                     { msConfig = defaultMemaslapConfig
                         { setProportion = 0.01

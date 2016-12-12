@@ -36,22 +36,22 @@ instance ExperimentConfig WriteEffectCfg where
                 curNrServers <- serverCounts
                 replicationFactor <- nub [1, curNrServers]
                 let signGlobally f = intercalate "-" [f, show curNrServers, show replicationFactor, flatPercent writePercentage]
-                let servers = take curNrServers $ genServerSetups sers
+                let servers = take curNrServers . genServerSetups sers
 
                 let rSampleRate = 1000
                 let wSampleRate = floor $ writePercentage * fromIntegral rSampleRate
 
                 let defaultMiddle = genMiddleSetup stc mid servers sers signGlobally
-                let middle = defaultMiddle
-                        { mMiddlewareFlags = (mMiddlewareFlags defaultMiddle)
+                let middle = modif defaultMiddle $ \m -> m
+                        { mMiddlewareFlags = (mMiddlewareFlags m)
                             { mwReplicationFactor = replicationFactor
                             , mwReadSampleRate = Just rSampleRate
                             , mwWriteSampleRate = Just wSampleRate
                             }
                         }
 
-                let defaultClients = genClientSetup stc cls (middleRemoteServer middle) signGlobally weRuntime
-                let clients = flip map defaultClients $ \cs -> cs
+                let defaultClients = genClientSetup stc cls (middleRemoteServer . middle) signGlobally weRuntime
+                let clients = modif defaultClients $ \defcs -> flip map defcs  $ \cs -> cs
                         { cMemaslapSettings = (cMemaslapSettings cs)
                             { msConfig = (msConfig $ cMemaslapSettings cs)
                                 { setProportion = writePercentage

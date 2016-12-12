@@ -40,6 +40,7 @@ smallRemoteThinkTime = remoteThinkTime
     { hlConfig = (hlConfig remoteThinkTime)
         { target = "small-remote-think-time"
         , resultsPersistence = Volatile
+        , repititions = 1
         }
     , ttRuntime = Seconds 10
     }
@@ -52,6 +53,7 @@ remoteThinkTime = ThinkTimeCfg
         , nrServers = 1
         , location = Remote
         , resultsPersistence = Volatile
+        , repititions = 3
         }
     , ttRuntime = Minutes 1
     }
