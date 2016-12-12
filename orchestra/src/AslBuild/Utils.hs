@@ -63,6 +63,16 @@ flatPercent = go
         | d > 1 = show (floor d :: Integer)
         | otherwise = '0' : go (10 * d)
 
+readJSOND :: (MonadIO m, FromJSON a, FromJSON b) => (a -> b) -> FilePath -> m b
+readJSOND func file = do
+    contents <- liftIO $ LB.readFile file
+    case A.eitherDecode contents of
+        Right resb -> pure resb
+        Left errb ->
+            case A.eitherDecode contents of
+                Right resa -> pure $ func resa
+                Left erra -> fail $ "Failed to parse json file: " ++ file ++ ":\n" ++ errb ++ "\nand\n" ++ erra
+
 readJSON :: (MonadIO m, FromJSON a) => FilePath -> m a
 readJSON file = do
     contents <- liftIO $ LB.readFile file

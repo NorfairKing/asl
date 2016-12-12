@@ -58,7 +58,8 @@ stabilityTraceAnalysisRulesFor stc = onlyIfResultsExist stc $ do
         -- Don't depend on the summary locations file if it exists
         needsToExist summaryLocationsFile
 
-        [summaryFile] <- readResultsSummaryLocations summaryLocationsFile
+        -- TODO fix this to combine the files if that's necessary.
+        [summaryFile:_] <- readResultsSummaryLocations summaryLocationsFile
         ExperimentResultSummary{..} <- readResultsSummary summaryFile
 
         let resfiles = map (localClientResultsFile stc) erClientLogFiles

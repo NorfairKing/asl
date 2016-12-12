@@ -43,7 +43,7 @@ memaslapLogRuleTargetFor ecf = experimentTarget ecf ++ "-memaslap-logs"
 memaslapLogsRulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
 memaslapLogsRulesFor ecf = onlyIfResultsExist ecf $ do
     slocs <- readResultsSummaryLocationsForCfg ecf
-    resultFiles <- forM slocs $ \sloc -> do
+    resultFiles <- forM (concat slocs) $ \sloc -> do
         ExperimentResultSummary{..} <- readResultsSummary sloc
         let resultsFiles = map (localClientResultsFile ecf) erClientLogFiles
         resultsFiles &%> \_ -> do

@@ -423,12 +423,11 @@ genExperimentSetup ecf runtime clients middle servers signGlobally = flip map [1
         , backendSetup = Right (middle r, servers r)
         }
 
-readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [FilePath]
+readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [[FilePath]]
 readResultsSummaryLocationsForCfg = readResultsSummaryLocations . resultSummariesLocationFile
 
--- FIXME Make this a list of lists because otherwise reading will fail.
-readResultsSummaryLocations :: MonadIO m => FilePath -> m [FilePath]
-readResultsSummaryLocations = readJSON
+readResultsSummaryLocations :: MonadIO m => FilePath -> m [[FilePath]]
+readResultsSummaryLocations = readJSOND (:[]) -- TODO once all the old data is gone, set this to regular 'readJSON'.
 
 {-# DEPRECATED #-}
 readResultsSummary :: MonadIO m => FilePath -> m ExperimentResultSummary

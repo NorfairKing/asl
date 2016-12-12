@@ -20,7 +20,8 @@ import           AslBuild.Experiments.MaximumThroughput
 
 buildAvgDursFile :: MonadIO m => MaximumThroughputCfg -> FilePath -> m ()
 buildAvgDursFile ecf outFile = do
-    summaryPaths <- readResultsSummaryLocationsForCfg ecf
+    -- TODO fix this because now we're not combining the repititions first.
+    summaryPaths <- concat <$> readResultsSummaryLocationsForCfg ecf
     liftIO $ withFile outFile WriteMode $ \outHandle ->
         P.runEffect $
                 P.each summaryPaths
