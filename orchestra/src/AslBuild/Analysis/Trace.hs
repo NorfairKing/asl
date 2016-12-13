@@ -65,7 +65,7 @@ durationsRulesForRepset ecf slocs = do
     pure $ combined : durfs
 
 combinedDursFileRules :: ExperimentConfig a => a -> [ExperimentResultSummary] -> Rules FilePath
-combinedDursFileRules ecf erss = do
+combinedDursFileRules ecf erss =
     case mapM merMiddleResultsFile erss of
         Nothing -> fail "Need middles"
         Just mes -> do
@@ -83,7 +83,7 @@ combinedDursFileRules ecf erss = do
 combinedAvgDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
 combinedAvgDurationFile ecf =
       dropExtension -- Because now it's .json.csv
-    . changeFilename (const $ "combined-durations")
+    . changeFilename (const "combined-durations")
     . rawDurationsFile ecf . head
 
 readCombinedAvgDursFile :: MonadIO m => FilePath -> m (Durations MetaAvg)

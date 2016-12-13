@@ -29,6 +29,14 @@ data MetaAvg
 instance FromJSON MetaAvg
 instance ToJSON   MetaAvg
 
+instance Num MetaAvg where
+    (MetaAvg aa1 sa1 ss1) + (MetaAvg aa2 sa2 ss2) = MetaAvg
+        { avgAvgs = aa1 + aa2
+        , stdDevAvgs = sqrt $ sa1 ** 2 + sa2 ** 2
+        , combStdDev = sqrt $ ss1 ** 2 + ss2 ** 2
+        }
+    fromInteger i = MetaAvg (fromInteger i) 0 0
+
 data AvgResults
     = AvgResults
     { getResults  :: Maybe Avg
@@ -57,4 +65,7 @@ instance ToNamedRecord Avg where
 instance DefaultOrdered Avg where
     headerOrder _ = header ["avg", "std"]
 
+instance Num Avg where
+    (Avg a1 s1) + (Avg a2 s2) = Avg (a1 + a2) (sqrt $ s1 ** 2 + s2 ** 2)
+    fromInteger i = Avg (fromInteger i) 0
 

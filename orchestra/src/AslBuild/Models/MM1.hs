@@ -5,7 +5,6 @@ import           Control.Monad.IO.Class
 import           Text.Printf
 
 import           Development.Shake
-import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Trace
@@ -92,16 +91,13 @@ mm1EstimationRulesFor ecf = do
     return mm1target
 
 estimateMM1Model :: ExperimentConfig a => a -> [FilePath] -> Action MM1Model
-estimateMM1Model ecf slocs@(sloc:_) = do
+estimateMM1Model ecf slocs = do
     let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
     need [combinedResultsFile]
     res <- readCombinedClientsResults combinedResultsFile
-    ers <- readResultsSummary sloc
-    setup <- readExperimentSetupForSummary ers
-    let nrc = fromIntegral $ nrUsers setup
-    -- Average throughput
+    -- Arrival rate as Average throughput
     let λ = avgAvgs $ avgBothResults $ avgTpsResults res
-    -- Maxiumum throughput
+    -- Service rate as Maxiumum throughput
     let μ = avg $ avgMaxTps res
     pure $ MM1Model λ μ
 
@@ -153,10 +149,9 @@ makeMM1ReportContent ecf = do
         let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
         need [combAvgDurFile, mm1ModelFile, combinedResultsFile]
         mm1 <- readMM1ModelFile mm1ModelFile
-        res <- readCombinedClientsResults combinedResultsFile
         combAvgDurs <- readCombinedAvgDursFile combAvgDurFile
 
-        let metaResp = avgBothResults $ avgRespResults res
+        let metaResp = totalDuration combAvgDurs
         let actualMeanResp = avgAvgs metaResp
         let actualStdDevResp = combStdDev metaResp
         let metaWait = untilDequeuedTime combAvgDurs
@@ -168,8 +163,8 @@ makeMM1ReportContent ecf = do
             [ mo "Arrival rate (transactions / second)"  (arrivalRate mm1)
             , mo "Service rate (transactions / second)"  (serviceRate mm1)
             , mo "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)
-            , line "Mean response time ($\\mu s$)"       (timeFromModel $ mm1MeanResponseTime mm1)    actualMeanResp
-            , line "Std Dev response time ($\\mu s$)"    (timeFromModel $ mm1StdDevResponseTime mm1)  actualStdDevResp
+            , line "Mean response time ($\\mu s$)"       (timeFromModel $ mm1MeanResponseTime mm1)    (timeFromMiddle actualMeanResp)
+            , line "Std Dev response time ($\\mu s$)"    (timeFromModel $ mm1StdDevResponseTime mm1)  (timeFromMiddle actualStdDevResp)
             , line "Mean waiting time ($\\mu s$)"        (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle actualAvgWait)
             , line "Std Dev waiting time ($\\mu s$)"     (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle actualStdDevWait)
             ]

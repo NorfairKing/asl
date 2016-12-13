@@ -54,3 +54,4 @@ avgAvg = S.mean . V.fromList
 
 combineStdDevs :: [Double] -> Double
 combineStdDevs = sqrt . sum . map (\x -> x*x)
+

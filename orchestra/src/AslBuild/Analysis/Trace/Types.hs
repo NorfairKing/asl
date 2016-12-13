@@ -130,6 +130,17 @@ instance Floating a => Floating (Durations a) where
     pi = constDur pi
     (**) = binop (**)
 
+
+totalDuration :: Num a => Durations a -> a
+totalDuration Durations{..} = sum
+    [ untilParsedTime
+    , untilEnqueuedTime
+    , untilDequeuedTime
+    , untilAskedTime
+    , untilRepliedTime
+    , untilRespondedTime
+    ]
+
 class Divisive a where
     divi :: Integral i => a -> i -> a
 
