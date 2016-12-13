@@ -13,6 +13,8 @@ import           AslBuild.Analysis.Utils
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Middle.Types
+import           AslBuild.Middleware.Types
 import           AslBuild.Reports.Utils
 import           AslBuild.Utils
 
@@ -147,6 +149,7 @@ makeMM1ReportContent ecf = do
         let combAvgDurFile = combinedAvgDurationFile ecf mrfs
         let mm1ModelFile = mm1ModelEstimateFileFor ecf slocs
         let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
+        setup <- readExperimentSetupForSummary $ head erss
         need [combAvgDurFile, mm1ModelFile, combinedResultsFile]
         mm1 <- readMM1ModelFile mm1ModelFile
         combAvgDurs <- readCombinedAvgDursFile combAvgDurFile
@@ -157,23 +160,46 @@ makeMM1ReportContent ecf = do
         let metaWait = untilDequeuedTime combAvgDurs
         let actualAvgWait = avgAvgs metaWait
         let actualStdDevWait = combStdDev metaWait
+        let totalNrClients = nrUsers setup
 
-        pure $ tabularWithHeader
-            [ "Measure", "Model", "Measurement", "Relative difference"]
-            [ mo "Arrival rate (transactions / second)"  (arrivalRate mm1)
-            , mo "Service rate (transactions / second)"  (serviceRate mm1)
-            , mo "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)
-            , line "Mean response time ($\\mu s$)"       (timeFromModel $ mm1MeanResponseTime mm1)    (timeFromMiddle actualMeanResp)
-            , line "Std Dev response time ($\\mu s$)"    (timeFromModel $ mm1StdDevResponseTime mm1)  (timeFromMiddle actualStdDevResp)
-            , line "Mean waiting time ($\\mu s$)"        (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle actualAvgWait)
-            , line "Std Dev waiting time ($\\mu s$)"     (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle actualStdDevWait)
-            ]
+        mf <- case backendSetup setup of
+                Left _ -> fail "need middleware."
+                Right (ms, _) -> pure $ mMiddlewareFlags ms
+        let readThreadsPerServer = mwNrThreads mf
+            nrSers = length $ mwServers mf
+        let totalNrWorkers = (readThreadsPerServer + 1) * nrSers
+
+        let t1 = tabularWithHeader
+                [ "Measure", "Model"]
+                [ dline "Arrival rate (transactions / second)"  (arrivalRate mm1)
+                , dline "Service rate (transactions / second)"  (serviceRate mm1)
+                , dline "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)
+                , dline "Mean response time ($\\mu s$)"       (timeFromModel $ mm1MeanResponseTime mm1)
+                , dline "Std Dev response time ($\\mu s$)"    (timeFromModel $ mm1StdDevResponseTime mm1)
+                , dline "Mean waiting time ($\\mu s$)"        (timeFromModel $ mm1MeanWaitingTime mm1)
+                , dline "Std Dev waiting time ($\\mu s$)"     (timeFromModel $ mm1StdDevWaitingTime mm1)
+                , dline "Jobs in the queue"                   (mm1WaitingJobs mm1)
+                , dline "Jobs in the system"                  (mm1MeanNrJobs mm1)
+                , dline "Jobs in queue/jobs in system"        (mm1WaitingJobs mm1 / mm1MeanNrJobs mm1)
+                ]
+        let t2 = tabularWithHeader
+                [ "Measure", "Measurement"]
+                [ dline "Mean time in middleware ($\\mu s$)"       (timeFromMiddle actualMeanResp)
+                , dline "Std Dev time in middleware ($\\mu s$)"    (timeFromMiddle actualStdDevResp)
+                , dline "Mean time in queue ($\\mu s$)"             (timeFromMiddle actualAvgWait)
+                , dline "Std Dev time in queue ($\\mu s$)"          (timeFromMiddle actualStdDevWait)
+                , ["Total nr of workers", unwords ["$(", show readThreadsPerServer, "+ 1)", "\\times", show nrSers, "=", show totalNrWorkers, "$"]]
+                , iline "Jobs in the queue"                         (totalNrClients - totalNrWorkers)
+                , iline "Jobs in the system"                        totalNrClients
+                , dline "Jobs in queue/jobs in system"              (fromIntegral (totalNrClients - totalNrWorkers) / fromIntegral totalNrClients )
+                ]
+        pure $ unlines [t1, t2]
   where
     -- Model only
-    mo :: String -> Double -> [String]
-    mo title model = [title, showDub model, "", ""]
-    line :: String -> Double -> Double -> [String]
-    line title model real = [title, showDub model, showDub real, showDub ((real / model) - 1)]
+    dline :: String -> Double -> [String]
+    dline title val = [title, showDub val]
+    iline :: Show i => String -> i -> [String]
+    iline title val = [title, show val]
     timeFromModel :: Double -> Double
     timeFromModel = (* (1000 * 1000))
     timeFromMiddle :: Double -> Double

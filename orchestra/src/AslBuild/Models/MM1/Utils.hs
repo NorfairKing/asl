@@ -41,3 +41,8 @@ mm1StdDevNrJobs :: MM1Model -> Double
 mm1StdDevNrJobs mm1 = sqrt $ ρ / ((1 - ρ) ** 2)
   where
     ρ = mm1TrafficIntensity mm1
+
+mm1WaitingJobs :: MM1Model -> Double
+mm1WaitingJobs mm1 = (ρ ** 2) / (1 - ρ)
+  where
+    ρ = mm1TrafficIntensity mm1

@@ -23,6 +23,7 @@ module AslBuild.Experiment
     , experimentResultsDir
     , experimentLocalTmpDir
     , nrUsers
+    , nrWorkers
     , module AslBuild.Experiment.Types
     ) where
 
@@ -445,6 +446,14 @@ readClientResults = readJSON
 
 nrUsers :: ExperimentSetup -> Int
 nrUsers = sum . map ((\f -> msThreads f * msConcurrency f) . msFlags . cMemaslapSettings) . clientSetups
+
+nrWorkers :: ExperimentSetup -> Int
+nrWorkers setup =
+    case backendSetup setup of
+        Left _ -> 0
+        Right (ms, _) ->
+            let MiddlewareFlags{..} = mMiddlewareFlags ms
+            in (mwNrThreads + 1) * length mwServers
 
 repStr :: Int -> String
 repStr r = "rep-" ++ show r

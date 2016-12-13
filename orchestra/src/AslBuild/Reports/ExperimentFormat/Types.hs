@@ -58,7 +58,7 @@ instance ExperimentFormat StabilityTraceCfg where
     renderSetupTable ecf@StabilityTraceCfg{..} = tabular $
         [ ["Number of server machines", "3"]
         , ["Number of client machines", "3"]
-        , ["Virtual clients per machine", show defaultConcurrency]
+        , ["Virtual clients per machine", "64"]
         , workloadLine
         , writePercentageLine [0.01]
         , ["Replication", "1"]
