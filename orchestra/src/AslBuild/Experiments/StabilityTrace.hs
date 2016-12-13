@@ -55,7 +55,7 @@ smallRemoteStabilityTrace = remoteStabilityTrace
         , nrServers = 1
         , nrClients = 1
         , resultsPersistence = Volatile
-        , repititions = 1
+        , repititions = 2
         }
     , runtime = Seconds 10
     , logLevel = LogOff
