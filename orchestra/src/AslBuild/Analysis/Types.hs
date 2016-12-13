@@ -58,7 +58,7 @@ instance ToJSON   Avg
 
 instance ToNamedRecord Avg where
     toNamedRecord Avg{..} = namedRecord
-        [ "avg" .= (floor avg :: Integer)
+        [ "avg" .= avg
         , "std" .= stdDev
         ]
 
