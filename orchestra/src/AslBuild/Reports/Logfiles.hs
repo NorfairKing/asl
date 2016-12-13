@@ -7,6 +7,8 @@ import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.ThinkTime
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Reports.Common
 import           AslBuild.Utils
@@ -19,8 +21,10 @@ logfileListingRules = do
     ls1 <- mapM logfileListingRulesFor allMaximumThroughputExperiments
     ls2 <- mapM logfileListingRulesFor allReplicationEffectExperiments
     ls3 <- mapM logfileListingRulesFor allWriteEffectExperiments
+    ls4 <- mapM logfileListingRulesFor allStabilityTraceExperiments
+    ls5 <- mapM logfileListingRulesFor allThinkTimeExperiments
 
-    logfileListingRule ~> need (ls1 ++ ls2 ++ ls3)
+    logfileListingRule ~> need (ls1 ++ ls2 ++ ls3 ++ ls4 ++ ls5)
 
 logfileListingRuleFor :: ExperimentConfig a => a -> String
 logfileListingRuleFor ecf = experimentTarget ecf ++ "-logfile-listings"

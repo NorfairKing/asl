@@ -4,6 +4,7 @@
 \input{../common.tex}
 
 \usepackage{float}
+\usepackage{hyperref}
 \usepackage{tikz}
 \usetikzlibrary{shapes}
 \usetikzlibrary{patterns}
@@ -37,6 +38,13 @@
 % Length: 1-2 pages
 
 % Build an M/M/1 model of your entire system based on the stability trace that you had to run for the first milestone. Explain the characteristics and behavior of the model built, and compare it with the experimental data (collected both outside and inside the middleware). Analyze the modeled and real-life behavior of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments). Make sure to follow the model-related guidelines described in the Notes!
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-stability-trace-table.tex}}
+  \caption{Stability trace}
+  \label{fig:sut-stability-trace}
+\end{figure}
 
 \subsection{Boundaries of M/M/1 model}
 
@@ -140,4 +148,17 @@ TODO: Correct for the tail distribution?
   \centering
   \includegraphics[width=\textwidth]{\plot{total-duration-histos/remote-replication-effect-histogram-5.png}}
 \end{figure}
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-think-time-table.tex}}
+  \caption{Think time benchmark}
+  \label{fig:sut-think-time}
+\end{figure}
+
+
+\section{Log file listing}
+
+\input{\genfile{report-3-logfile-listings.tex}}
+
 \end{document}

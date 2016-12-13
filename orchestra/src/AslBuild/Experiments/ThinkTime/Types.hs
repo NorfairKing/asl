@@ -5,7 +5,9 @@ module AslBuild.Experiments.ThinkTime.Types where
 import           Data.Aeson
 import           GHC.Generics
 
+import           AslBuild.Client
 import           AslBuild.Experiment
+import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Middleware
 import           AslBuild.Types
@@ -35,6 +37,19 @@ instance ExperimentConfig ThinkTimeCfg where
                     }
                 }
         let defaultClients = genClientSetup ttc cls (middleRemoteServer . middle) signGlobally ttRuntime
-        let clients = defaultClients
+        let clients = modif defaultClients $ \defcs -> flip map defcs $ \cs ->
+                let sets = cMemaslapSettings cs
+                    config = msConfig sets
+                    flags = msFlags sets
+                in cs
+                { cMemaslapSettings = sets
+                    { msConfig = config
+                        { setProportion = 0.01
+                        }
+                    , msFlags = flags
+                        { msConcurrency = 1
+                        }
+                    }
+                }
         let setup = genExperimentSetup ttc ttRuntime clients middle servers signGlobally
         pure ([setup], vmsNeeded)

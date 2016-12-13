@@ -7,6 +7,8 @@ import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.ThinkTime
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Reports.Common
 import           AslBuild.Reports.ExperimentFormat.Types
@@ -20,8 +22,10 @@ experimentTablesRules = do
     mtTargets <- mapM experimentFormatRulesFor allMaximumThroughputExperiments
     reTargets <- mapM experimentFormatRulesFor allReplicationEffectExperiments
     weTargets <- mapM experimentFormatRulesFor allWriteEffectExperiments
+    stTargets <- mapM experimentFormatRulesFor allStabilityTraceExperiments
+    ttTargets <- mapM experimentFormatRulesFor allThinkTimeExperiments
 
-    experimentTablesRule ~> need (mtTargets ++ reTargets ++ weTargets)
+    experimentTablesRule ~> need (mtTargets ++ reTargets ++ weTargets ++ stTargets ++ ttTargets)
 
 experimentFormatRuleFor :: ExperimentConfig a => a -> String
 experimentFormatRuleFor ecf = experimentTarget ecf ++ "-table"
