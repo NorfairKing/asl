@@ -55,7 +55,7 @@ smallRemoteStabilityTrace = remoteStabilityTrace
         , nrServers = 1
         , nrClients = 1
         , resultsPersistence = Volatile
-        , repititions = 2
+        , repititions = 1
         }
     , runtime = Seconds 10
     , logLevel = LogOff
@@ -73,7 +73,7 @@ remoteStabilityTrace = StabilityTraceCfg
         , nrClients = 3
         , location = Remote
         , resultsPersistence = Persistent
-        , repititions = 3
+        , repititions = 1
         }
     , runtime = Hours 1
     , logLevel = LogOff

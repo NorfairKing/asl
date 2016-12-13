@@ -38,6 +38,7 @@ instance ExperimentConfig StabilityTraceCfg where
                     , mwVerbosity = logLevel
                     , mwReadSampleRate = Just 10000
                     , mwWriteSampleRate = Just 10000
+                    , mwNrThreads = 1
                     }
                 }
 
@@ -46,6 +47,9 @@ instance ExperimentConfig StabilityTraceCfg where
                 { cMemaslapSettings = (cMemaslapSettings cs)
                     { msConfig = defaultMemaslapConfig
                         { setProportion = 0.01
+                        }
+                    , msFlags = (msFlags $ cMemaslapSettings cs)
+                        { msConcurrency = 64
                         }
                     }
                 }
