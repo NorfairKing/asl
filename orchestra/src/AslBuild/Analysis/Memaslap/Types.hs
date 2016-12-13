@@ -9,6 +9,19 @@ import           Data.Aeson
 import           AslBuild.Analysis.Types
 
 
+data CombinedClientResults
+    = CombinedClientResults
+    { avgTpsResults  :: MetaAvgResults
+    , avgRespResults :: MetaAvgResults
+    , avgMinTps      :: Avg
+    , avgMaxTps      :: Avg
+    , avgMinResp     :: Avg
+    , avgMaxResp     :: Avg
+    } deriving (Show, Eq, Generic)
+
+instance FromJSON CombinedClientResults
+instance ToJSON   CombinedClientResults
+
 data MemaslapClientResults
     = MemaslapClientResults
     { tpsResults  :: AvgResults

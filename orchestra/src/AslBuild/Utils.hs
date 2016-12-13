@@ -115,9 +115,19 @@ fromRight (Right b) = b
 fromRight _ = error "fromRight: does not work for 'Left'"
 
 changeFilename :: (FilePath -> FilePath) -> FilePath -> FilePath
-changeFilename func path = func file ++ exts
-  where (file, exts) = splitExtensions path
+changeFilename func path = dir </> func file ++ exts
+  where
+    (full, exts) = splitExtensions path
+    (dir, file) = splitFileName full
 
 mapKeys :: (Eq l, Hashable l) => (k -> l) -> HashMap k v -> HashMap l v
 mapKeys func hm = HM.fromList $ map (first func) $ HM.toList hm
 
+
+replaceSndDir :: FilePath -> FilePath -> FilePath
+replaceSndDir file d =
+    case reverse dirs of
+        [] -> d </> file
+        [f] -> d </> f
+        (f:z:_) -> d </> z </> f
+   where dirs = splitDirectories file
