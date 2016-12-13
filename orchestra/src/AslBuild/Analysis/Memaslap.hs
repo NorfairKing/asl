@@ -117,8 +117,7 @@ memaslapLogsRulesForRep ecf sloc = do
 
 -- TODO fix this if we use a more complicated naming scheme for the reps
 combinedClientRepsetResultsFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
-combinedClientRepsetResultsFile ecf (f:_) = (`replaceSndDir` localClientResultsDir ecf) . changeFilename (const "combined-repset-results") $ f
-combinedClientRepsetResultsFile _ _ = error "should not happen."
+combinedClientRepsetResultsFile ecf = (`replaceSndDir` localClientResultsDir ecf) . changeFilename (const "combined-repset-results") . head
 
 combineClientResultsFile :: ExperimentConfig a => a -> FilePath -> FilePath
 combineClientResultsFile ecf = (`replaceSndDir` localClientResultsDir ecf) . changeFilename (++ "-combined-results")

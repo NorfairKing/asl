@@ -73,17 +73,17 @@ readMM1ModelFile = readJSON
 mm1EstimationRuleFor :: ExperimentConfig a => a -> String
 mm1EstimationRuleFor ecf = experimentTarget ecf ++ "-middleware-mm1-estimation"
 
-mm1ModelEstimateFileFor :: ExperimentConfig a => a -> FilePath -> FilePath
-mm1ModelEstimateFileFor ecf = changeFilename (++ "-mm1-estimate") . (`replaceDirectory` experimentAnalysisTmpDir ecf)
+mm1ModelEstimateFileFor :: ExperimentConfig a => a -> [FilePath] -> FilePath
+mm1ModelEstimateFileFor ecf = changeFilename (const "mm1-estimate") . (`replaceSndDir` experimentAnalysisTmpDir ecf) . head
 
 mm1EstimationRulesFor :: ExperimentConfig a => a -> Rules String
 mm1EstimationRulesFor ecf = do
     -- TODO combine the repititions first?
-    slocs <- readResultsSummaryLocationsForCfg ecf
-    mm1ModelFiles <- forM (concat slocs) $ \sloc -> do
-        let modelFile = mm1ModelEstimateFileFor ecf sloc
+    slocss <- readResultsSummaryLocationsForCfg ecf
+    mm1ModelFiles <- forM slocss $ \slocs -> do
+        let modelFile = mm1ModelEstimateFileFor ecf slocs
         modelFile %> \outf -> do
-            mm1Model <- estimateMM1Model ecf sloc
+            mm1Model <- estimateMM1Model ecf slocs
             writeJSON outf mm1Model
         return modelFile
 
@@ -91,21 +91,19 @@ mm1EstimationRulesFor ecf = do
     mm1target ~> need mm1ModelFiles
     return mm1target
 
-estimateMM1Model :: ExperimentConfig a => a -> FilePath -> Action MM1Model
-estimateMM1Model ecf sloc = do
-    let combinedResultsFile = combineClientResultsFile ecf sloc
+estimateMM1Model :: ExperimentConfig a => a -> [FilePath] -> Action MM1Model
+estimateMM1Model ecf slocs@(sloc:_) = do
+    let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
     need [combinedResultsFile]
-    res <- readCombinedClientResults combinedResultsFile
+    res <- readCombinedClientsResults combinedResultsFile
     ers <- readResultsSummary sloc
     setup <- readExperimentSetupForSummary ers
-    let mtps = avg $ bothResults $ tpsResults res
-        -- mrst = avg $ bothResults $ respResults res
-        -- Number of clients
     let nrc = fromIntegral $ nrUsers setup
-    let λ = mtps
-    let μ = ((1 + nrc) * λ) / nrc
+    -- Average throughput
+    let λ = avgAvgs $ avgBothResults $ avgTpsResults res
+    -- Maxiumum throughput
+    let μ = avg $ avgMaxTps res
     pure $ MM1Model λ μ
-
 
 
 mm1MiddlewareRuleFor :: ExperimentConfig a => a -> String
@@ -143,31 +141,34 @@ mm1ReportRulesFor ecf = do
 makeMM1ReportContent :: ExperimentConfig a => a -> Action String
 makeMM1ReportContent ecf = do
     -- TODO combine repititions
-    slocs <- readResultsSummaryLocationsForCfg ecf
-    (unlines <$>) $ forP (concat slocs) $ \sloc -> do
-        ers <- readResultsSummary sloc
-        mrf <- case merMiddleResultsFile ers of
-            Nothing -> fail "must have a middleware to evaluate mm1 model."
-            Just m -> pure m
+    slocss <- readResultsSummaryLocationsForCfg ecf
+    (unlines <$>) $ forP slocss $ \slocs -> do
+        -- ers <- readResultsSummary sloc
+        -- mrf <- case merMiddleResultsFile ers of
+        --     Nothing -> fail "must have a middleware to evaluate mm1 model."
+        --     Just m -> pure m
 
-        let avgDurFile = avgDurationFile ecf mrf
-        let mm1ModelFile = mm1ModelEstimateFileFor ecf sloc
-        let mm1MModelFile = mm1MiddlewareModelFileFor ecf sloc
-        let combinedResultsFile = combineClientResultsFile ecf sloc
-        need [avgDurFile, mm1ModelFile, mm1MModelFile, combinedResultsFile]
+        -- let avgDurFile = avgDurationFile ecf mrf
+        let mm1ModelFile = mm1ModelEstimateFileFor ecf slocs
+        let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
+        need [mm1ModelFile, combinedResultsFile]
         mm1 <- readMM1ModelFile mm1ModelFile
-        res <- readCombinedClientResults combinedResultsFile
-        avgDurs <- readJSON avgDurFile :: Action (Durations Avg)
+        res <- readCombinedClientsResults combinedResultsFile
+        -- avgDurs <- readJSON avgDurFile :: Action (Durations Avg)
+
+        let metaResp = avgBothResults $ avgRespResults res
+        let actualMeanResp = avgAvgs metaResp
+        let actualStdDevResp = combStdDev metaResp
 
         pure $ tabularWithHeader
             [ "Measure", "Model", "Measurement", "Relative difference"]
             [ mo "Arrival rate (transactions / second)"  (arrivalRate mm1)
             , mo "Service rate (transactions / second)"  (serviceRate mm1)
             , mo "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)
-            , line "Mean response time ($\\mu s$)"         (timeFromModel $ mm1MeanResponseTime mm1)    (avg $ bothResults $ respResults res)
-            , line "Std Dev response time ($\\mu s$)"      (timeFromModel $ mm1StdDevResponseTime mm1)  (stdDev $ bothResults $ respResults res)
-            , line "Mean waiting time ($\\mu s$)"          (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle $ avg $ untilDequeuedTime avgDurs)
-            , line "Std Dev waiting time ($\\mu s$)"       (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle $ stdDev $ untilDequeuedTime avgDurs)
+            , line "Mean response time ($\\mu s$)"       (timeFromModel $ mm1MeanResponseTime mm1)    actualMeanResp
+            , line "Std Dev response time ($\\mu s$)"    (timeFromModel $ mm1StdDevResponseTime mm1)  actualStdDevResp
+            -- , line "Mean waiting time ($\\mu s$)"        (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle $ avg $ untilDequeuedTime avgDurs)
+            -- , line "Std Dev waiting time ($\\mu s$)"     (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle $ stdDev $ untilDequeuedTime avgDurs)
             ]
   where
     -- Model only
