@@ -6,6 +6,7 @@ module AslBuild.Analysis.Trace
 
 import           Control.Monad
 import           Control.Monad.IO.Class
+import           Data.Maybe
 import           System.IO
 
 import           Development.Shake
@@ -26,33 +27,87 @@ import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.ThinkTime
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Types
 import           AslBuild.Utils
 
+traceRule :: String
+traceRule = "durations"
+
 traceRules :: Rules ()
 traceRules = do
-    mapM_ durationsRulesFor allMaximumThroughputExperiments
-    mapM_ durationsRulesFor allReplicationEffectExperiments
-    mapM_ durationsRulesFor allStabilityTraceExperiments
-    mapM_ durationsRulesFor allWriteEffectExperiments
+    dfs1 <- mapM durationsRulesFor allMaximumThroughputExperiments
+    dfs2 <- mapM durationsRulesFor allReplicationEffectExperiments
+    dfs3 <- mapM durationsRulesFor allStabilityTraceExperiments
+    dfs4 <- mapM durationsRulesFor allWriteEffectExperiments
+    dfs5 <- mapM durationsRulesFor allThinkTimeExperiments
 
-durationsRulesFor :: ExperimentConfig a => a -> Rules ()
-durationsRulesFor ecf = void $ onlyIfResultsExist ecf $ do
+    traceRule ~> need (catMaybes $ dfs1 ++ dfs2 ++ dfs3 ++ dfs4 ++ dfs5)
+
+durationsRuleFor :: ExperimentConfig a => a -> String
+durationsRuleFor ecf = experimentTarget ecf ++ "-durations"
+
+durationsRulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
+durationsRulesFor ecf = onlyIfResultsExist ecf $ do
     summaryPaths <- readResultsSummaryLocationsForCfg ecf
-    -- TODO extend this to have seperate average files for all repititions together and per repitition
-    erss <- forM (concat summaryPaths) readResultsSummary
+    durfs <- forM summaryPaths $ durationsRulesForRepset ecf
 
-    mapM_ (durationsRulesForExperimentResults ecf) erss
+    let target = durationsRuleFor ecf
+    target ~> need (concat durfs)
+    pure target
 
-durationsRulesForExperimentResults :: ExperimentConfig a => a -> ExperimentResultSummary -> Rules ()
+durationsRulesForRepset :: ExperimentConfig a => a -> [FilePath] -> Rules [FilePath]
+durationsRulesForRepset ecf slocs = do
+    erss <- forM slocs readResultsSummary
+    durfs <- concat <$> mapM (durationsRulesForExperimentResults ecf) erss
+    combined <- combinedDursFileRules ecf erss
+    pure $ combined : durfs
+
+combinedDursFileRules :: ExperimentConfig a => a -> [ExperimentResultSummary] -> Rules FilePath
+combinedDursFileRules ecf erss = do
+    case mapM merMiddleResultsFile erss of
+        Nothing -> fail "Need middles"
+        Just mes -> do
+            let combf = combinedAvgDurationFile ecf mes
+            combf %> \_ -> do
+                let adfss = map (avgDurationFile ecf) mes
+                need adfss
+                putLoud $ "Combining average durations of " ++ show adfss ++ " into " ++ combf
+                avgDurss <- mapM readAvgDurationsFile adfss
+                writeJSON combf $ combineAvgDurs avgDurss
+            return combf
+
+-- TODO also reads and writes if necessary
+combinedAvgDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
+combinedAvgDurationFile ecf =
+      dropExtension -- Because now it's .json.csv
+    . changeFilename (const $ "combined-durations")
+    . rawDurationsFile ecf . head
+
+readCombinedAvgDursFile :: MonadIO m => FilePath -> m (Durations MetaAvg)
+readCombinedAvgDursFile = readJSON
+
+combineAvgDurs :: [Durations Avg] -> Durations MetaAvg
+combineAvgDurs das = Durations
+    { untilParsedTime    = mkMetaAvg untilParsedTime
+    , untilEnqueuedTime  = mkMetaAvg untilEnqueuedTime
+    , untilDequeuedTime  = mkMetaAvg untilDequeuedTime
+    , untilAskedTime     = mkMetaAvg untilAskedTime
+    , untilRepliedTime   = mkMetaAvg untilRepliedTime
+    , untilRespondedTime = mkMetaAvg untilRespondedTime
+    }
+  where mkMetaAvg func = metaAvg $ map func das
+
+
+durationsRulesForExperimentResults :: ExperimentConfig a => a -> ExperimentResultSummary -> Rules [FilePath]
 durationsRulesForExperimentResults ecf er =
     case merMiddleResultsFile er of
-        Nothing -> pure ()
+        Nothing -> pure []
         Just erMiddleResultsFile ->
             durationsRulesForMiddleResults ecf erMiddleResultsFile
 
-durationsRulesForMiddleResults :: ExperimentConfig a => a -> FilePath -> Rules ()
+durationsRulesForMiddleResults :: ExperimentConfig a => a -> FilePath -> Rules [FilePath]
 durationsRulesForMiddleResults ecf erMiddleResultsFile = do
     let rawDurs = rawDurationsFile ecf erMiddleResultsFile
     rawDurs %> \outFile -> do
@@ -76,9 +131,16 @@ durationsRulesForMiddleResults ecf erMiddleResultsFile = do
             TotalDuration $ requestRespondedTime mrl - requestReceivedTime mrl
 
 
-    avgDurationFile ecf erMiddleResultsFile `asAvgDurationFileOf` rawDurs
-    avgReadDurationFile ecf erMiddleResultsFile `asAvgDurationFileOf` readDurs
-    avgWriteDurationFile ecf erMiddleResultsFile `asAvgDurationFileOf` writeDurs
+    let avgDurF = avgDurationFile ecf erMiddleResultsFile
+    avgDurF `asAvgDurationFileOf` rawDurs
+
+    let avgReadDurF = avgReadDurationFile ecf erMiddleResultsFile
+    avgReadDurF `asAvgDurationFileOf` readDurs
+
+    let avgWriteDurF = avgWriteDurationFile ecf erMiddleResultsFile
+    avgWriteDurF `asAvgDurationFileOf` writeDurs
+
+    pure [readDurs, writeDurs, totalDur, avgDurF, avgReadDurF, avgWriteDurF]
 
 asAvgDurationFileOf :: FilePath -> FilePath -> Rules ()
 asAvgDurationFileOf avgFile durFile =
@@ -163,7 +225,7 @@ avgOfDurs da dst = Durations
 
 
 rawDurationsFile :: ExperimentConfig a => a -> FilePath -> FilePath
-rawDurationsFile ecf = changeFilename (++ "-durations") . (`replaceDirectory` experimentAnalysisTmpDir ecf)
+rawDurationsFile ecf = changeFilename (++ "-durations") . (`replaceSndDir` experimentAnalysisTmpDir ecf)
 
 readDurationsFile :: ExperimentConfig a => a -> FilePath -> FilePath
 readDurationsFile ecf = changeFilename (++ "-read") . rawDurationsFile ecf
