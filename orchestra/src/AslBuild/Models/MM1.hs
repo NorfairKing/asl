@@ -143,22 +143,25 @@ makeMM1ReportContent ecf = do
     -- TODO combine repititions
     slocss <- readResultsSummaryLocationsForCfg ecf
     (unlines <$>) $ forP slocss $ \slocs -> do
-        -- ers <- readResultsSummary sloc
-        -- mrf <- case merMiddleResultsFile ers of
-        --     Nothing -> fail "must have a middleware to evaluate mm1 model."
-        --     Just m -> pure m
+        erss <- mapM readResultsSummary slocs
+        mrfs <- case mapM merMiddleResultsFile erss of
+            Nothing -> fail "must have a middleware to evaluate mm1 model."
+            Just m -> pure m
 
-        -- let avgDurFile = avgDurationFile ecf mrf
+        let combAvgDurFile = combinedAvgDurationFile ecf mrfs
         let mm1ModelFile = mm1ModelEstimateFileFor ecf slocs
         let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
-        need [mm1ModelFile, combinedResultsFile]
+        need [combAvgDurFile, mm1ModelFile, combinedResultsFile]
         mm1 <- readMM1ModelFile mm1ModelFile
         res <- readCombinedClientsResults combinedResultsFile
-        -- avgDurs <- readJSON avgDurFile :: Action (Durations Avg)
+        combAvgDurs <- readCombinedAvgDursFile combAvgDurFile
 
         let metaResp = avgBothResults $ avgRespResults res
         let actualMeanResp = avgAvgs metaResp
         let actualStdDevResp = combStdDev metaResp
+        let metaWait = untilDequeuedTime combAvgDurs
+        let actualAvgWait = avgAvgs metaWait
+        let actualStdDevWait = combStdDev metaWait
 
         pure $ tabularWithHeader
             [ "Measure", "Model", "Measurement", "Relative difference"]
@@ -167,8 +170,8 @@ makeMM1ReportContent ecf = do
             , mo "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)
             , line "Mean response time ($\\mu s$)"       (timeFromModel $ mm1MeanResponseTime mm1)    actualMeanResp
             , line "Std Dev response time ($\\mu s$)"    (timeFromModel $ mm1StdDevResponseTime mm1)  actualStdDevResp
-            -- , line "Mean waiting time ($\\mu s$)"        (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle $ avg $ untilDequeuedTime avgDurs)
-            -- , line "Std Dev waiting time ($\\mu s$)"     (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle $ stdDev $ untilDequeuedTime avgDurs)
+            , line "Mean waiting time ($\\mu s$)"        (timeFromModel $ mm1MeanWaitingTime mm1)     (timeFromMiddle actualAvgWait)
+            , line "Std Dev waiting time ($\\mu s$)"     (timeFromModel $ mm1StdDevWaitingTime mm1)   (timeFromMiddle actualStdDevWait)
             ]
   where
     -- Model only

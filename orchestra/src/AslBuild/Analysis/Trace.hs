@@ -79,6 +79,7 @@ combinedDursFileRules ecf erss = do
             return combf
 
 -- TODO also reads and writes if necessary
+-- This needs the trace files, not the summary locations.
 combinedAvgDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
 combinedAvgDurationFile ecf =
       dropExtension -- Because now it's .json.csv
