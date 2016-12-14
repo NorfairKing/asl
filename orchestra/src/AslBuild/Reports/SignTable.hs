@@ -2,6 +2,7 @@ module AslBuild.Reports.SignTable where
 
 import           Control.Monad
 import           Data.List
+import           Text.Printf
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -59,22 +60,32 @@ dependOnSignTableForReport :: ExperimentConfig a => a -> Int -> Action ()
 dependOnSignTableForReport ecf i = need $ map (`signTableFileForReport` i) $ signTableFiles ecf
 
 genTpsSignTable :: FactorialCfg -> Action String
-genTpsSignTable = genSignTableWith tpsResults avgTpsResults "Throughput (transactions / second)"
+genTpsSignTable = genSignTableWith
+    tpsResults
+    avgTpsResults
+    id
+    "Throughput (transactions / second)"
 
 genRespSignTable :: FactorialCfg -> Action String
-genRespSignTable = genSignTableWith respResults avgRespResults "Response Time ($\\mu s$)"
+genRespSignTable = genSignTableWith
+    respResults
+    avgRespResults
+    (/1000)
+    "Response Time ($\\mu s$)"
 
 genSignTableWith
     :: (MemaslapClientResults -> AvgResults)
     -> (CombinedClientResults -> MetaAvgResults)
+    -> (Double -> Double)
     -> String
     -> FactorialCfg
     -> Action String
-genSignTableWith funcRes funcAvgRes measure ecf = do
+genSignTableWith funcRes funcAvgRes convFunc measure ecf = do
     slocss <- readResultsSummaryLocationsForCfg ecf
 
     let choices = [-1, 1] :: [Int]
     let tot = 8 :: Int
+        reps = repititions $ hlConfig ecf
     let veci = replicate tot 1 :: [Int]
     let vecta = do
             void choices
@@ -114,33 +125,58 @@ genSignTableWith funcRes funcAvgRes measure ecf = do
         signRowSs = map (map show) $ transpose signRows
 
     let roundD = round :: (Double -> Integer)
-    tups <- forM slocss $ \slocs -> do
+    trips <- forM slocss $ \slocs -> do
         let combinedResF = combinedClientRepsetResultsFile ecf slocs
             resFs = map (combineClientResultsFile ecf) slocs
         need $ combinedResF : resFs
         cr <- readCombinedClientsResults combinedResF
         ress <- mapM readCombinedClientResults resFs
-        let individuals = map (avg . bothResults . funcRes) ress
-            res = avgAvgs $ avgBothResults $ funcAvgRes cr
-        pure (individuals, res)
+        let individuals = map (convFunc . avg . bothResults . funcRes) ress
+            res = convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
+            errs = map (res -) individuals
+        pure (individuals, res, errs)
 
-    let rows = flip map (zip signRowSs tups) $ \(row, (individuals, res)) ->
+    let rows = flip map (zip signRowSs trips) $ \(row, (individuals, res, errs)) ->
             let individualsS = show $ map roundD individuals
                 resS = show $ roundD res
-            in row ++ [individualsS, resS]
+                errsS = show $ map roundD errs
+            in row ++ [individualsS, resS, errsS]
 
-    let resvec = map snd tups :: [Double]
-    let reasons :: [Double]
-        reasons = flip map signRows $ \signRow ->
+    let fullResVec = map (\(a,_,_) -> a) trips
+        resvec = map (\(_,b,_) -> b) trips
+        -- errvec = map (\(_,_,c) -> c) trips
+
+    let effects :: [Double]
+        effects = flip map signRows $ \signRow ->
             sum $ mult (map fromIntegral signRow) resvec
-    let secondToLastRow = map (show . roundD) reasons ++ ["", "Total"]
-    let lastRow = map (show . roundD . (/ fromIntegral tot)) reasons ++ ["", "Total/" ++ show tot]
-    let lastRows = [secondToLastRow, lastRow]
+        effDivs :: [Double]
+        effDivs = map (/ fromIntegral tot) effects
 
+    let secondToLastRow = map (show . roundD) effects ++ ["", "Total", ""]
+    let effectRow = map (show . roundD) effDivs ++ ["", "Total/" ++ show tot, ""]
+    let effectRows = [secondToLastRow, effectRow]
 
-    let headerRest = ["y", "$\\bar{y}$"]
+    -- let meanRes = S.mean $ V.fromList resvec
+    let sqs = concatMap (map (** 2)) fullResVec
+        totR = fromIntegral $ tot * reps :: Double
+        sqEffDiff = map (** 2) effDivs
+        ss0 = totR * head sqEffDiff
+        ssy = sum sqs
+        sse = ssy - totR * sum sqEffDiff
+        sst = ssy - ss0
+
+    let variations = map ((* totR) . (** 2)) $ drop 1 effDivs
+        variationRow = [""] ++ map (show . roundD) variations ++ ["", "Var", show $ roundD sse]
+
+        relvars = map (/ sst) variations
+
+    let showPerc = (printf "%.2f" :: Double -> String) . (*100)
+        relvarsRow = [""] ++ map showPerc relvars ++ ["", "Rel Var ($\\%$)", showPerc $ sse / sst]
+        variationRows = [variationRow, relvarsRow]
+
+    let headerRest = ["y", "$\\bar{y}$", "Err"]
         header = headerPrefix ++ headerRest
-        table = rows ++ lastRows
+        table = rows ++ effectRows ++ variationRows
 
     let signTable = tabularWithHeader
             header
