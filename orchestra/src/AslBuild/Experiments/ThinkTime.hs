@@ -52,7 +52,7 @@ remoteThinkTime = ThinkTimeCfg
         , nrClients = 1
         , nrServers = 1
         , location = Remote
-        , resultsPersistence = Volatile
+        , resultsPersistence = Persistent
         , repititions = 3
         }
     , ttRuntime = Seconds 10
