@@ -31,23 +31,26 @@ signTableRuleFor ecf = experimentTarget ecf ++ "-sign-table"
 
 signTableRulesFor :: FactorialCfg -> Rules String
 signTableRulesFor ecf = do
-    let tpsSignTableF = signTableTpsFile ecf
-        respSignTableF = signTableRespFile ecf
-    tpsSignTableF %> \_ -> genTpsSignTable ecf >>= writeFile' tpsSignTableF
-    respSignTableF %> \_ -> genRespSignTable ecf >>= writeFile' respSignTableF
+    signTableFiles ecf &%> \_ -> do
+        genTpsSignTable ecf
+        genRespSignTable ecf
+
 
     let thisTarget = signTableRuleFor ecf
-    thisTarget ~> need [tpsSignTableF, respSignTableF]
+    thisTarget ~> need (signTableFiles ecf)
     return thisTarget
 
-signTableTpsFile :: ExperimentConfig a => a -> FilePath
-signTableTpsFile ecf = reportsTmpDir </> experimentTarget ecf ++ "-sign-table-tps" <.> texExt
+signTablePrefix :: ExperimentConfig a => a -> FilePath
+signTablePrefix ecf = reportsTmpDir </> experimentTarget ecf ++ "-sign-table-" <.> texExt
 
-signTableRespFile :: ExperimentConfig a => a -> FilePath
-signTableRespFile ecf = reportsTmpDir </> experimentTarget ecf ++ "-sign-table-resp" <.> texExt
+signTableFileWithPostfix :: ExperimentConfig a => a -> String -> FilePath
+signTableFileWithPostfix ecf postfix = changeFilename (++ postfix) $ signTablePrefix ecf
 
 signTableFiles :: ExperimentConfig a => a -> [FilePath]
-signTableFiles ecf = [signTableTpsFile ecf, signTableRespFile ecf]
+signTableFiles ecf = do
+    measure <- ["tps", "resp"]
+    extra <- ["", "-legend"]
+    pure $ signTableFileWithPostfix ecf $ measure ++ extra
 
 signTableFileForReport :: FilePath -> Int -> FilePath
 signTableFileForReport file i = file `replaceDirectory` reportGenfileDir i
@@ -59,30 +62,43 @@ useSignTableInReport ecf i = forM_ (signTableFiles ecf) $ \eff ->
 dependOnSignTableForReport :: ExperimentConfig a => a -> Int -> Action ()
 dependOnSignTableForReport ecf i = need $ map (`signTableFileForReport` i) $ signTableFiles ecf
 
-genTpsSignTable :: FactorialCfg -> Action String
+genTpsSignTable :: FactorialCfg -> Action ()
 genTpsSignTable = genSignTableWith
     tpsResults
     avgTpsResults
     id
+    "tps"
     "Throughput (transactions / second)"
 
-genRespSignTable :: FactorialCfg -> Action String
+genRespSignTable :: FactorialCfg -> Action ()
 genRespSignTable = genSignTableWith
     respResults
     avgRespResults
-    (/1000)
-    "Response Time ($\\mu s$)"
+    (/100)
+    "resp"
+    "Response Time ($10 ms$)"
 
 genSignTableWith
     :: (MemaslapClientResults -> AvgResults)
     -> (CombinedClientResults -> MetaAvgResults)
     -> (Double -> Double)
     -> String
+    -> String
     -> FactorialCfg
-    -> Action String
-genSignTableWith funcRes funcAvgRes convFunc measure ecf = do
-    slocss <- readResultsSummaryLocationsForCfg ecf
+    -> Action ()
+genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
 
+    let legendTable = tabular
+            [ ["A", "Value size"]
+            , ["B", "Key Size"]
+            , ["C", "Virtual clients"]
+            , ["y", measure]
+            ]
+
+    let legendFile = signTableFileWithPostfix ecf $ measSuf ++ "-legend"
+    writeFile' legendFile legendTable
+
+    slocss <- readResultsSummaryLocationsForCfg ecf
     let choices = [-1, 1] :: [Int]
     let tot = 8 :: Int
         reps = repititions $ hlConfig ecf
@@ -182,10 +198,5 @@ genSignTableWith funcRes funcAvgRes convFunc measure ecf = do
             header
             table
 
-    let legendTable = tabular
-            [ ["A", "Value size"]
-            , ["B", "Key Size"]
-            , ["C", "Virtual clients"]
-            , ["y", measure]
-            ]
-    pure $ unlines [legendTable, signTable]
+    let tableFile = signTableFileWithPostfix ecf measSuf
+    writeFile' tableFile signTable

@@ -165,12 +165,32 @@ The M/M/1 model is a very limited model that cannot accurately represent the bla
 % Design a $2^k$ factorial experiment and follow the best practices outlined in the book and in the lecture to analyze the results. You are free to choose the parameters for the experiment and in case you have already collected data in the second milestone that can be used as source for this experiment, you can reuse it. Otherwise, in case you need to run new experiments anyway, we recommend exploring the impact of request size on the middleware together with an other parameter.
 
 
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-tps-legend.tex}}
+  \caption{Throughput Sign Table}
+  \label{fig:tps-sign-table-legend}
+\end{figure}
 
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-2k-factorial-sign-table-tps.tex}}
   \caption{Throughput Sign Table}
   \label{fig:tps-sign-table}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-resp-legend.tex}}
+  \caption{Response Time Sign Table Legend}
+  \label{fig:resp-sign-table-legend}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-resp.tex}}
+  \caption{Response Time Sign Table}
+  \label{fig:resp-sign-table}
 \end{figure}
 
 % \begin{figure}[H]
