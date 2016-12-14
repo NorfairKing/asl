@@ -2,7 +2,6 @@ module AslBuild.Reports.SignTable where
 
 import           Control.Monad
 import           Data.List
-import           Debug.Trace
 import           Text.Printf
 
 import           Development.Shake
@@ -98,12 +97,22 @@ genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
     let legendFile = signTableFileWithPostfix ecf $ measSuf ++ "-legend"
     writeFile' legendFile legendTable
 
-    let go = genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf
+    let go = genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf
     go id id "add"
     go (logBase 10) (\x -> 10 ** x) "mul"
 
 
-genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf preFunc postFunc suffix = do
+genSingleSignTable
+    :: (MemaslapClientResults -> AvgResults)
+    -> (CombinedClientResults -> MetaAvgResults)
+    -> (Double -> Double)
+    -> String
+    -> FactorialCfg
+    -> (Double -> Double)
+    -> (Double -> Double)
+    -> String
+    -> Action ()
+genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
     slocss <- readResultsSummaryLocationsForCfg ecf
     let choices = [-1, 1] :: [Int]
     let tot = 8 :: Int
@@ -178,8 +187,8 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf preFunc postF
     -- let errss = flip map fullResVec $ \res ->
     let errss :: [[Double]]
         errss = flip map (zip fullResVec signRows) $ \(ress_, signRow) ->
-            let pred = sum $ mult (map fromIntegral signRow) effDivs
-            in map (\res -> res - pred) ress_
+            let pred_ = sum $ mult (map fromIntegral signRow) effDivs
+            in map (\res -> res - pred_) ress_
 
 
     let rows = flip map (zip (zip signRowSs tups) errss) $ \((row, (individuals, res)), errs) ->

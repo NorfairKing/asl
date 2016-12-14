@@ -7,7 +7,7 @@ import           AslBuild.Constants
 import           AslBuild.Utils
 
 buildBinInStack :: FilePath
-buildBinInStack = aslDir </> ".stack-work/install/x86_64-linux/lts-7.0/8.0.1/bin/orc"
+buildBinInStack = aslDir </> ".stack-work/install/x86_64-linux/lts-7.9/8.0.1/bin/orc"
 
 aslBuildDir :: FilePath
 aslBuildDir = aslDir </> "orchestra"
