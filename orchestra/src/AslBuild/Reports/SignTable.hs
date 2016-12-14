@@ -2,6 +2,7 @@ module AslBuild.Reports.SignTable where
 
 import           Control.Monad
 import           Data.List
+import           Debug.Trace
 import           Text.Printf
 
 import           Development.Shake
@@ -99,7 +100,7 @@ genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
 
     let go = genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf
     go id id "add"
-    go (logBase 10) (10 **) "mul"
+    go (logBase 10) (\x -> 10 ** x) "mul"
 
 
 genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf preFunc postFunc suffix = do
@@ -142,40 +143,50 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf preFunc postF
             go 'C' = mult vectc
             go _ = error "must not happen."
 
-        signRows = map columnFor headerPrefix
-        signRowSs = map (map show) $ transpose signRows
+        signColumns :: [[Int]]
+        signColumns = map columnFor headerPrefix
+        signRows :: [[Int]]
+        signRows = transpose signColumns
+        signRowSs = map (map show) signRows
 
     let roundD = round :: (Double -> Integer)
-    trips <- forM slocss $ \slocs -> do
+    realRes <- forM slocss $ \slocs -> do
         let combinedResF = combinedClientRepsetResultsFile ecf slocs
             resFs = map (combineClientResultsFile ecf) slocs
         need $ combinedResF : resFs
         cr <- readCombinedClientsResults combinedResF
         ress <- mapM readCombinedClientResults resFs
-        let individuals = map preFunc $ map (convFunc . avg . bothResults . funcRes) ress
-            res = preFunc $ convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
-            errs = map (res -) individuals
-        pure (individuals, res, errs)
+        let individuals = map (convFunc . avg . bothResults . funcRes) ress
+            res = convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
+        pure (individuals, res)
 
-    let rows = flip map (zip signRowSs trips) $ \(row, (individuals, res, errs)) ->
-            let individualsS = show $ map roundD individuals
-                resS = show $ roundD res
-                errsS = show $ map roundD errs
-            in row ++ [individualsS, resS, errsS]
+    let tups = map (\(indivs, res) -> (indivs, res)) realRes
 
-    let fullResVec = map (\(a,_,_) -> a) trips
-        resvec = map (\(_,b,_) -> b) trips
-        -- errvec = map (\(_,_,c) -> c) trips
+    let fullResVec = map fst tups :: [[Double]]
+        resvec = map snd tups :: [Double]
 
     let effects :: [Double]
-        effects = flip map signRows $ \signRow ->
-            sum $ mult (map fromIntegral signRow) resvec
+        effects = flip map signColumns $ \signColumn     ->
+            sum $ mult (map fromIntegral signColumn) resvec
         effDivs :: [Double]
         effDivs = map (/ fromIntegral tot) effects
 
     let secondToLastRow = map (show . roundD) effects ++ ["", "Total", ""]
     let effectRow = map (show . roundD) effDivs ++ ["", "Effect", ""]
     let effectRows = [secondToLastRow, effectRow]
+
+    -- let errss = flip map fullResVec $ \res ->
+    let errss :: [[Double]]
+        errss = flip map (zip fullResVec signRows) $ \(ress_, signRow) ->
+            let pred = sum $ mult (map fromIntegral signRow) effDivs
+            in map (\res -> res - pred) ress_
+
+
+    let rows = flip map (zip (zip signRowSs tups) errss) $ \((row, (individuals, res)), errs) ->
+            let individualsS = show $ map roundD individuals
+                resS = show $ roundD res
+                errsS = show $ map roundD errs
+            in row ++ [individualsS, resS, errsS]
 
     -- let meanRes = S.mean $ V.fromList resvec
     let sqs = concatMap (map (** 2)) fullResVec
