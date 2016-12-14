@@ -54,7 +54,7 @@ remoteFactorial = FactorialCfg
         , resultsPersistence = Persistent
         , repititions = 3
         }
-    , fRuntime = Minutes 1
+    , fRuntime = Minutes 3
     , virtualClients = (1, 128)
     , keySizes = (16, 128)
     , valueSizes = (128, 1024)
