@@ -49,8 +49,8 @@ signTableFileWithPostfix ecf postfix = changeFilename (++ postfix) $ signTablePr
 signTableFiles :: ExperimentConfig a => a -> [FilePath]
 signTableFiles ecf = do
     measure <- ["tps", "resp"]
-    extra <- ["", "-legend"]
-    pure $ signTableFileWithPostfix ecf $ measure ++ extra
+    extra <- ["add", "mul", "legend"]
+    pure $ signTableFileWithPostfix ecf $ intercalate "-" [measure, extra]
 
 signTableFileForReport :: FilePath -> Int -> FilePath
 signTableFileForReport file i = file `replaceDirectory` reportGenfileDir i
@@ -74,9 +74,9 @@ genRespSignTable :: FactorialCfg -> Action ()
 genRespSignTable = genSignTableWith
     respResults
     avgRespResults
-    (/100)
+    id
     "resp"
-    "Response Time ($10 ms$)"
+    "Response Time ($\\mu s$)"
 
 genSignTableWith
     :: (MemaslapClientResults -> AvgResults)
@@ -87,7 +87,6 @@ genSignTableWith
     -> FactorialCfg
     -> Action ()
 genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
-
     let legendTable = tabular
             [ ["A", "Value size"]
             , ["B", "Key Size"]
@@ -98,6 +97,12 @@ genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
     let legendFile = signTableFileWithPostfix ecf $ measSuf ++ "-legend"
     writeFile' legendFile legendTable
 
+    let go = genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf
+    go id id "add"
+    go (logBase 10) (10 **) "mul"
+
+
+genSingleSignTable funcRes funcAvgRes convFunc measSuf measure ecf preFunc postFunc suffix = do
     slocss <- readResultsSummaryLocationsForCfg ecf
     let choices = [-1, 1] :: [Int]
     let tot = 8 :: Int
@@ -147,8 +152,8 @@ genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
         need $ combinedResF : resFs
         cr <- readCombinedClientsResults combinedResF
         ress <- mapM readCombinedClientResults resFs
-        let individuals = map (convFunc . avg . bothResults . funcRes) ress
-            res = convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
+        let individuals = map preFunc $ map (convFunc . avg . bothResults . funcRes) ress
+            res = preFunc $ convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
             errs = map (res -) individuals
         pure (individuals, res, errs)
 
@@ -169,7 +174,7 @@ genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
         effDivs = map (/ fromIntegral tot) effects
 
     let secondToLastRow = map (show . roundD) effects ++ ["", "Total", ""]
-    let effectRow = map (show . roundD) effDivs ++ ["", "Total/" ++ show tot, ""]
+    let effectRow = map (show . roundD) effDivs ++ ["", "Effect", ""]
     let effectRows = [secondToLastRow, effectRow]
 
     -- let meanRes = S.mean $ V.fromList resvec
@@ -198,5 +203,5 @@ genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
             header
             table
 
-    let tableFile = signTableFileWithPostfix ecf measSuf
+    let tableFile = signTableFileWithPostfix ecf $ intercalate "-" [measSuf, suffix]
     writeFile' tableFile signTable
