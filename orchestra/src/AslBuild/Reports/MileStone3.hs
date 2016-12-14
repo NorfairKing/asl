@@ -2,6 +2,7 @@ module AslBuild.Reports.MileStone3 where
 
 import           Development.Shake
 
+import           AslBuild.Experiments.Factorial
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.ThinkTime
@@ -12,6 +13,7 @@ import           AslBuild.Reports.Common
 import           AslBuild.Reports.ExperimentFormat
 import           AslBuild.Reports.Logfiles
 import           AslBuild.Reports.MileStone1
+import           AslBuild.Reports.SignTable
 
 report3Rules :: Rules ()
 report3Rules = report 3 texPreAction customRules
@@ -22,6 +24,7 @@ report3Rules = report 3 texPreAction customRules
         remoteReplicationEffect `useIrtlPlotInReport` 3
         remoteStabilityTrace `useExperimentTableInReport` 3
         remoteThinkTime `useExperimentTableInReport` 3
+        smallLocalFactorial `useSignTableInReport` 3
         useTheseLogfileListingsForReport 3
             [ loglistingFileFor remoteStabilityTrace
             , loglistingFileFor remoteThinkTime
@@ -33,6 +36,7 @@ report3Rules = report 3 texPreAction customRules
         remoteReplicationEffect `dependOnIrtlPlotForReport` 3
         remoteStabilityTrace `dependOnExperimentTableForReport` 3
         remoteThinkTime `dependOnExperimentTableForReport` 3
+        smallLocalFactorial `dependOnSignTableForReport` 3
 
         need [architecturePng]
         dependOnLogfileListingsForReport 3

@@ -5,9 +5,11 @@ import           Development.Shake
 import           AslBuild.CommonActions
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Factorial
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.ThinkTime
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Vm.Names
 import           AslBuild.Vm.Types
@@ -35,6 +37,8 @@ experimentStartVmsRules = do
     mapM_ makeStartVmRule allStabilityTraceExperiments
     mapM_ makeStartVmRule allWriteEffectExperiments
     mapM_ makeStartVmRule allReplicationEffectExperiments
+    mapM_ makeStartVmRule allThinkTimeExperiments
+    mapM_ makeStartVmRule allFactorialExperiments
 
 startVmRuleFor :: ExperimentConfig a => a -> String
 startVmRuleFor ecf = "start-" ++ experimentTarget ecf ++ "-vms"

@@ -8,6 +8,7 @@ import           AslBuild.Reports.Logfiles
 import           AslBuild.Reports.MileStone1
 import           AslBuild.Reports.MileStone2
 import           AslBuild.Reports.MileStone3
+import           AslBuild.Reports.SignTable
 
 reportsRule :: String
 reportsRule = "reports"
@@ -24,6 +25,7 @@ reportRules = do
 
     experimentTablesRules
     logfileListingRules
+    signTableRules
     report1Rules
     report2Rules
     report3Rules
