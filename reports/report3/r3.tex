@@ -145,6 +145,31 @@ The mean waiting time is compared to the time between being enqueued and being d
 \subsection{Mapping between comparison and system components}
 
 The M/M/1 model is a very limited model that cannot accurately represent the black box that it is covering.
+However, it can still provide some insight in the system at hand.
+
+In the second part of figure \ref{fig:mm1-model}, we find some data gathered from experiments performed with the real system.
+The 'response time' predicted by the model can be compared with the 'response time' (total time between receiving a request and responding to the request).
+As we can see the real response time is much higher than the predicted response time.
+This makes sense as the model does not take parallelisation into account.
+
+Nevertheless, there are some interesting observations to be made.
+
+TODO MENTION ACTUAL NUMBERS WHEN THE DATA IS FINAL.
+
+The model predicts a number of jobs in the queue and in the system.
+The corresponding data of the real system is as follows.
+Given that we are dealing with a closed system, there are approximately as many jobs in the system as there are (virtual) clients.
+Similarly, given this approximation, there are approximately as many jobs in the system's queue(s) as there are are in the system, minus the amount that are being handled at the moment.
+The number of jobs that are currently being handled is approximately equal to the total number of workers in the system.
+
+The predicted number of jobs on the queue and in the system is much smaller than these estimates, but interestingly the ratio between the number of jobs in on the queue and the number of jobs in the system are remarkably similar.
+This makes sense because both the queues and the handling of queues are parallelised in the real system.
+
+Second, since there are many \TODO{how many} threads dequeuing from the same queue, it should hold that the predicted queueing time  times that number equals the actual queuing time.
+\TODO{WHY}
+We that this is in fact the case \TODO{show numbers}!
+
+\TODO{other connections}
 
 \section{Analysis of System Based on Scalability Data}\label{sec:analysis-scalability}
 
@@ -213,26 +238,64 @@ The M/M/1 model is a very limited model that cannot accurately represent the bla
 
 % Check the validity of all experiments from one of the three sections in your Milestone 2 report using the interactive law (choose a section in which your system has at least 9 different configurations). Analyze the results and explain them in detail.
 
-We assume that the think time is negligible.
-TODO: think time benchmark: 1 middleware, client and server, log every request, then think time is time between end of previous and start of next request.
+To check that the experiment data makes sense using the Interactive Response Time Law, we need the following data:
 
-TODO: Correct for the tail distribution?
+\begin{itemize}
+  \item Number of users of the system
+  \item Response time
+  \item Throughput
+  \item Think time
+\end{itemize}
 
-\begin{figure}[H]
-  \centering
-  \input{\genfile{remote-replication-effect-irtl-table.tex}}
-\end{figure}
+We know the number of users of the system, and we can measure the response time and the throughput of the system.
+The only thing that is missing is the think time.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{\plot{total-duration-histos/remote-replication-effect-histogram-5.png}}
-\end{figure}
+\subsection{Think time}
+
+To estimate the think time of an average client, the following benchmark was performed.
+An experiment was configured with one server, one middleware, one client.
+The middleware was configured to log every request instead of sampling requests to log.
+The client was configured to only use one virtual client.
+Most importantly: all of these were run on the same machine. \TODO{actually make sure that's true.}
+The details of this experiment can be found in figure \ref{fig:sut-think-time}.
 
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-think-time-table.tex}}
   \caption{Think time benchmark}
   \label{fig:sut-think-time}
+\end{figure}
+
+The middleware logs timestamps for the arrival of every request and for the time when the middleware responds.
+The difference between moment in time when the middleware responds to one requests, and the moment in time where it receives the next request is an estimate of the think time of the client.
+This estimate is an over-approximation, but it should be relatively tight as the client, middleware and server are run on the same machine.
+
+Using this method, the average think time of a client was estimated to be
+\TODO{how much?, input it from a generated file!}.
+This will be used in the next section.
+
+\subsection{Verification}
+
+To verify that the experimental data makes sense, we predict the response time $R$ from the throughput $X$, number of users $N$ and the estimated think time $Z$.
+The results can be found in figure \ref{fig:irtl-table}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-replication-effect-irtl-table.tex}}
+  \caption{Interactive response time verification}
+  \label{fig:irtl-table}
+\end{figure}
+
+As we can see, the estimated response time is smaller than the actual response time.
+The error is small but it makes sense.
+The average response time is not perfectly representative for the response time for a typical request because of the fact that the response times come from a skewed distribution with a long tail.
+This can be seen in figure \ref{fig:histo-resp}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{\plot{total-duration-histos/remote-replication-effect-histogram-5.png}}
+  \caption{Histogram of Response time}
+  \label{fig:histo-resp}
 \end{figure}
 
 
