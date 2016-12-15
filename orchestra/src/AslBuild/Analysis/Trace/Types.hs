@@ -160,3 +160,15 @@ instance ToNamedRecord TotalDuration where
 
 instance DefaultOrdered TotalDuration where
     headerOrder _ = header [ "totalDuration" ]
+
+newtype ThinkTime = ThinkTime { unThinkTime :: Integer }
+
+instance ToNamedRecord ThinkTime where
+    toNamedRecord td = namedRecord [ "thinkTime" .= unThinkTime td]
+
+instance FromNamedRecord ThinkTime where
+    parseNamedRecord m = ThinkTime
+        <$> m .: "thinkTime"
+
+instance DefaultOrdered ThinkTime where
+    headerOrder _ = header [ "thinkTime" ]

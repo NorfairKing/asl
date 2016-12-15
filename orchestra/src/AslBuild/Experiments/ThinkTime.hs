@@ -1,4 +1,7 @@
-module AslBuild.Experiments.ThinkTime where
+module AslBuild.Experiments.ThinkTime
+    ( module AslBuild.Experiments.ThinkTime
+    , module AslBuild.Experiments.ThinkTime.Types
+    ) where
 
 import           Development.Shake
 

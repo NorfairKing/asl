@@ -8,6 +8,7 @@ import           AslBuild.Analysis.MaximumThroughput
 import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.ReplicationEffect
 import           AslBuild.Analysis.StabilityTrace
+import           AslBuild.Analysis.ThinkTime
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.TraceSlice
 import           AslBuild.Analysis.WriteEffect
@@ -34,6 +35,7 @@ analysisRules = do
     throughputAnalysisRules
     replicationAnalysisRules
     writeAnalysisRules
+    thinkTimeRules
 
     analysisRule ~> need
         [ stabilityTraceAnalysisRule
@@ -41,6 +43,7 @@ analysisRules = do
         , throughputAnalysisRule
         , replicationAnalysisRule
         , writeAnalysisRule
+        , thinkTimeRule
         ]
 
     cleanAnalysisRule ~> removeFilesAfter analysisDir ["//*.png"]
