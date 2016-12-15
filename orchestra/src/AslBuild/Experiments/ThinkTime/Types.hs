@@ -25,10 +25,10 @@ instance ExperimentConfig ThinkTimeCfg where
     highLevelConfig = hlConfig
     genExperimentSetups ttc@ThinkTimeCfg{..} = do
         let HighLevelConfig{..} = hlConfig
-        (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments ttc True
+        (_, [mid], _, vmsNeeded) <- getVmsForExperiments ttc True
         let signGlobally = id
-        let servers = genServerSetups sers
-        let defaultMiddle = genMiddleSetup ttc mid servers sers signGlobally
+        let servers = genServerSetups [mid]
+        let defaultMiddle = genMiddleSetup ttc mid servers [mid] signGlobally
         let middle = modif defaultMiddle $ \m -> m
                 { mMiddlewareFlags = (mMiddlewareFlags m)
                     { mwReadSampleRate = Just 1
@@ -36,7 +36,7 @@ instance ExperimentConfig ThinkTimeCfg where
                     , mwNrThreads = 1
                     }
                 }
-        let defaultClients = genClientSetup ttc cls (middleRemoteServer . middle) signGlobally ttRuntime
+        let defaultClients = genClientSetup ttc [mid] (middleRemoteServer . middle) signGlobally ttRuntime
         let clients = modif defaultClients $ \defcs -> flip map defcs $ \cs ->
                 let sets = cMemaslapSettings cs
                     config = msConfig sets
