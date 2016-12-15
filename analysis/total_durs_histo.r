@@ -14,7 +14,7 @@ x = res$totalDuration
 x = x / 1000
 
 startPng(outFile)
-hist(x, breaks=25, xlim=c(min(x), max(x)/2))
+hist(x, breaks=25, xlim=c(min(x), max(x)/2), main="Histogram of total time spend in middleware")
 # lines(density(x), col="blue", lwd=2) # add a density estimate with defaults
 
 mn <- mean(x)
@@ -27,5 +27,3 @@ my.legend.size <- legend("topright"
   , lty=c(1,1) # gives the legend appropriate symbols (lines)
   , lwd=c(2.5,2.5)
   , col=c("red", "green")) # gives the legend lines the correct color and width
-title("Histogram of total time spend in middleware")
-
