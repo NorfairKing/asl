@@ -48,15 +48,15 @@ remoteFactorial :: FactorialCfg
 remoteFactorial = FactorialCfg
     { hlConfig = HighLevelConfig
         { target = "remote-2k-factorial"
-        , nrClients = 1
-        , nrServers = 1
+        , nrClients = 3
+        , nrServers = 3
         , location = Remote
         , resultsPersistence = Persistent
         , repititions = 3
         }
     , fRuntime = Minutes 3
-    , virtualClients = (1, 128)
-    , keySizes = (16, 128)
+    , writePercentages = (0.05, 0.5)
     , valueSizes = (128, 1024)
+    , replicationCoefficients = (0, 1)
     }
 

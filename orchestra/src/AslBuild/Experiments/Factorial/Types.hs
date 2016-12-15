@@ -16,11 +16,11 @@ import           AslBuild.Types
 
 data FactorialCfg
     = FactorialCfg
-    { hlConfig       :: HighLevelConfig
-    , fRuntime       :: TimeUnit
-    , virtualClients :: (Int, Int)
-    , keySizes       :: (Int, Int)
-    , valueSizes     :: (Int, Int)
+    { hlConfig                :: HighLevelConfig
+    , fRuntime                :: TimeUnit
+    , writePercentages        :: (Double, Double)
+    , valueSizes              :: (Int, Int)
+    , replicationCoefficients :: (Double, Double)
     } deriving (Show, Eq, Generic)
 
 instance FromJSON FactorialCfg
@@ -33,16 +33,19 @@ instance ExperimentConfig FactorialCfg where
         (cls, [mid], sers, vmsNeeded) <- getVmsForExperiments fc True
         let setups = do
                 let tupToList (a, b) = [a, b]
-                curVirtualClients <- tupToList virtualClients
-                curKeySize <- tupToList keySizes
+                curWritePercentage <- tupToList writePercentages
                 curValueSize <- tupToList valueSizes
-                let signGlobally f = intercalate "-" [f, show curVirtualClients, show curKeySize, show curValueSize]
+                curReplicationCoefficient <- tupToList replicationCoefficients
+                let signGlobally f = intercalate "-" [f, show curWritePercentage, show curValueSize, show curReplicationCoefficient]
 
                 let servers = genServerSetups sers
                 let defaultMiddle = genMiddleSetup fc mid servers sers signGlobally
                 let middle = modif defaultMiddle $ \m -> m
                         { mMiddlewareFlags = (mMiddlewareFlags m)
-                            { mwNrThreads = 1
+                            {   mwReplicationFactor =
+                                if curReplicationCoefficient == 0
+                                then 1
+                                else length sers
                             }
                         }
                 let defaultClients = genClientSetup fc cls (middleRemoteServer . middle) signGlobally fRuntime
@@ -53,11 +56,8 @@ instance ExperimentConfig FactorialCfg where
                         in cs
                         { cMemaslapSettings = sets
                             { msConfig = config
-                                { keysizeDistributions = [Distribution curKeySize curKeySize 1]
-                                , valueDistributions = [Distribution curValueSize curValueSize 1]
-                                }
-                            , msFlags = flags
-                                { msConcurrency = curVirtualClients
+                                { valueDistributions = [Distribution curValueSize curValueSize 1]
+                                , setProportion = curWritePercentage
                                 }
                             }
                         }
