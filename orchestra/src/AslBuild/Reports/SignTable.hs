@@ -87,10 +87,11 @@ genSignTableWith
     -> FactorialCfg
     -> Action ()
 genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
+    -- Reverse order from where they're drawn from the list
     let legendTable = tabular
-            [ ["A", "Value size"]
-            , ["B", "Key Size"]
-            , ["C", "Virtual clients"]
+            [ ["A", "Replication coefficient"]
+            , ["B", "Request Value Size"]
+            , ["C", "Write Percentage"]
             , ["y", measure]
             ]
 
@@ -150,7 +151,7 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
             go 'A' = mult vecta
             go 'B' = mult vectb
             go 'C' = mult vectc
-            go _ = error "must not happen."
+            go _   = error "must not happen."
 
         signColumns :: [[Int]]
         signColumns = map columnFor headerPrefix

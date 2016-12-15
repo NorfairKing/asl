@@ -25,6 +25,7 @@ report3Rules = report 3 texPreAction customRules
         remoteStabilityTrace `useExperimentTableInReport` 3
         remoteThinkTime `useExperimentTableInReport` 3
         remoteFactorial `useSignTableInReport` 3
+        remoteFactorial `useExperimentTableInReport` 3
         useTheseLogfileListingsForReport 3
             [ loglistingFileFor remoteStabilityTrace
             , loglistingFileFor remoteThinkTime
@@ -37,6 +38,7 @@ report3Rules = report 3 texPreAction customRules
         remoteStabilityTrace `dependOnExperimentTableForReport` 3
         remoteThinkTime `dependOnExperimentTableForReport` 3
         remoteFactorial `dependOnSignTableForReport` 3
+        remoteFactorial `dependOnExperimentTableForReport` 3
 
         need [architecturePng]
         dependOnLogfileListingsForReport 3

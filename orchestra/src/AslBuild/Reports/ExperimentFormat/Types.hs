@@ -4,6 +4,7 @@ module AslBuild.Reports.ExperimentFormat.Types where
 import           Data.List
 
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Factorial.Types
 import           AslBuild.Experiments.MaximumThroughput.Types
 import           AslBuild.Experiments.ReplicationEffect.Types
 import           AslBuild.Experiments.StabilityTrace.Types
@@ -78,6 +79,23 @@ instance ExperimentFormat ThinkTimeCfg where
         , runtimeLine ecf ttRuntime
         ] ++ logfileLines ecf
 
+instance ExperimentFormat FactorialCfg where
+    renderSetupTable ecf@FactorialCfg{..} = tabular
+        [ ["Number of server machines", "3"]
+        , ["Number of client machines", "3"]
+        , ["Virtual clients per machine", show defaultConcurrency]
+        , ["Workload "
+          , intercalate ", "
+            [ "Key " ++ show (distrMin $ head $ keysizeDistributions defaultMemaslapConfig) ++ "B"
+            , "Value " ++ showMathList ["128", "1024"] ++ "B"
+            ]
+          ]
+        , writePercentageLine [0.05, 0.5]
+        , ["Replication", showMathList ["1", "S"]]
+        , ["Middleware threads per read pool", show defaultMiddleThreads]
+        , runtimeLine ecf fRuntime
+        ]
+
 workloadLine :: [String]
 workloadLine = workloadLineFor defaultMemaslapConfig
 
@@ -91,7 +109,7 @@ workloadLineFor MemaslapConfig{..} =
     ]
   where
     renderDistrList [d] = renderDistr d
-    renderDistrList _ = error "not implemented yet."
+    renderDistrList _   = error "not implemented yet."
     renderDistr Distribution{..} =
         if distrMin == distrMax
         then show distrMin
@@ -143,4 +161,4 @@ showPercentage = showMathNum . (++ "\\%") . show . (round :: Double -> Int) . (*
 
 showListWith :: (a -> String) -> [a] -> String
 showListWith func [d] = func d
-showListWith func ds = "[" ++ intercalate ", " (map func ds) ++ "]"
+showListWith func ds  = "[" ++ intercalate ", " (map func ds) ++ "]"
