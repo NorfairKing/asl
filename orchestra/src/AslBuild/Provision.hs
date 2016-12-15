@@ -162,7 +162,7 @@ provisionVmsMiddleware :: [RemoteLogin] -> Action ()
 provisionVmsMiddleware = postNub (`phPar` (\rl -> rsyncTo rl outputJarFile remoteMiddleware))
 
 orcRemotely :: CmdResult r => RemoteLogin -> String -> Action r
-orcRemotely rl target = overSsh rl $ unwords [orcBin, "build", target]
+orcRemotely rl target = overSsh rl $ unwords [orcBin, target]
 
 eachVm :: (RemoteLogin -> Action ProcessHandle) -> Action ()
 eachVm func = do

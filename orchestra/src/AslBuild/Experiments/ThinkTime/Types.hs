@@ -9,6 +9,8 @@ import           AslBuild.Client
 import           AslBuild.Experiment
 import           AslBuild.Memaslap
 import           AslBuild.Middle
+import           AslBuild.Vm.Data
+import           AslBuild.Vm.Types
 import           AslBuild.Middleware
 import           AslBuild.Types
 
@@ -25,7 +27,12 @@ instance ExperimentConfig ThinkTimeCfg where
     highLevelConfig = hlConfig
     genExperimentSetups ttc@ThinkTimeCfg{..} = do
         let HighLevelConfig{..} = hlConfig
-        (_, [mid], _, vmsNeeded) <- getVmsForExperiments ttc True
+        (mid, vmNeeded) <- do
+            ([m], _, _) <- getVms 1 0 0
+            let midlg = RemoteLogin (Just (vmAdmin m)) (vmFullUrl m)
+            let midip = vmPrivateIp m
+            pure ((midlg, midip), midlg)
+
         let signGlobally = id
         let servers = genServerSetups [mid]
         let defaultMiddle = genMiddleSetup ttc mid servers [mid] signGlobally
@@ -52,4 +59,4 @@ instance ExperimentConfig ThinkTimeCfg where
                     }
                 }
         let setup = genExperimentSetup ttc ttRuntime clients middle servers signGlobally
-        pure ([setup], vmsNeeded)
+        pure ([setup], [vmNeeded])

@@ -42,7 +42,7 @@ smallRemoteThinkTime = remoteThinkTime
         , resultsPersistence = Volatile
         , repititions = 1
         }
-    , ttRuntime = Seconds 2
+    , ttRuntime = Seconds 10
     }
 
 remoteThinkTime :: ThinkTimeCfg
@@ -55,5 +55,5 @@ remoteThinkTime = ThinkTimeCfg
         , resultsPersistence = Persistent
         , repititions = 3
         }
-    , ttRuntime = Seconds 10
+    , ttRuntime = Seconds 30
     }
