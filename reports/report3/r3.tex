@@ -177,17 +177,61 @@ We that this is in fact the case \TODO{show numbers}!
 
 % Starting from the different configurations that you used in the second milestone, build M/M/m queuing models of the system as a whole. Detail the characteristics of these series of models and compare them with experimental data. The goal is the analysis of the model and the real scalability of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments). Make sure to follow the model-related guidelines described in the Notes!
 
+\subsection{Boundaries of M/M/m models}
+
+In figure \ref{fig:mmm-black-box}, there is an illustration of the black box used for this model.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0, opacity=0.4] (image) at (0,0) {\includegraphics[width=0.5\textwidth]{\asset{architecture.png}}};
+    \begin{scope}[x={(image.south east)},y={(image.north west)}]
+			\draw (-0.7,0.5) circle (1cm) node (C) {Clients};
+			\node (N) at (-0.3,0.5) [cloud, draw,cloud puffs=10,cloud puff arc=120, aspect=2, inner ysep=1em] {network};
+			\draw [->, thick] (C) -- (N) -- (image);
+			\draw [pattern=north west lines, pattern color=blue, fill=black, fill opacity=0.3, text opacity=1] (0,0) rectangle (1.05,1.05);
+    	\node[anchor=south west,inner sep=0] (image) at (0,0.19) {\includegraphics[width=0.5\textwidth]{\asset{mmm.png}}};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Black box system for M/M/m model}
+  \label{fig:mmm-black-box}
+\end{figure}
+
 \section{System as Network of Queues}\label{sec:network-of-queues}
 
 % Length: 1-3 pages
 
 % Based on the outcome of the different modeling efforts from the previous sections, build a comprehensive network of queues model for the whole system. Compare it with experimental data and use the methods discussed in the lecture and the book to provide an in-depth analysis of the behavior. This includes the identification and analysis of bottlenecks in your system. Make sure to follow the model-related guidelines described in the Notes!
 
+One queue at the front of the middleware, for incoming requests.
+This queue is hidden behind java's async io functionality, but it's still there.
+One MM1 queue per server, because we set memcached's number of threads to 1 and they each have a queue for incoming requests.
+
+Per server also the following queues:
+- an M/M/1 for writes
+- an M/M/T for reads, where T is the number of threads per read queue.
+
+We don't model anything more low-level than these systems. No CPU queue, no network queue, etc.
+
+\TODO{make a nice illustration of this.}
+
 \section{Factorial Experiment}\label{sec:2k-experiment}
 
 % Length: 1-3 pages
 
 % Design a $2^k$ factorial experiment and follow the best practices outlined in the book and in the lecture to analyze the results. You are free to choose the parameters for the experiment and in case you have already collected data in the second milestone that can be used as source for this experiment, you can reuse it. Otherwise, in case you need to run new experiments anyway, we recommend exploring the impact of request size on the middleware together with an other parameter.
+
+A factorial experiment with replication has been run to explore the impact of three factors $A$, $B$, and $C$ on a response variable $y$ as listed in figure \ref{fig:tps-sign-table-legend}.
+Each setup has been repeated three times.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-tps-legend.tex}}
+  \caption{Throughput Sign Table}
+  \label{fig:tps-sign-table-legend}
+\end{figure}
+
+The details of this experiment can be found in figure \ref{fig:sut-2k-factorial}.
 
 
 \begin{figure}[H]
@@ -199,45 +243,38 @@ We that this is in fact the case \TODO{show numbers}!
 
 \begin{figure}[H]
   \centering
-  \input{\genfile{remote-2k-factorial-sign-table-tps-legend.tex}}
-  \caption{Throughput Sign Table}
-  \label{fig:tps-sign-table-legend}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
   \input{\genfile{remote-2k-factorial-sign-table-tps-add.tex}}
   \caption{Throughput Sign Table (additive model)}
   \label{fig:tps-sign-table-add}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \input{\genfile{remote-2k-factorial-sign-table-tps-mul.tex}}
-  \caption{Throughput Sign Table (multiplicative model)}
-  \label{fig:tps-sign-table-mul}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \input{\genfile{remote-2k-factorial-sign-table-resp-legend.tex}}
-  \caption{Response Time Sign Table Legend}
-  \label{fig:resp-sign-table-legend}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \input{\genfile{remote-2k-factorial-sign-table-resp-add.tex}}
-  \caption{Response Time Sign Table (additive model)}
-  \label{fig:resp-sign-table-add}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \input{\genfile{remote-2k-factorial-sign-table-resp-mul.tex}}
-  \caption{Response Time Sign Table (multiplicative model)}
-  \label{fig:resp-sign-table-mul}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \input{\genfile{remote-2k-factorial-sign-table-tps-mul.tex}}
+%   \caption{Throughput Sign Table (multiplicative model)}
+%   \label{fig:tps-sign-table-mul}
+% \end{figure}
+% 
+% \begin{figure}[H]
+%   \centering
+%   \input{\genfile{remote-2k-factorial-sign-table-resp-legend.tex}}
+%   \caption{Response Time Sign Table Legend}
+%   \label{fig:resp-sign-table-legend}
+% \end{figure}
+% 
+% \begin{figure}[H]
+%   \centering
+%   \input{\genfile{remote-2k-factorial-sign-table-resp-add.tex}}
+%   \caption{Response Time Sign Table (additive model)}
+%   \label{fig:resp-sign-table-add}
+% \end{figure}
+% 
+% \begin{figure}[H]
+%   \centering
+%   \input{\genfile{remote-2k-factorial-sign-table-resp-mul.tex}}
+%   \caption{Response Time Sign Table (multiplicative model)}
+%   \label{fig:resp-sign-table-mul}
+% \end{figure}
 
 \section{Interactive Law Verification}\label{sec:interactive-law}
 
