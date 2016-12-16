@@ -215,6 +215,62 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
 
 \TODO{make a nice illustration of this.}
 
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[scale=0.7, every node/.style={scale=0.7}]
+    % Connection accepter and initial reader
+    \node at (9,2) {\Large Request Acceptor};
+    \mmoqueue{200}{0}
+    
+    % Worker queues
+    \node at (11.5,5.75) {\Large Readers};
+    \node at (11.5,7.5) {\Large Writer};
+
+		\draw [thick] (12.2,0.5) -- (13,7);
+		\draw [->, thick] (13,7) -- (14,8);
+		\draw [->, thick] (13,7) -- (14,6);
+    \mmoqueue{400}{200}
+    \mmmqueue{400}{150}
+		\draw [thick] (12.2,0.5) -- (13,3);
+		\draw [->, thick] (13,3) -- (14,4);
+		\draw [->, thick] (13,3) -- (14,2);
+    \mmoqueue{400}{100}
+    \mmmqueue{400}{50}
+
+    \node at (12,10) {\Huge Middleware};
+    \node at (16,0.5) {\bm{$\vdots$}};
+
+		\draw [thick] (12.2,0.5) -- (13,-2);
+		\draw [->, thick] (13,-2) -- (14,-1);
+		\draw [->, thick] (13,-2) -- (14,-3);
+    \mmoqueue{400}{-50}
+    \mmmqueue{400}{-100}
+
+    \draw (6.5,-4.5) rectangle (20,9);
+
+    % Server queues
+		\draw [->, thick] (19.5,8) -- (24.5,7);
+		\draw [->, thick] (19.5,6) -- (24.5,7);
+    \mmoqueue{700}{185}
+    \draw (24,6) rectangle (30,8);
+
+		\draw [->, thick] (19.5,2) -- (24.5,3);
+		\draw [->, thick] (19.5,4) -- (24.5,3);
+    \mmoqueue{700}{75}
+    \draw (24,2) rectangle (30,4);
+
+    \node at (27,10) {\Huge Servers};
+    \node at (27,0.5) {\bm{$\vdots$}};
+
+		\draw [->, thick] (19.5,-1) -- (24.5,-2);
+		\draw [->, thick] (19.5,-3) -- (24.5,-2);
+    \mmoqueue{700}{-75}
+    \draw (24,-3) rectangle (30,-1);
+  \end{tikzpicture}
+  \caption{Comprehensive network of queues}
+  \label{fig:network-of-queues}
+\end{figure}
+
 \section{Factorial Experiment}\label{sec:2k-experiment}
 
 % Length: 1-3 pages

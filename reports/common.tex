@@ -19,3 +19,32 @@
 
 \setlength{\parindent}{0pt}
 
+\newcommand{\queuebox}{
+    \draw (0,0) rectangle (0.5,1);
+    \draw (0.5,0) rectangle (1,1);
+    \draw (1,0) rectangle (1.5,1);
+    \node at (2,0.5) {...};
+    \draw (2.5,0) rectangle (3,1);
+    \draw [thick] (0,0) rectangle (3,1);
+}
+
+\newcommand{\mmoqueue}[2]{
+	\begin{scope}[xshift=#1, yshift=#2]
+		\queuebox
+    \draw [dashed] (0,-0.15) rectangle (5,1.15);
+		\draw [thick] (4,0.5) ellipse (1 and 0.25);
+  \end{scope}
+}
+
+\newcommand{\mmmqueue}[2]{
+	\begin{scope}[xshift=#1, yshift=#2]
+		\queuebox
+    \draw [dashed] (0,-0.5) rectangle (5,1.5);
+		\draw [thick] (4,-0.25) ellipse (1 and 0.25);
+		\draw [thick] (4, 0.75) ellipse (1 and 0.25);
+		\node at (4,0.35) {$\vdots$};
+		\draw [thick] (4, 1.25) ellipse (1 and 0.25);
+  \end{scope}
+}
+
+\usepackage{bm}
