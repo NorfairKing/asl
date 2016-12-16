@@ -292,8 +292,9 @@ To check that the experiment data makes sense using the Interactive Response Tim
   \item Think time
 \end{itemize}
 
-We know the number of users of the system, and we can measure the response time and the throughput of the system.
-The only thing that is missing is the think time.
+We know the number of users of the system from the total number of virtual clients,
+and we can measure the response time and the throughput of the system.
+The only data that is missing is the think time.
 
 \subsection{Think time}
 
@@ -301,7 +302,7 @@ To estimate the think time of an average client, the following benchmark was per
 An experiment was configured with one server, one middleware, one client.
 The middleware was configured to log every request instead of sampling requests to log.
 The client was configured to only use one virtual client.
-Most importantly: all of these were run on the same machine and this machine is of the same kind as the usual client machines. \TODO{actually make sure that's true.}
+Most importantly: all of these were run on the same machine and this machine is of the same kind as the usual client machines.
 The details of this experiment can be found in figure \ref{fig:sut-think-time}.
 
 \begin{figure}[H]
@@ -312,11 +313,10 @@ The details of this experiment can be found in figure \ref{fig:sut-think-time}.
 \end{figure}
 
 The middleware logs timestamps for the arrival of every request and for the time when the middleware responds.
-The difference between moment in time when the middleware responds to one requests, and the moment in time where it receives the next request is an estimate of the think time of the client.
+The difference between the moment in time when the middleware responds to one requests, and the moment in time where it receives the next request is an estimate of the think time of the client.
 This estimate is an over-approximation, but it should be relatively tight as the client, middleware and server are run on the same machine.
 
-Using this method, the average think time of a client was estimated to be
-\TODO{how much?, input it from a generated file!}.
+Using this method, the average think time of a client was estimated to be $\input{\genfile{remote-replication-effect-irtl-think-time.tex}}$ microseconds on average.
 This will be used in the next section.
 
 \subsection{Verification}
@@ -333,7 +333,7 @@ The results can be found in figure \ref{fig:irtl-table}.
 
 As we can see, the estimated response time is smaller than the actual response time.
 The error is small but it makes sense.
-The average response time is not perfectly representative for the response time for a typical request because of the fact that the response times come from a skewed distribution with a long tail.
+The average response time is not perfectly representative for the response time for a typical request because of the fact that the response times come from a skewed distribution with a long tail and the average is heavily influenced by outliers.
 This can be seen in figure \ref{fig:histo-resp}
 
 \begin{figure}[H]
@@ -342,6 +342,8 @@ This can be seen in figure \ref{fig:histo-resp}
   \caption{Histogram of Response time}
   \label{fig:histo-resp}
 \end{figure}
+
+In conclusion, the data gathered during the performed experiments looks valid.
 
 
 \section{Log file listing}

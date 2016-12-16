@@ -156,7 +156,7 @@ irtlPlotRulesFor ecf = do
     pure rule
 
 irtlGenfileRuleFor :: ExperimentConfig a => a -> String
-irtlGenfileRuleFor ecf = experimentTarget ecf ++ "-irtl-genfile"
+irtlGenfileRuleFor ecf = experimentTarget ecf ++ "-irtl-genfiles"
 
 irtlGenfileRulesFor :: ExperimentConfig a => a -> Rules String
 irtlGenfileRulesFor ecf = do
@@ -164,24 +164,42 @@ irtlGenfileRulesFor ecf = do
     genfile %> \_ -> do
         table <- makeIrtTable ecf
         writeFile' genfile table
+
+    let ttf = irtlThinkTimeFileFor ecf
+    ttf %> \_ -> do
+        [ttslocs] <- readResultsSummaryLocationsForCfg remoteThinkTime
+        erss <- mapM readResultsSummary ttslocs
+        mrfs <- case mapM merMiddleResultsFile erss of
+            Nothing -> fail "Need middleware for think time table."
+            Just es -> pure es
+        let ttResFile = metaAvgThinkTimeFile remoteThinkTime mrfs
+        need [ttResFile]
+        mavg <- readThinkTimeMetaAvg ttResFile
+        let avgThinkTime = avgAvgs mavg
+        writeFile' ttf $ printf "%.2f" $ avgThinkTime / 1000
+
     let rule = irtlGenfileRuleFor ecf
-    rule ~> need [genfile]
+    rule ~> need [genfile, ttf]
     pure rule
+
+irtlThinkTimeFileFor :: ExperimentConfig a => a -> FilePath
+irtlThinkTimeFileFor ecf = experimentAnalysisTmpDir ecf </> experimentTarget ecf ++ "-irtl-think-time.tex"
+
+irtlThinkTimeFileForReport :: ExperimentConfig a => a -> Int -> FilePath
+irtlThinkTimeFileForReport ecf i = irtlThinkTimeFileFor ecf `replaceDirectory` reportGenfileDir i
+
+useIrtlThinkTimeFileInReport :: ExperimentConfig a => a -> Int -> Rules ()
+useIrtlThinkTimeFileInReport ecf i = irtlThinkTimeFileForReport ecf i `byCopying` irtlThinkTimeFileFor ecf
+
+dependOnIrtlThinkTimeFileForReport :: ExperimentConfig a => a -> Int -> Action ()
+dependOnIrtlThinkTimeFileForReport ecf i = need [irtlThinkTimeFileForReport ecf i]
 
 makeIrtTable :: ExperimentConfig a => a -> Action String
 makeIrtTable ecf = do
 
-    [ttslocs] <- readResultsSummaryLocationsForCfg remoteThinkTime
-    erss <- mapM readResultsSummary ttslocs
-    mrfs <- case mapM merMiddleResultsFile erss of
-        Nothing -> fail "Need middleware for think time table."
-        Just es -> pure es
-
-    let ttResFile = metaAvgThinkTimeFile remoteThinkTime mrfs
-    need [ttResFile]
-    mavg <- readThinkTimeMetaAvg ttResFile
-    let unMiddleTime = (/(1000 * 1000 * 1000))
-        avgThinkTime = unMiddleTime $ avgAvgs mavg
+    let ttf = irtlThinkTimeFileFor ecf
+    need [ttf]
+    avgThinkTime <- liftIO $ read <$> readFile ttf
 
     slocss <- readResultsSummaryLocationsForCfg ecf
     ls <- forM slocss $ \slocs -> do
@@ -200,7 +218,7 @@ makeIrtTable ecf = do
             nd = fromIntegral n
             ra = unmematime $ avgAvgs $ avgBothResults $ avgRespResults res
             xa = avgAvgs $ avgBothResults $ avgTpsResults res
-            za = avgThinkTime
+            za = unmematime avgThinkTime
             estimatedResponseTime = nd / xa - za
             -- za = (nd / xa) - ra
 
@@ -212,5 +230,18 @@ makeIrtTable ecf = do
             mematime = (* (1000 * 1000))
 
         let showdub = printf "%.2f"
-        pure [show n, showdub xa, showdub $ mematime ra, showdub $ mematime estimatedResponseTime]
-    pure $ tabularWithHeader ["Users", "Avg Throughput tps", "Avg Response time ($\\mu s$)", "Estimated response time"] ls
+        pure
+            [ show n
+            , showdub xa
+            , showdub $ mematime ra
+            , showdub $ mematime estimatedResponseTime
+            , showdub $ mematime $ ra - estimatedResponseTime
+            ]
+    pure $ tabularWithHeader
+        [ "Users"
+        , "Avg Throughput"
+        , "Avg Response time ($\\mu s$)"
+        , "Estimated response time"
+        , "Difference"
+        ]
+        ls
