@@ -15,6 +15,7 @@ import           Development.Shake.FilePath
 import           AslBuild.Analysis.BuildR
 import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.Memaslap
+import           AslBuild.Analysis.ThinkTime
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
@@ -23,6 +24,7 @@ import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.ThinkTime
 import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Reports.Common
 import           AslBuild.Reports.Utils
@@ -91,11 +93,19 @@ totalDurationsScript = analysisDir </> "total_durs_histo.r"
 
 irtlRulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
 irtlRulesFor ecf = onlyIfResultsExist ecf $ do
-    genfile <- irtlGenfileRulesFor ecf
-    plot <- irtlPlotRulesFor ecf
+    mr <- onlyIfResultsExist remoteThinkTime $ do
+        genfile <- irtlGenfileRulesFor ecf
+        plot <- irtlPlotRulesFor ecf
+        let t = show [plot, genfile]
+        t ~> need [plot, genfile]
+        pure t
+
     let rule = irtlRuleFor ecf
-    rule ~> need [genfile, plot]
+    rule ~> need (case mr of
+        Nothing -> []
+        Just t -> [t])
     return rule
+
 
 irtlPlotRuleFor :: ExperimentConfig a => a -> String
 irtlPlotRuleFor ecf = experimentTarget ecf ++ "-irtl-plot"
@@ -129,11 +139,9 @@ irtlPlotRulesFor ecf = do
     let plot = irtlPlotFor ecf
     plot %> \_ -> do
         need [totalDurationsScript, commonRLib, rBin]
-        -- TODO combine repititions
         slocs <- concat <$> readResultsSummaryLocationsForCfg ecf
         forM_ (indexed slocs) $ \(ix, sloc) -> do
             ers <- readResultsSummary sloc
-            -- setup <- readExperimentSetupForSummary ers
             erMiddleResultsFile <- case merMiddleResultsFile ers of
                 Nothing -> fail "Missing middleware trace"
                 Just r -> pure r
@@ -157,17 +165,30 @@ irtlGenfileRulesFor ecf = do
         table <- makeIrtTable ecf
         writeFile' genfile table
     let rule = irtlGenfileRuleFor ecf
+    rule ~> need [genfile]
     pure rule
 
 makeIrtTable :: ExperimentConfig a => a -> Action String
 makeIrtTable ecf = do
-    -- TODO combine repititions
-    slocs <- readResultsSummaryLocationsForCfg ecf
-    ls <- forM (concat slocs) $ \sloc -> do
-        let combinedResultsFile = combineClientResultsFile ecf sloc
+
+    [ttslocs] <- readResultsSummaryLocationsForCfg remoteThinkTime
+    erss <- mapM readResultsSummary ttslocs
+    mrfs <- case mapM merMiddleResultsFile erss of
+        Nothing -> fail "Need middleware for think time table."
+        Just es -> pure es
+
+    let ttResFile = metaAvgThinkTimeFile remoteThinkTime mrfs
+    need [ttResFile]
+    mavg <- readThinkTimeMetaAvg ttResFile
+    let unMiddleTime = (/(1000 * 1000 * 1000))
+        avgThinkTime = unMiddleTime $ avgAvgs mavg
+
+    slocss <- readResultsSummaryLocationsForCfg ecf
+    ls <- forM slocss $ \slocs -> do
+        let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
         need [combinedResultsFile]
-        res <- readCombinedClientResults combinedResultsFile
-        ers <- readResultsSummary sloc
+        res <- readCombinedClientsResults combinedResultsFile
+        ers <- readResultsSummary $ head slocs
         setup <- readExperimentSetupForSummary ers
 
         -- Response time R
@@ -177,8 +198,10 @@ makeIrtTable ecf = do
         -- Z = R - (N / X)
         let n = nrUsers setup
             nd = fromIntegral n
-            ra = unmematime $ avg $ bothResults $ respResults res
-            xa = avg $ bothResults $ tpsResults res
+            ra = unmematime $ avgAvgs $ avgBothResults $ avgRespResults res
+            xa = avgAvgs $ avgBothResults $ avgTpsResults res
+            za = avgThinkTime
+            estimatedResponseTime = nd / xa - za
             -- za = (nd / xa) - ra
 
             -- rm = unmematime $ minResp res
@@ -189,5 +212,5 @@ makeIrtTable ecf = do
             mematime = (* (1000 * 1000))
 
         let showdub = printf "%.2f"
-        pure [show n, showdub xa, showdub $ mematime ra, showdub $ mematime (nd / xa)]-- , showdub $ mematime za]
+        pure [show n, showdub xa, showdub $ mematime ra, showdub $ mematime estimatedResponseTime]
     pure $ tabularWithHeader ["Users", "Avg Throughput tps", "Avg Response time ($\\mu s$)", "Estimated response time"] ls

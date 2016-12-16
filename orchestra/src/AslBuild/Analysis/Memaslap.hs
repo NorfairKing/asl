@@ -12,6 +12,7 @@ import qualified Data.Vector                            as V
 import qualified Statistics.Sample                      as S
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Memaslap.Types
 import           AslBuild.Analysis.Types
@@ -119,7 +120,10 @@ memaslapLogsRulesForRep ecf sloc = do
 
 -- TODO fix this if we use a more complicated naming scheme for the reps
 combinedClientRepsetResultsFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
-combinedClientRepsetResultsFile ecf = (`replaceSndDir` localClientResultsDir ecf) . changeFilename (const "combined-repset-results") . head
+combinedClientRepsetResultsFile ecf fs
+    = (`replaceSndDir` localClientResultsDir ecf)
+    . changeFilename (const $ "combined-repset-results-" ++ takeBaseName (head fs))
+    . head $ fs
 
 combineClientResultsFile :: ExperimentConfig a => a -> FilePath -> FilePath
 combineClientResultsFile ecf = (`replaceSndDir` localClientResultsDir ecf) . changeFilename (++ "-combined-results")

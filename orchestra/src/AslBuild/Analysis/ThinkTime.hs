@@ -78,6 +78,9 @@ avgThinkTimeFile ecf = changeFilename (++ "-avg-think-time") . rawDurationsFile 
 metaAvgThinkTimeFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
 metaAvgThinkTimeFile ecf = changeFilename (++ "-meta-avg-think-time") . rawDurationsFile ecf . head
 
+readThinkTimeMetaAvg :: MonadIO m => FilePath -> m MetaAvg
+readThinkTimeMetaAvg = readJSON
+
 thinkTimeTransformer :: Monad m => Pipe MiddleResultLine ThinkTime m v
 thinkTimeTransformer = do
     first <- P.await

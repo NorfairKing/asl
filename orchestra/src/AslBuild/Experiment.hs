@@ -428,7 +428,7 @@ readResultsSummaryLocationsForCfg :: (MonadIO m, ExperimentConfig a) => a -> m [
 readResultsSummaryLocationsForCfg = readResultsSummaryLocations . resultSummariesLocationFile
 
 readResultsSummaryLocations :: MonadIO m => FilePath -> m [[FilePath]]
-readResultsSummaryLocations = readJSOND (:[]) -- TODO once all the old data is gone, set this to regular 'readJSON'.
+readResultsSummaryLocations = readJSOND (map (:[])) -- TODO once all the old data is gone, set this to regular 'readJSON'.
 
 {-# DEPRECATED #-}
 readResultsSummary :: MonadIO m => FilePath -> m ExperimentResultSummary
