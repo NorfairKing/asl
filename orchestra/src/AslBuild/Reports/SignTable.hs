@@ -66,17 +66,17 @@ genTpsSignTable :: FactorialCfg -> Action ()
 genTpsSignTable = genSignTableWith
     tpsResults
     avgTpsResults
-    id
+    (/10)
     "tps"
-    "Throughput (transactions / second)"
+    "Throughput (10 transactions / second)"
 
 genRespSignTable :: FactorialCfg -> Action ()
 genRespSignTable = genSignTableWith
     respResults
     avgRespResults
-    id
+    (/100)
     "resp"
-    "Response Time ($\\mu s$)"
+    "Response Time ($100 \\mu s$)"
 
 genSignTableWith
     :: (MemaslapClientResults -> AvgResults)
@@ -170,6 +170,13 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
             res = convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
         pure (individuals, res)
 
+    let indivHeader = take 3 (drop 1 headerPrefix)
+    let resultsHeader = indivHeader ++ ["$y$", "$\\bar{y}$"]
+    let resultsRows = flip map realRes $ \(indivs, res) -> [show $ map roundD indivs, show res]
+    let resultsTable = tabularWithHeader
+            resultsHeader
+            (zipWith (++) (map (map show) $ transpose $ map columnFor indivHeader) resultsRows)
+
     let tups = map (\(indivs, res) -> (indivs, res)) realRes
 
     let fullResVec = map fst tups :: [[Double]]
@@ -181,8 +188,8 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
         effDivs :: [Double]
         effDivs = map (/ fromIntegral tot) effects
 
-    let secondToLastRow = map (show . roundD) effects ++ ["", "Total", ""]
-    let effectRow = map (show . roundD) effDivs ++ ["", "Effect", ""]
+    let secondToLastRow = map (show . roundD) effects ++ ["Total", ""]
+    let effectRow = map (show . roundD) effDivs ++ ["Effect", ""]
     let effectRows = [secondToLastRow, effectRow]
 
     -- let errss = flip map fullResVec $ \res ->
@@ -192,11 +199,10 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
             in map (\res -> res - pred_) ress_
 
 
-    let rows = flip map (zip (zip signRowSs tups) errss) $ \((row, (individuals, res)), errs) ->
-            let individualsS = show $ map roundD individuals
-                resS = show $ roundD res
+    let rows = flip map (zip (zip signRowSs tups) errss) $ \((row, (_, res)), errs) ->
+            let resS = show $ roundD res
                 errsS = show $ map roundD errs
-            in row ++ [individualsS, resS, errsS]
+            in row ++ [resS, errsS]
 
     -- let meanRes = S.mean $ V.fromList resvec
     let sqs = concatMap (map (** 2)) fullResVec
@@ -208,15 +214,15 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
         sst = ssy - ss0
 
     let variations = map ((* totR) . (** 2)) $ drop 1 effDivs
-        variationRow = [""] ++ map (show . roundD) variations ++ ["", "Var", show $ roundD sse]
+        variationRow = [""] ++ map (show . roundD) variations ++ ["Var", show $ roundD sse]
 
         relvars = map (/ sst) variations
 
     let showPerc = (printf "%.2f" :: Double -> String) . (*100)
-        relvarsRow = [""] ++ map showPerc relvars ++ ["", "Rel Var ($\\%$)", showPerc $ sse / sst]
+        relvarsRow = [""] ++ map showPerc relvars ++ ["Rel Var ($\\%$)", showPerc $ sse / sst]
         variationRows = [variationRow, relvarsRow]
 
-    let headerRest = ["y", "$\\bar{y}$", "Err"]
+    let headerRest = ["$\\bar{y}$", "Err"]
         header = headerPrefix ++ headerRest
         table = rows ++ effectRows ++ variationRows
 
@@ -225,4 +231,6 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
             table
 
     let tableFile = signTableFileWithPostfix ecf $ intercalate "-" [measSuf, suffix]
-    writeFile' tableFile signTable
+
+    let content = unlines [resultsTable, signTable]
+    writeFile' tableFile content

@@ -52,7 +52,6 @@ instance ExperimentConfig FactorialCfg where
                 let clients = modif defaultClients $ \defcs -> flip map defcs $ \cs ->
                         let sets = cMemaslapSettings cs
                             config = msConfig sets
-                            flags = msFlags sets
                         in cs
                         { cMemaslapSettings = sets
                             { msConfig = config
