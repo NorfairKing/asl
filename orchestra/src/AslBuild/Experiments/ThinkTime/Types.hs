@@ -7,6 +7,7 @@ import           GHC.Generics
 
 import           AslBuild.Client
 import           AslBuild.Experiment
+import           AslBuild.Constants
 import           AslBuild.Memaslap
 import           AslBuild.Middle
 import           AslBuild.Vm.Data
@@ -27,11 +28,13 @@ instance ExperimentConfig ThinkTimeCfg where
     highLevelConfig = hlConfig
     genExperimentSetups ttc@ThinkTimeCfg{..} = do
         let HighLevelConfig{..} = hlConfig
-        (mid, vmNeeded) <- do
-            ([m], _, _) <- getVms 1 0 0
-            let midlg = RemoteLogin (Just (vmAdmin m)) (vmFullUrl m)
-            let midip = vmPrivateIp m
-            pure ((midlg, midip), midlg)
+        (mid, vmsNeeded) <- case location of
+            Local -> pure ((RemoteLogin Nothing localhostIp, localhostIp), [])
+            Remote -> do
+                ([m], _, _) <- getVms 1 0 0
+                let midlg = RemoteLogin (Just (vmAdmin m)) (vmFullUrl m)
+                let midip = vmPrivateIp m
+                pure ((midlg, midip), [midlg])
 
         let signGlobally = id
         let servers = genServerSetups [mid]
@@ -59,4 +62,4 @@ instance ExperimentConfig ThinkTimeCfg where
                     }
                 }
         let setup = genExperimentSetup ttc ttRuntime clients middle servers signGlobally
-        pure ([setup], [vmNeeded])
+        pure ([setup], vmsNeeded)
