@@ -72,14 +72,13 @@ readMM1ModelFile :: MonadIO m => FilePath -> m MM1Model
 readMM1ModelFile = readJSON
 
 mm1EstimationRuleFor :: ExperimentConfig a => a -> String
-mm1EstimationRuleFor ecf = experimentTarget ecf ++ "-middleware-mm1-estimation"
+mm1EstimationRuleFor ecf = experimentTarget ecf ++ "-mm1-estimation"
 
 mm1ModelEstimateFileFor :: ExperimentConfig a => a -> [FilePath] -> FilePath
 mm1ModelEstimateFileFor ecf = changeFilename (const "mm1-estimate") . (`replaceSndDir` experimentAnalysisTmpDir ecf) . head
 
 mm1EstimationRulesFor :: ExperimentConfig a => a -> Rules String
 mm1EstimationRulesFor ecf = do
-    -- TODO combine the repititions first?
     slocss <- readResultsSummaryLocationsForCfg ecf
     mm1ModelFiles <- forM slocss $ \slocs -> do
         let modelFile = mm1ModelEstimateFileFor ecf slocs
