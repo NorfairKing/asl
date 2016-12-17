@@ -1,50 +1,53 @@
 module AslBuild.Models.MMm where
 
-import Control.Monad
+import           Control.Monad
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
+import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.Common
+import           AslBuild.Analysis.Memaslap
+import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
-import           AslBuild.Utils
-import AslBuild.Models.MMm.Types
-import AslBuild.Models.MMm.Report
+import           AslBuild.Analysis.Utils
+import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
+import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
+import           AslBuild.Experiments.WriteEffect
+import           AslBuild.Models.MMm.Internal
+import           AslBuild.Models.MMm.Report
+import           AslBuild.Models.MMm.Types
+import           AslBuild.Utils
 
 mmmRule :: String
 mmmRule = "mmm-models"
 
 mmmRules :: Rules ()
 mmmRules = do
-    mmmRule ~> need [ruleForStabilityTraces]
+    mmmRule ~> need [ruleForReplicationEffects]
 
     subRules
         mmmRulesFor
-        ruleForStabilityTraces
-        allStabilityTraceExperiments
+        ruleForReplicationEffects
+        allReplicationEffectExperiments
 
-    subRules
-        mmmRulesFor
-        ruleForMaximumThroughputs
-        allMaximumThroughputExperiments
-
-ruleForStabilityTraces :: String
-ruleForStabilityTraces = "stability-trace-mmm-models"
-
-ruleForMaximumThroughputs :: String
-ruleForMaximumThroughputs = "maximum-throughput-mmm-models"
+ruleForReplicationEffects :: String
+ruleForReplicationEffects = "replication-effect-mmm-models"
 
 mmmRuleFor :: ExperimentConfig a => a -> String
-mmmRuleFor ecf = experimentTarget ecf ++ "-mmm-model"
+mmmRuleFor ecf = experimentTarget ecf ++ "-mmm-models"
 
-mmmRulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
+mmmRulesFor :: ReplicationEffectCfg -> Rules (Maybe String)
 mmmRulesFor ecf = onlyIfResultsExist ecf $ do
     estt <- mmmEstimationRulesFor ecf
     repf <- mmmReportRulesFor ecf
+    plotfs <- mmmPlotsRulesFor ecf
 
     let mmmtarget = mmmRuleFor ecf
-    mmmtarget ~> need [estt, repf]
+    mmmtarget ~> need [estt, repf, plotfs]
     return mmmtarget
 
 mmmEstimationRuleFor :: ExperimentConfig a => a -> String
@@ -69,9 +72,20 @@ mmmEstimationRulesFor ecf = do
 
 estimateMMmModel :: ExperimentConfig a => a -> [FilePath] -> Action MMmModel
 estimateMMmModel ecf slocs = do
-    let λ = 0
-        μ = 0
-        m = 0
+    let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
+    need [combinedResultsFile]
+    res <- readCombinedClientsResults combinedResultsFile
+    ers <- readResultsSummary $ head slocs
+    setup <- readExperimentSetupForSummary ers
+
+    m <- case backendSetup setup of
+        Left _        -> fail "must have middleware to compute mmm model"
+        Right (_, ss) -> pure $ length ss
+
+    -- Arrival rate as Average throughput
+    let λ = avgAvgs $ avgBothResults $ avgTpsResults res
+    -- Service rate as Maxiumum throughput divided by the number of servers
+    let μ = avg (avgMaxTps res) / fromIntegral m
     pure $ MMmModel λ μ m
 
 useMMmModelInReport :: ExperimentConfig a => a -> Int -> Rules ()
@@ -98,3 +112,49 @@ mmmReportRulesFor ecf = do
 makeMMmReportContent :: ExperimentConfig a => a -> Action String
 makeMMmReportContent ecf =
     pure "hi"
+
+
+mmmReplicationEffectPlotsFor :: ReplicationEffectCfg -> [FilePath]
+mmmReplicationEffectPlotsFor ecf = [experimentPlotsDir ecf </> experimentTarget ecf ++ "mmm-model" <.> pngExt]
+
+mmmSimplifiedReplicationCsv :: ReplicationEffectCfg -> FilePath
+mmmSimplifiedReplicationCsv ecf = experimentAnalysisTmpDir ecf </> experimentTarget ecf ++ "-simplified-mmm" <.> csvExt
+
+mmmReplicationAnalysisScript :: FilePath
+mmmReplicationAnalysisScript = analysisDir </> "mmm_analysis.r"
+
+mmmPlotsRuleFor :: ExperimentConfig a => a -> String
+mmmPlotsRuleFor ecf = experimentTarget ecf ++ "-mmm-plot-files"
+
+mmmPlotsRulesFor :: ReplicationEffectCfg -> Rules String
+mmmPlotsRulesFor ecf = do
+    let csvFile = mmmSimplifiedReplicationCsv ecf
+    csvFile %> \_ -> do
+        slocss <- readResultsSummaryLocationsForCfg ecf
+        ls <- forM slocss $ \slocs -> do
+            let mmmFile = mmmModelEstimateFileFor ecf slocs
+            let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
+            need [mmmFile, combinedResultsFile]
+            mmm <- readJSON mmmFile
+            crs <- readCombinedClientsResults combinedResultsFile
+            pure SimplifiedReplicationCsvLine
+                { mmmModel = mmm
+                , actualTps = avgBothResults $ avgTpsResults crs
+                , actualResp = avgBothResults $ avgRespResults crs
+                }
+        putLoud $ unwords ["Making simplified CSV file", csvFile, "for" ++ experimentTarget ecf]
+        writeCSV csvFile ls
+
+    let plots = mmmReplicationEffectPlotsFor ecf
+    plots &%> \_ -> do
+        need [csvFile, mmmReplicationAnalysisScript, commonRLib, rBin, csvFile]
+        putLoud $ unwords ["Making plots from CSV file", csvFile, ": ", show plots]
+        rScript mmmReplicationAnalysisScript commonRLib csvFile $ dropExtensions $ head plots
+
+
+    let rule = mmmPlotsRuleFor ecf
+    rule ~> need (csvFile : plots)
+    pure rule
+
+
+

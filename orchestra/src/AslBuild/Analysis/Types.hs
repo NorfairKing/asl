@@ -37,6 +37,16 @@ instance Num MetaAvg where
         }
     fromInteger i = MetaAvg (fromInteger i) 0 0
 
+instance ToNamedRecord MetaAvg where
+    toNamedRecord MetaAvg{..} = namedRecord
+        [ "avgavg" .= avgAvgs
+        , "avgstd" .= stdDevAvgs
+        , "combstd" .= combStdDev
+        ]
+
+instance DefaultOrdered MetaAvg where
+    headerOrder _ = header ["avgavg", "avgstd", "combstd"]
+
 data AvgResults
     = AvgResults
     { getResults  :: Maybe Avg

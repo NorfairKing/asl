@@ -86,7 +86,7 @@ writeJSON file thing = liftIO $ do
     LB.writeFile file $ A.encodePretty thing
 
 maybeFlag :: Show a => Char -> Maybe a -> [String]
-maybeFlag _ Nothing = []
+maybeFlag _ Nothing  = []
 maybeFlag c (Just v) = ['-' : c : ' ' : show v]
 
 writeCSV :: (MonadIO m, DefaultOrdered a, ToNamedRecord a) => FilePath -> [a] -> m ()
@@ -96,7 +96,7 @@ readCSV :: (MonadIO m, FromNamedRecord a) => FilePath -> m (Vector a)
 readCSV file = do
     contents <- liftIO $ LB.readFile file
     case CSV.decodeByName contents of
-        Left err -> fail $ "Failed to decode CSV file: " ++ err
+        Left err       -> fail $ "Failed to decode CSV file: " ++ err
         Right (_, vec) -> return vec
 
 zipCombineLists :: Monoid a => [[a]] -> [a]
@@ -108,11 +108,11 @@ maybeToEither _ (Just v) = Right v
 
 fromLeft :: Either a b -> a
 fromLeft (Left a) = a
-fromLeft _ = error "fromLeft: does not work for 'Right'"
+fromLeft _        = error "fromLeft: does not work for 'Right'"
 
 fromRight :: Either a b -> b
 fromRight (Right b) = b
-fromRight _ = error "fromRight: does not work for 'Left'"
+fromRight _         = error "fromRight: does not work for 'Left'"
 
 changeFilename :: (FilePath -> FilePath) -> FilePath -> FilePath
 changeFilename func path = dir </> func file ++ exts
@@ -127,7 +127,7 @@ mapKeys func hm = HM.fromList $ map (first func) $ HM.toList hm
 replaceSndDir :: FilePath -> FilePath -> FilePath
 replaceSndDir file d =
     case reverse dirs of
-        [] -> d </> file
-        [f] -> d </> f
+        []      -> d </> file
+        [f]     -> d </> f
         (f:z:_) -> d </> z </> f
    where dirs = splitDirectories file
