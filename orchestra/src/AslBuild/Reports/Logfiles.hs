@@ -5,6 +5,7 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Factorial
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
@@ -22,9 +23,10 @@ logfileListingRules = do
     ls2 <- mapM logfileListingRulesFor allReplicationEffectExperiments
     ls3 <- mapM logfileListingRulesFor allWriteEffectExperiments
     ls4 <- mapM logfileListingRulesFor allStabilityTraceExperiments
-    ls5 <- mapM logfileListingRulesFor allThinkTimeExperiments
+    ls5 <- mapM logfileListingRulesFor allFactorialExperiments
+    ls6 <- mapM logfileListingRulesFor allThinkTimeExperiments
 
-    logfileListingRule ~> need (ls1 ++ ls2 ++ ls3 ++ ls4 ++ ls5)
+    logfileListingRule ~> need (ls1 ++ ls2 ++ ls3 ++ ls4 ++ ls5 ++ ls6)
 
 logfileListingRuleFor :: ExperimentConfig a => a -> String
 logfileListingRuleFor ecf = experimentTarget ecf ++ "-logfile-listings"

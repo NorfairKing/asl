@@ -35,6 +35,8 @@ report3Rules = report 3 texPreAction customRules
         useTheseLogfileListingsForReport 3
             [ loglistingFileFor remoteStabilityTrace
             , loglistingFileFor remoteThinkTime
+            , loglistingFileFor remoteReplicationEffect
+            , loglistingFileFor remoteFactorial
             ]
 
     texPreAction = do
