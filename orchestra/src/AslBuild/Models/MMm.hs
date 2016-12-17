@@ -10,16 +10,13 @@ import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
-import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
-import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
-import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Experiments.WriteEffect
 import           AslBuild.Models.MMm.Internal
 import           AslBuild.Models.MMm.Report
 import           AslBuild.Models.MMm.Types
+import           AslBuild.Reports.Common
 import           AslBuild.Utils
 
 mmmRule :: String
@@ -62,8 +59,8 @@ mmmEstimationRulesFor ecf = do
     mmmModelFiles <- forM slocss $ \slocs -> do
         let modelFile = mmmModelEstimateFileFor ecf slocs
         modelFile %> \_ -> do
-            mmmModel <- estimateMMmModel ecf slocs
-            writeJSON modelFile mmmModel
+            mmm <- estimateMMmModel ecf slocs
+            writeJSON modelFile mmm
         pure modelFile
 
     let rule = mmmEstimationRuleFor ecf
@@ -111,11 +108,17 @@ mmmReportRulesFor ecf = do
 
 makeMMmReportContent :: ExperimentConfig a => a -> Action String
 makeMMmReportContent ecf =
-    pure "hi"
+    pure $ experimentTarget ecf
 
 
 mmmReplicationEffectPlotsFor :: ReplicationEffectCfg -> [FilePath]
-mmmReplicationEffectPlotsFor ecf = [experimentPlotsDir ecf </> experimentTarget ecf ++ "mmm-model" <.> pngExt]
+mmmReplicationEffectPlotsFor ecf = [experimentPlotsDir ecf </> experimentTarget ecf ++ "-mmm-model" <.> pngExt]
+
+useMMmPlotsInReport :: ReplicationEffectCfg -> Int -> Rules ()
+useMMmPlotsInReport ecf = usePlotsInReport $ mmmReplicationEffectPlotsFor ecf
+
+dependOnMMmPlotsForReport :: ReplicationEffectCfg -> Int -> Action ()
+dependOnMMmPlotsForReport ecf = dependOnPlotsForReport $ mmmReplicationEffectPlotsFor ecf
 
 mmmSimplifiedReplicationCsv :: ReplicationEffectCfg -> FilePath
 mmmSimplifiedReplicationCsv ecf = experimentAnalysisTmpDir ecf </> experimentTarget ecf ++ "-simplified-mmm" <.> csvExt

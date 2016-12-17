@@ -6,7 +6,6 @@ import           AslBuild.Experiments.Factorial
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
 import           AslBuild.Experiments.ThinkTime
-import           AslBuild.Experiments.WriteEffect
 import           AslBuild.IRTL
 import           AslBuild.Models.MM1
 import           AslBuild.Models.MMm
@@ -23,7 +22,8 @@ report3Rules = report 3 texPreAction customRules
     customRules = do
         remoteStabilityTrace `useMM1ModelInReport` 3
         remoteReplicationEffect `useMMmModelInReport` 3
-        remoteWriteEffect `useMMmModelInReport` 3
+        remoteReplicationEffect `useMMmPlotsInReport` 3
+        -- remoteWriteEffect `useMMmModelInReport` 3
         remoteReplicationEffect `useIrtlGenfileInReport` 3
         remoteReplicationEffect `useIrtlPlotInReport` 3
         remoteReplicationEffect `useIrtlThinkTimeFileInReport` 3
@@ -40,7 +40,8 @@ report3Rules = report 3 texPreAction customRules
     texPreAction = do
         remoteStabilityTrace `dependOnMM1ModelForReport` 3
         remoteReplicationEffect `dependOnMMmModelForReport` 3
-        remoteWriteEffect `dependOnMMmModelForReport` 3
+        remoteReplicationEffect `dependOnMMmPlotsForReport` 3
+        -- remoteWriteEffect `dependOnMMmModelForReport` 3
         remoteReplicationEffect `dependOnIrtlGenfileForReport` 3
         remoteReplicationEffect `dependOnIrtlPlotForReport` 3
         remoteReplicationEffect `dependOnIrtlThinkTimeFileForReport` 3
