@@ -23,6 +23,7 @@ report3Rules = report 3 texPreAction customRules
         remoteReplicationEffect `useIrtlGenfileInReport` 3
         remoteReplicationEffect `useIrtlPlotInReport` 3
         remoteReplicationEffect `useIrtlThinkTimeFileInReport` 3
+        remoteReplicationEffect `useExperimentTableInReport` 3
         remoteStabilityTrace `useExperimentTableInReport` 3
         remoteThinkTime `useExperimentTableInReport` 3
         remoteFactorial `useSignTableInReport` 3
@@ -37,6 +38,7 @@ report3Rules = report 3 texPreAction customRules
         remoteReplicationEffect `dependOnIrtlGenfileForReport` 3
         remoteReplicationEffect `dependOnIrtlPlotForReport` 3
         remoteReplicationEffect `dependOnIrtlThinkTimeFileForReport` 3
+        remoteReplicationEffect `dependOnExperimentTableForReport` 3
         remoteStabilityTrace `dependOnExperimentTableForReport` 3
         remoteThinkTime `dependOnExperimentTableForReport` 3
         remoteFactorial `dependOnSignTableForReport` 3
