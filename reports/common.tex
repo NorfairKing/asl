@@ -47,4 +47,13 @@
   \end{scope}
 }
 
+\newcommand{\mmiqueue}[2]{
+	\begin{scope}[xshift=#1, yshift=#2]
+		\queuebox
+    \draw [dashed] (0,-0.15) rectangle (5,1.15);
+		\draw [thick] (3.5,0.5) ellipse (0.5 and 0.25);
+		\draw [thick] (4.5,0.5) ellipse (0.5 and 0.25);
+  \end{scope}
+}
+
 \usepackage{bm}

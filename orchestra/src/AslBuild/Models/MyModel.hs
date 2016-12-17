@@ -125,6 +125,8 @@ estimateMyModel ecf slocs = do
         getProp = 1 - setProp
         nrReadThreads = mwNrThreads $ mMiddlewareFlags middleSetup
 
+    -- Service time at acceptor = average parsing + hashing + enqueueing
+    let acceptorServiceTime = unMiddleTime $ parsingTime + enqueuingTime
     let readServiceTime = unMiddleTime $
               avgAvgs (untilAskedTime avgReadDurs)
             + avgAvgs (untilRepliedTime avgReadDurs)
@@ -135,23 +137,26 @@ estimateMyModel ecf slocs = do
 
     -- Arrival rate at acceptor = average throughput
     let accλ = avgAvgs $ avgBothResults $ avgTpsResults cres
-    -- Service time at acceptor = average parsing + hashing + enqueueing
-    -- Service rate is inverse of that.
-    let accμ = (1/) $ unMiddleTime $ parsingTime + enqueuingTime
+    -- Service rate is inverse of service time.
+    let accμ = 1 / acceptorServiceTime
 
     let serverWorkerλ = accλ / nrSers
 
-    -- Arrival rate at get workers
+    -- Arrival rate at get workers is the arrival rate at acceptor times the get proportion.
     let getλ = getProp * serverWorkerλ
+    -- Service rate is inverse of service time
     let getμ = 1 / readServiceTime
+    -- Number of servers is the number of read threads per pool.
     let getm = nrReadThreads
 
     -- Arrival rate at set workers
     let setλ = setProp * serverWorkerλ
+    -- Service rate is inverce of service time.
     let setμ = 1 / writer1ServiceTime
 
     -- Arrival rate at set worker infs
     let setIλ = setλ
+    -- Service rate is inverce of service time.
     let setIμ = 1 / writer2ServiceTime
 
     let accModel_ = MM1Model accλ accμ

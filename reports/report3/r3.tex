@@ -250,43 +250,26 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
 		\draw [thick] (12.2,0.5) -- (13,7);
 		\draw [->, thick] (13,7) -- (14,8);
 		\draw [->, thick] (13,7) -- (14,6);
+		\draw [->, thick] (19,7.5) -- (21,7.5);
     \mmoqueue{400}{200}
+    \mmiqueue{600}{200}
     \mmmqueue{400}{150}
+
 		\draw [thick] (12.2,0.5) -- (13,3);
 		\draw [->, thick] (13,3) -- (14,4);
 		\draw [->, thick] (13,3) -- (14,2);
+		\draw [->, thick] (19,4) -- (21,4);
     \mmoqueue{400}{100}
+    \mmiqueue{600}{100}
     \mmmqueue{400}{50}
-
-    \node at (12,10) {\Huge Middleware};
-    \node at (16,0.5) {\bm{$\vdots$}};
 
 		\draw [thick] (12.2,0.5) -- (13,-2);
 		\draw [->, thick] (13,-2) -- (14,-1);
 		\draw [->, thick] (13,-2) -- (14,-3);
+		\draw [->, thick] (19,-1.25) -- (21,-1.25);
     \mmoqueue{400}{-50}
+    \mmiqueue{600}{-50}
     \mmmqueue{400}{-100}
-
-    \draw (6.5,-4.5) rectangle (20,9);
-
-    % Server queues
-		\draw [->, thick] (19.5,8) -- (24.5,7);
-		\draw [->, thick] (19.5,6) -- (24.5,7);
-    \mmoqueue{700}{185}
-    \draw (24,6) rectangle (30,8);
-
-		\draw [->, thick] (19.5,2) -- (24.5,3);
-		\draw [->, thick] (19.5,4) -- (24.5,3);
-    \mmoqueue{700}{75}
-    \draw (24,2) rectangle (30,4);
-
-    \node at (25,10) {\Huge Network and Servers};
-    \node at (27,0.5) {\bm{$\vdots$}};
-
-		\draw [->, thick] (19.5,-1) -- (24.5,-2);
-		\draw [->, thick] (19.5,-3) -- (24.5,-2);
-    \mmoqueue{700}{-75}
-    \draw (24,-3) rectangle (30,-1);
   \end{tikzpicture}
   \caption{Comprehensive network of queues}
   \label{fig:network-of-queues}
