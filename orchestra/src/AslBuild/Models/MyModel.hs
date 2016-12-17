@@ -19,6 +19,7 @@ import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
 import           AslBuild.Middleware.Types
 import           AslBuild.Models.MM1.Types
+import           AslBuild.Models.MMInf.Types
 import           AslBuild.Models.MMm.Types
 import           AslBuild.Models.MyModel.Types
 import           AslBuild.Models.Utils
@@ -97,13 +98,17 @@ estimateMyModel ecf slocs = do
 
     let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
     let combinedAvgDursFile = combinedAvgDurationFile ecf mrfs
-    let neededFiles = [combinedResultsFile, combinedAvgDursFile]
+    let combinedAvgReadDursFile = combinedAvgReadDurationFile ecf mrfs
+    let combinedAvgWriteDursFile = combinedAvgWriteDurationFile ecf mrfs
+    let neededFiles = [combinedResultsFile, combinedAvgDursFile, combinedAvgReadDursFile, combinedAvgWriteDursFile]
     need neededFiles
     putLoud $ unwords ["Making my model from:", show neededFiles]
 
     setup <- readExperimentSetupForSummary $ head ers
     cres <- readCombinedClientsResults combinedResultsFile
     avgDurs <- readCombinedAvgDursFile combinedAvgDursFile
+    avgReadDurs <- readCombinedAvgDursFile combinedAvgReadDursFile
+    avgWriteDurs <- readCombinedAvgDursFile combinedAvgWriteDursFile
 
     (middleSetup, serverSetups) <- case backendSetup setup of
         Left _    -> fail "need middlesetup for my model."
@@ -120,32 +125,39 @@ estimateMyModel ecf slocs = do
         getProp = 1 - setProp
         nrReadThreads = mwNrThreads $ mMiddlewareFlags middleSetup
 
+    let readServiceTime = unMiddleTime $
+              avgAvgs (untilAskedTime avgReadDurs)
+            + avgAvgs (untilRepliedTime avgReadDurs)
+            + avgAvgs (untilRespondedTime avgReadDurs)
+
+    let writer1ServiceTime = unMiddleTime $ avgAvgs (untilAskedTime avgWriteDurs)
+    let writer2ServiceTime = unMiddleTime $ avgAvgs (untilRepliedTime avgWriteDurs)
+
     -- Arrival rate at acceptor = average throughput
     let accλ = avgAvgs $ avgBothResults $ avgTpsResults cres
     -- Service time at acceptor = average parsing + hashing + enqueueing
     -- Service rate is inverse of that.
     let accμ = (1/) $ unMiddleTime $ parsingTime + enqueuingTime
 
-
     let serverWorkerλ = accλ / nrSers
 
     -- Arrival rate at get workers
     let getλ = getProp * serverWorkerλ
-    let getμ = 0
+    let getμ = 1 / readServiceTime
     let getm = nrReadThreads
 
     -- Arrival rate at set workers
     let setλ = setProp * serverWorkerλ
-    let setμ = 0
+    let setμ = 1 / writer1ServiceTime
 
-    -- Arrival rate at servers
-    let serλ = serverWorkerλ
-    let serμ = 0
+    -- Arrival rate at set worker infs
+    let setIλ = setλ
+    let setIμ = 1 / writer2ServiceTime
 
     let accModel_ = MM1Model accλ accμ
         getModel_ = MMmModel getλ getμ getm
         setModel_ = MM1Model setλ setμ
-        serModel_ = MM1Model serλ serμ
+        setModelInf_ = MMInfModel setIλ setIμ
 
-    pure $ MyModel accModel_ getModel_ setModel_ serModel_
+    pure $ MyModel accModel_ getModel_ setModel_ setModelInf_
 

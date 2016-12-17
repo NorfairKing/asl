@@ -100,10 +100,10 @@ combinedAvgDurationFile ecf =
     . rawDurationsFile ecf . head
 
 combinedAvgReadDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
-combinedAvgReadDurationFile ecf = changeFilename (++ "reads") . combinedAvgDurationFile ecf
+combinedAvgReadDurationFile ecf = changeFilename (++ "-reads") . combinedAvgDurationFile ecf
 
 combinedAvgWriteDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
-combinedAvgWriteDurationFile ecf = changeFilename (++ "writes") . combinedAvgDurationFile ecf
+combinedAvgWriteDurationFile ecf = changeFilename (++ "-writes") . combinedAvgDurationFile ecf
 
 readCombinedAvgDursFile :: MonadIO m => FilePath -> m (Durations MetaAvg)
 readCombinedAvgDursFile = readJSON
