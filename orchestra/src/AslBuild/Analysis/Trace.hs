@@ -61,30 +61,49 @@ durationsRulesForRepset :: ExperimentConfig a => a -> [FilePath] -> Rules [FileP
 durationsRulesForRepset ecf slocs = do
     erss <- forM slocs readResultsSummary
     durfs <- concat <$> mapM (durationsRulesForExperimentResults ecf) erss
-    combined <- combinedDursFileRules ecf erss
-    pure $ combined : durfs
+    combineds <- combinedDursFileRules ecf erss
+    pure $ combineds ++ durfs
 
-combinedDursFileRules :: ExperimentConfig a => a -> [ExperimentResultSummary] -> Rules FilePath
+combinedDursFileRules :: ExperimentConfig a => a -> [ExperimentResultSummary] -> Rules [FilePath]
 combinedDursFileRules ecf erss =
     case mapM merMiddleResultsFile erss of
         Nothing -> fail "Need middles"
         Just mes -> do
-            let combf = combinedAvgDurationFile ecf mes
-            combf %> \_ -> do
-                let adfss = map (avgDurationFile ecf) mes
-                need adfss
-                putLoud $ "Combining average durations of " ++ show adfss ++ " into " ++ combf
-                avgDurss <- mapM readAvgDurationsFile adfss
-                writeJSON combf $ combineAvgDurs avgDurss
-            return combf
+            f1 <- asCombinedAvgDurationsFile combinedAvgDurationFile avgDurationFile ecf mes
+            f2 <- asCombinedAvgDurationsFile combinedAvgReadDurationFile avgReadDurationFile ecf mes
+            f3 <- asCombinedAvgDurationsFile combinedAvgWriteDurationFile avgWriteDurationFile ecf mes
 
--- TODO also reads and writes if necessary
--- This needs the trace files, not the summary locations.
+            return [f1, f2, f3]
+
+asCombinedAvgDurationsFile
+    :: (a -> [FilePath] -> FilePath) -- ^ To build combination file path
+    -> (a -> FilePath -> FilePath) -- ^ To build individual file paths
+    -> a
+    -> [FilePath] -- ^ Trace files
+    -> Rules FilePath
+asCombinedAvgDurationsFile resultFunc indivFunc ecf mes = do
+    let combf = resultFunc ecf mes
+    combf %> \_ -> do
+        let adfss = map (indivFunc ecf) mes
+        need adfss
+        putLoud $ "Combining average durations of " ++ show adfss ++ " into " ++ combf
+        avgDurss <- mapM readAvgDurationsFile adfss
+        writeJSON combf $ combineAvgDurs avgDurss
+    pure combf
+
+
+-- Note: This needs the trace files, not the summary locations.
 combinedAvgDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
 combinedAvgDurationFile ecf =
       dropExtension -- Because now it's .json.csv
     . changeFilename (const "combined-durations")
     . rawDurationsFile ecf . head
+
+combinedAvgReadDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
+combinedAvgReadDurationFile ecf = changeFilename (++ "reads") . combinedAvgDurationFile ecf
+
+combinedAvgWriteDurationFile :: ExperimentConfig a => a -> [FilePath] -> FilePath
+combinedAvgWriteDurationFile ecf = changeFilename (++ "writes") . combinedAvgDurationFile ecf
 
 readCombinedAvgDursFile :: MonadIO m => FilePath -> m (Durations MetaAvg)
 readCombinedAvgDursFile = readJSON
