@@ -4,7 +4,6 @@
 module AslBuild.Experiments.Extreme.Types where
 
 import           Data.Aeson
-import           Data.List
 import           GHC.Generics
 
 import           AslBuild.Client
