@@ -243,6 +243,7 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
     % Connection accepter and initial reader
     \node at (9,2) {\Large Request Acceptor};
     \mmoqueue{200}{0}
+    \node at (9,-0.5) {$M/M/1$};
     
     % Worker queues
     \node at (11.5,5.75) {\Large Readers};
@@ -264,6 +265,8 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
     \mmiqueue{600}{100}
     \mmmqueue{400}{50}
 
+    \node at (16, 0.5) {$\vdots$};
+
 		\draw [thick] (12.2,0.5) -- (13,-2);
 		\draw [->, thick] (13,-2) -- (14,-1);
 		\draw [->, thick] (13,-2) -- (14,-3);
@@ -271,6 +274,11 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
     \mmoqueue{400}{-50}
     \mmiqueue{600}{-50}
     \mmmqueue{400}{-100}
+
+    \node at (16,-0.25) {$M/M/1$};
+    \node at (16,-4.5) {$M/M/16$};
+    \node at (23,-2.25) {$M/M/\infty$};
+
   \end{tikzpicture}
   \caption{Comprehensive network of queues}
   \label{fig:network-of-queues}
