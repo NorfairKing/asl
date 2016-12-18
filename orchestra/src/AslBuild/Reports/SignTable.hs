@@ -49,7 +49,7 @@ signTableFileWithPostfix ecf postfix = changeFilename (++ postfix) $ signTablePr
 signTableFiles :: ExperimentConfig a => a -> [FilePath]
 signTableFiles ecf = do
     measure <- ["tps", "resp"]
-    extra <- ["add", "mul", "legend"]
+    extra <- ["results", "add", "mul", "legend"]
     pure $ signTableFileWithPostfix ecf $ intercalate "-" [measure, extra]
 
 signTableFileForReport :: FilePath -> Int -> FilePath
@@ -87,6 +87,17 @@ genSignTableWith
     -> FactorialCfg
     -> Action ()
 genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
+    genLegendTable measure measSuf ecf
+    genResultsTable funcRes funcAvgRes convFunc measSuf ecf
+
+    let go = genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf
+    go id id "add"
+    go (logBase 10) (\x -> 10 ** x) "mul"
+
+genLegendTable
+    :: ExperimentConfig a
+    => String -> String -> a -> Action ()
+genLegendTable measure measSuf ecf = do
     -- Reverse order from where they're drawn from the list
     let legendTable = tabular
             [ ["A", "Replication coefficient"]
@@ -98,10 +109,72 @@ genSignTableWith funcRes funcAvgRes convFunc measSuf measure ecf = do
     let legendFile = signTableFileWithPostfix ecf $ measSuf ++ "-legend"
     writeFile' legendFile legendTable
 
-    let go = genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf
-    go id id "add"
-    go (logBase 10) (\x -> 10 ** x) "mul"
+genResultsTable
+    :: (MemaslapClientResults -> AvgResults)
+    -> (CombinedClientResults -> MetaAvgResults)
+    -> (Double -> Double)
+    -> String
+    -> FactorialCfg
+    -> Action ()
+genResultsTable funcRes funcAvgRes convFunc measSuf ecf = do
+    slocss <- readResultsSummaryLocationsForCfg ecf
+    let choices = [-1, 1] :: [Int]
+    let tot = 8 :: Int
+    let veci = replicate tot 1 :: [Int]
+    let vecta = do
+            void choices
+            void choices
+            r <- choices
+            pure r
+    let vectb = do
+            void choices
+            r <- choices
+            void choices
+            pure r
+    let vectc = do
+            r <- choices
+            void choices
+            void choices
+            pure r
 
+    let headerPrefix = sortOn length $ do
+            c <- ["", "C"]
+            b <- ["", "B"]
+            a <- ["", "A"]
+            let abc = a ++ b ++ c
+            pure $ if abc == "" then "I" else abc
+
+    let mult :: Num a => [a] -> [a] -> [a]
+        mult v1 v2 = zipWith (*) v1 v2
+
+    let columnFor :: String -> [Int]
+        columnFor = foldr go veci
+          where
+            go 'I' = mult veci
+            go 'A' = mult vecta
+            go 'B' = mult vectb
+            go 'C' = mult vectc
+            go _   = error "must not happen."
+
+    let roundD = round :: (Double -> Integer)
+    realRes <- forM slocss $ \slocs -> do
+        let combinedResF = combinedClientRepsetResultsFile ecf slocs
+            resFs = map (combineClientResultsFile ecf) slocs
+        need $ combinedResF : resFs
+        cr <- readCombinedClientsResults combinedResF
+        ress <- mapM readCombinedClientResults resFs
+        let individuals = map (convFunc . avg . bothResults . funcRes) ress
+            res = convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
+        pure (individuals, res)
+    let indivHeader = take 3 (drop 1 headerPrefix)
+    let resultsHeader = indivHeader ++ ["$y$", "$\\bar{y}$"]
+    let resultsRows = flip map realRes $ \(indivs, res) -> [show $ map roundD indivs, show res]
+    let resultsTable = tabularWithHeader
+            resultsHeader
+            (zipWith (++) (map (map show) $ transpose $ map columnFor indivHeader) resultsRows)
+
+    let resultsFile = signTableFileWithPostfix ecf $ measSuf ++ "-results"
+    writeFile' resultsFile resultsTable
 
 genSingleSignTable
     :: (MemaslapClientResults -> AvgResults)
@@ -144,6 +217,7 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
 
     let mult :: Num a => [a] -> [a] -> [a]
         mult v1 v2 = zipWith (*) v1 v2
+
     let columnFor :: String -> [Int]
         columnFor = foldr go veci
           where
@@ -153,7 +227,7 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
             go 'C' = mult vectc
             go _   = error "must not happen."
 
-        signColumns :: [[Int]]
+    let signColumns :: [[Int]]
         signColumns = map columnFor headerPrefix
         signRows :: [[Int]]
         signRows = transpose signColumns
@@ -169,13 +243,6 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
         let individuals = map (convFunc . avg . bothResults . funcRes) ress
             res = convFunc $ avgAvgs $ avgBothResults $ funcAvgRes cr
         pure (individuals, res)
-
-    let indivHeader = take 3 (drop 1 headerPrefix)
-    let resultsHeader = indivHeader ++ ["$y$", "$\\bar{y}$"]
-    let resultsRows = flip map realRes $ \(indivs, res) -> [show $ map roundD indivs, show res]
-    let resultsTable = tabularWithHeader
-            resultsHeader
-            (zipWith (++) (map (map show) $ transpose $ map columnFor indivHeader) resultsRows)
 
     let tups = map (\(indivs, res) -> (indivs, res)) realRes
 
@@ -231,6 +298,4 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
             table
 
     let tableFile = signTableFileWithPostfix ecf $ intercalate "-" [measSuf, suffix]
-
-    let content = unlines [resultsTable, signTable]
-    writeFile' tableFile content
+    writeFile' tableFile signTable
