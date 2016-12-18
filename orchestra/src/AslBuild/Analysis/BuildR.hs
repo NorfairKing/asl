@@ -31,6 +31,7 @@ rLibs =
     , "caTools"
     , "pkgmaker"
     , "ggplot2"
+    , "R.matlab"
     ]
 
 rArchive :: FilePath

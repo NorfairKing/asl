@@ -2,25 +2,21 @@ module AslBuild.Models.MyModel where
 
 import           Control.Monad
 import           Control.Monad.IO.Class
-import           Data.List
 
 import           Development.Shake
 import           Development.Shake.FilePath
 
+import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.Common
 import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
-import           AslBuild.Client.Types
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.ReplicationEffect
-import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
 import           AslBuild.Middleware.Types
-import           AslBuild.Models.MM1.Types
-import           AslBuild.Models.MMInf.Types
-import           AslBuild.Models.MMm.Types
 import           AslBuild.Models.MyModel.Types
 import           AslBuild.Models.Utils
 import           AslBuild.Utils
@@ -61,9 +57,10 @@ myModelRuleFor ecf = experimentTarget ecf ++ "-my-model"
 myModelRulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
 myModelRulesFor ecf = onlyIfResultsExist ecf $ do
     estr <- myEstimationRulesFor ecf
+    evtr <- evaluationRulesFor ecf
 
     let rule = myModelRuleFor ecf
-    rule ~> need [estr]
+    rule ~> need [estr, evtr]
     pure rule
 
 readMyModelFile :: MonadIO m => FilePath -> m MyModel
@@ -110,7 +107,7 @@ estimateMyModel ecf slocs = do
     avgReadDurs <- readCombinedAvgDursFile combinedAvgReadDursFile
     avgWriteDurs <- readCombinedAvgDursFile combinedAvgWriteDursFile
 
-    (middleSetup, serverSetups) <- case backendSetup setup of
+    (middleSetup, _) <- case backendSetup setup of
         Left _    -> fail "need middlesetup for my model."
         Right tup -> pure tup
 
@@ -120,13 +117,10 @@ estimateMyModel ecf slocs = do
     let parsingTime = avgAvgs (untilParsedTime avgDurs)
         enqueuingTime = avgAvgs (untilEnqueuedTime avgDurs)
 
-    let nrSers = genericLength serverSetups
-        setProp = setProportion $ msConfig $ cMemaslapSettings $ head $ clientSetups setup
-        getProp = 1 - setProp
-        nrReadThreads = mwNrThreads $ mMiddlewareFlags middleSetup
+    let nrReadThreads = fromIntegral $ mwNrThreads $ mMiddlewareFlags middleSetup
 
     -- Service time at acceptor = average parsing + hashing + enqueueing
-    let acceptorServiceTime = unMiddleTime $ parsingTime + enqueuingTime
+    let accServiceTime = unMiddleTime $ parsingTime + enqueuingTime
     let readServiceTime = unMiddleTime $
               avgAvgs (untilAskedTime avgReadDurs)
             + avgAvgs (untilRepliedTime avgReadDurs)
@@ -136,33 +130,35 @@ estimateMyModel ecf slocs = do
     let writer2ServiceTime = unMiddleTime $ avgAvgs (untilRepliedTime avgWriteDurs)
 
     -- Arrival rate at acceptor = average throughput
-    let accλ = avgAvgs $ avgBothResults $ avgTpsResults cres
-    -- Service rate is inverse of service time.
-    let accμ = 1 / acceptorServiceTime
+    let overArr = avgAvgs $ avgBothResults $ avgTpsResults cres
 
-    let serverWorkerλ = accλ / nrSers
+    pure MyModel
+        { overallArrivalRate = overArr
+        , acceptorServiceTime = accServiceTime
+        , getServiceTime = readServiceTime
+        , getNrServers = nrReadThreads
+        , setServiceTime = writer1ServiceTime
+        , setIServiceTime = writer2ServiceTime
+        }
 
-    -- Arrival rate at get workers is the arrival rate at acceptor times the get proportion.
-    let getλ = getProp * serverWorkerλ
-    -- Service rate is inverse of service time
-    let getμ = 1 / readServiceTime
-    -- Number of servers is the number of read threads per pool.
-    let getm = nrReadThreads
 
-    -- Arrival rate at set workers
-    let setλ = setProp * serverWorkerλ
-    -- Service rate is inverce of service time.
-    let setμ = 1 / writer1ServiceTime
+evaluationRuleFor :: ExperimentConfig a => a -> String
+evaluationRuleFor ecf = experimentTarget ecf ++ "-evaluate-my-model"
 
-    -- Arrival rate at set worker infs
-    let setIλ = setλ
-    -- Service rate is inverce of service time.
-    let setIμ = 1 / writer2ServiceTime
+myModelEvaluationScript :: FilePath
+myModelEvaluationScript = analysisDir </> "analyze_mymodel.r"
 
-    let accModel_ = MM1Model accλ accμ
-        getModel_ = MMmModel getλ getμ getm
-        setModel_ = MM1Model setλ setμ
-        setModelInf_ = MMInfModel setIλ setIμ
+octaveScript :: FilePath
+octaveScript = analysisDir </> "octave_in.oct"
 
-    pure $ MyModel accModel_ getModel_ setModel_ setModelInf_
+octaveFunction :: FilePath
+octaveFunction = analysisDir </> "analyze_mymodel.m"
 
+evaluationRulesFor :: ExperimentConfig a => a -> Rules String
+evaluationRulesFor ecf = do
+    let rule = evaluationRuleFor ecf
+    rule ~> do
+        need [rBin, commonRLib, myModelEvaluationScript, octaveScript, octaveFunction]
+        needRLibs ["R.matlab"]
+        rScript myModelEvaluationScript commonRLib
+    pure rule
