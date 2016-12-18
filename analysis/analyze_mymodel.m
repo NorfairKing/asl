@@ -1,12 +1,12 @@
-function [U, R, Q, X] = analyze_mymodel(result_path, nrServers, nrThreads, writeProp, arrivalRate, acceptorServiceTime, readServiceTime, writeServiceTime, writeDelayTime)
+function [U, R, Q, X] = analyze_mymodel(resultPath, nrServers, nrThreads, writeProp, arrivalRate, acceptorServiceTime, readServiceTime, writeServiceTime, writeDelayTime)
 
 pkg load queueing;
 
 % Read proportion
-readProp = 1 - writeProp
+readProp = 1 - writeProp;
 
 % nK: number of service centers
-nk = 1 + 3 * nrServers % One acceptor and three service centers per server.
+nk = 1 + 3 * nrServers; % One acceptor and three service centers per server.
 
 % Center 1: Acceptor center
 % Center 2: Read center for server 1: M/M/nrThreads
@@ -34,8 +34,6 @@ for i = 0:(nrServers -1)
   P(acceptorCenter, writeCenter) = writeProp * (1 / nrServers);
 
   P(writeCenter, delayCenter) = 1;
-
-
 endfor
 
 % V[i]: average number of visits to center i
@@ -67,9 +65,9 @@ endfor
 lambda = arrivalRate;
 
 % ---- Results ----
-[U, R, Q, X] = qnos(lambda, S, V, m)
+[U, R, Q, X] = qnos(lambda, S, V, m);
 
 
-save(result_path, "-v7", "S", "V", "m", "U", "R", "Q", "X");
+save(resultPath, "-v7", "S", "V", "m", "U", "R", "Q", "X");
 
 endfunction

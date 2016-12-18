@@ -32,6 +32,7 @@ rLibs =
     , "pkgmaker"
     , "ggplot2"
     , "R.matlab"
+    , "RJSONIO"
     ]
 
 rArchive :: FilePath

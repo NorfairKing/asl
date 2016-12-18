@@ -1,7 +1,9 @@
+{-# LANGUAGE RecordWildCards #-}
 module AslBuild.Models.MyModel where
 
 import           Control.Monad
 import           Control.Monad.IO.Class
+import           Data.Hashable
 
 import           Development.Shake
 import           Development.Shake.FilePath
@@ -12,9 +14,11 @@ import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
+import           AslBuild.Client.Types
 import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
 import           AslBuild.Middleware.Types
 import           AslBuild.Models.MyModel.Types
@@ -112,7 +116,6 @@ estimateMyModel ecf slocs = do
         Right tup -> pure tup
 
     let unMiddleTime = (/ (10 ** 9))
-        -- unMemaTime = (/ (10 ** 6))
 
     let parsingTime = avgAvgs (untilParsedTime avgDurs)
         enqueuingTime = avgAvgs (untilEnqueuedTime avgDurs)
@@ -159,6 +162,44 @@ evaluationRulesFor ecf = do
     let rule = evaluationRuleFor ecf
     rule ~> do
         need [rBin, commonRLib, myModelEvaluationScript, octaveScript, octaveFunction]
-        needRLibs ["R.matlab"]
-        rScript myModelEvaluationScript commonRLib
+        needRLibs ["R.matlab", "RJSONIO"]
+
+        let tmpResultDir = "/tmp/octave_out"
+            outResultDir = "/tmp/model_out"
+        unit $ cmd "mkdir" "--parents" tmpResultDir
+        unit $ cmd "mkdir" "--parents" outResultDir
+
+        slocss <- readResultsSummaryLocationsForCfg ecf
+        forM_ slocss $ \slocs -> do
+            ers <- readResultsSummary $ head slocs
+            setup <- readExperimentSetupForSummary ers
+
+            (middleSetup, serverSetups) <- case backendSetup setup of
+                Left _    -> fail "need middlesetup for my model."
+                Right tup -> pure tup
+            let modelFile = myModelEstimateFileFor ecf slocs
+            need [modelFile]
+            MyModel{..} <- readMyModelFile modelFile
+
+            let tmpResultPath = tmpResultDir </> show (hash slocs)
+                outResultPath = outResultDir </> show (hash slocs)
+            let nrSers = length serverSetups
+            let nrThds = mwNrThreads $ mMiddlewareFlags middleSetup
+            let writeProp = setProportion $ msConfig $ cMemaslapSettings $ head $ clientSetups setup
+
+            unless (getNrServers == fromIntegral nrThds) $ fail "wut."
+
+            unit $ rScript myModelEvaluationScript commonRLib
+                tmpResultPath
+                outResultPath
+                (show nrSers)
+                (show nrThds)
+                (show writeProp)
+                (show overallArrivalRate)
+                (show acceptorServiceTime)
+                (show getServiceTime)
+                (show setServiceTime)
+                (show setIServiceTime)
+            unit $ cmd "cat" outResultPath
+
     pure rule

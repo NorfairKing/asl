@@ -1,13 +1,13 @@
 addpath("./analysis")
 
-result_path = "/tmp/octave_out.mat"
+result_path = "/tmp/octave_out.mat";
 
-% arg_list = argv ();
-% num_args_required = 13;
-% if(length(arg_list) != num_args_required)
-%     printf("Check usage: %d arguments given, %d required.\n", length(arg_list), num_args_required);
-%     return;
-% endif
+arg_list = argv ();
+num_args_required = 9;
+if(length(arg_list) != num_args_required)
+    printf("Check usage: %d arguments given, %d required.\n", length(arg_list), num_args_required);
+    return;
+endif
 % 
 % offset = 1;
 % result_path = arg_list{1}
@@ -26,14 +26,15 @@ result_path = "/tmp/octave_out.mat"
 % tRW = str2num(arg_list{11 + offset})
 % tMC = str2num(arg_list{12 + offset})
 
-nrServers = 3
-nrThreads = 16
-writeProp = 0.05
-replication = 1
-arrivalRate = 10321.483333333334
-acceptorServiceTime = 2.645308581112724e-5
-readServiceTime = 2.5034472402739876e-3
-writeServiceTime = 2.4035343840481738e-5
-writeDelayTime = 3.03870786333047e-3
+resultPath            = arg_list{1};
+nrServers             = str2num(arg_list{2});
+nrThreads             = str2num(arg_list{3});
+writeProp             = str2num(arg_list{4});
+arrivalRate           = str2num(arg_list{5});
 
-[U, R, Q, X] = analyze_mymodel(result_path, nrServers, nrThreads, writeProp, arrivalRate, acceptorServiceTime, readServiceTime, writeServiceTime, writeDelayTime);
+acceptorServiceTime   = str2num(arg_list{6});
+readServiceTime       = str2num(arg_list{7});
+writeServiceTime      = str2num(arg_list{8});
+writeDelayTime        = str2num(arg_list{9});
+
+[U, R, Q, X] = analyze_mymodel(resultPath, nrServers, nrThreads, writeProp, arrivalRate, acceptorServiceTime, readServiceTime, writeServiceTime, writeDelayTime);
