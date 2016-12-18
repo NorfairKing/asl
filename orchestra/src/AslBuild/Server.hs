@@ -15,9 +15,9 @@ import           AslBuild.Server.Types
 import           AslBuild.Types
 
 startServersOn :: [ServerSetup] -> Action ()
-startServersOn sss = phPar sss $ \ServerSetup{..} -> scriptAt sRemoteLogin $ script
+startServersOn = parScriptAt . map (\ServerSetup{..} -> (sRemoteLogin, script
     [ unwords $ remoteMemcached : memcachedArgs sMemcachedFlags
-    ]
+    ]))
 
 shutdownServers :: [ServerSetup] -> Action ()
 shutdownServers sss = phPar (nub $ map sRemoteLogin sss) $ \rl ->

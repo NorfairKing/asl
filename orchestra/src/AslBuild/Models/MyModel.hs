@@ -17,6 +17,7 @@ import           AslBuild.Analysis.Utils
 import           AslBuild.Client.Types
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Extreme
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Memaslap.Types
 import           AslBuild.Middle.Types
@@ -32,6 +33,7 @@ myModelRules :: Rules ()
 myModelRules = do
     myModelRule ~> need
         [ ruleForReplicationEffects
+        , ruleForExtremes
         ]
 
     subRules
@@ -39,9 +41,16 @@ myModelRules = do
         ruleForReplicationEffects
         allReplicationEffectExperiments
 
+    subRules
+        myModelRulesFor
+        ruleForExtremes
+        allExtremeExperiments
 
 ruleForReplicationEffects :: String
 ruleForReplicationEffects = "replication-effect-my-models"
+
+ruleForExtremes :: String
+ruleForExtremes = "extreme-my-models"
 
 myModelTexFile :: ExperimentConfig a => a -> FilePath
 myModelTexFile ecf = reportsTmpDir </> experimentTarget ecf ++ "-my-model" <.> texExt

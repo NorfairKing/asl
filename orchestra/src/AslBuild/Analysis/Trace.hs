@@ -24,6 +24,7 @@ import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Extreme
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
@@ -42,8 +43,9 @@ traceRules = do
     dfs3 <- mapM durationsRulesFor allStabilityTraceExperiments
     dfs4 <- mapM durationsRulesFor allWriteEffectExperiments
     dfs5 <- mapM durationsRulesFor allThinkTimeExperiments
+    dfs6 <- mapM durationsRulesFor allExtremeExperiments
 
-    traceRule ~> need (catMaybes $ dfs1 ++ dfs2 ++ dfs3 ++ dfs4 ++ dfs5)
+    traceRule ~> need (catMaybes $ dfs1 ++ dfs2 ++ dfs3 ++ dfs4 ++ dfs5 ++ dfs6)
 
 durationsRuleFor :: ExperimentConfig a => a -> String
 durationsRuleFor ecf = experimentTarget ecf ++ "-durations"

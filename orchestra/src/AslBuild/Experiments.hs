@@ -3,6 +3,7 @@ module AslBuild.Experiments where
 import           Development.Shake
 
 import           AslBuild.Experiments.Baseline
+import           AslBuild.Experiments.Extreme
 import           AslBuild.Experiments.Factorial
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
@@ -19,3 +20,4 @@ experimentRules = do
     maximumThroughputRules
     thinkTimeRules
     factorialRules
+    extremeRules

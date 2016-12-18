@@ -5,6 +5,7 @@ import           Development.Shake.FilePath
 
 import           AslBuild.Constants
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Extreme
 import           AslBuild.Experiments.Factorial
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.ReplicationEffect
@@ -26,8 +27,9 @@ experimentTablesRules = do
     stTargets <- mapM experimentFormatRulesFor allStabilityTraceExperiments
     ttTargets <- mapM experimentFormatRulesFor allThinkTimeExperiments
     fTargets <- mapM experimentFormatRulesFor allFactorialExperiments
+    exTargets <- mapM experimentFormatRulesFor allExtremeExperiments
 
-    experimentTablesRule ~> need (mtTargets ++ reTargets ++ weTargets ++ stTargets ++ ttTargets ++ fTargets)
+    experimentTablesRule ~> need (mtTargets ++ reTargets ++ weTargets ++ stTargets ++ ttTargets ++ fTargets ++ exTargets)
 
 experimentFormatRuleFor :: ExperimentConfig a => a -> String
 experimentFormatRuleFor ecf = experimentTarget ecf ++ "-table"

@@ -2,6 +2,7 @@ module AslBuild.Reports.MileStone3 where
 
 import           Development.Shake
 
+import           AslBuild.Experiments.Extreme
 import           AslBuild.Experiments.Factorial
 import           AslBuild.Experiments.ReplicationEffect
 import           AslBuild.Experiments.StabilityTrace
@@ -32,11 +33,13 @@ report3Rules = report 3 texPreAction customRules
         remoteThinkTime `useExperimentTableInReport` 3
         remoteFactorial `useSignTableInReport` 3
         remoteFactorial `useExperimentTableInReport` 3
+        localExtreme `useExperimentTableInReport` 3
         useTheseLogfileListingsForReport 3
             [ loglistingFileFor remoteStabilityTrace
             , loglistingFileFor remoteThinkTime
             , loglistingFileFor remoteReplicationEffect
             , loglistingFileFor remoteFactorial
+            , loglistingFileFor localExtreme
             ]
 
     texPreAction = do
@@ -52,6 +55,7 @@ report3Rules = report 3 texPreAction customRules
         remoteThinkTime `dependOnExperimentTableForReport` 3
         remoteFactorial `dependOnSignTableForReport` 3
         remoteFactorial `dependOnExperimentTableForReport` 3
+        localExtreme `dependOnExperimentTableForReport` 3
 
         need [architecturePng]
         dependOnLogfileListingsForReport 3

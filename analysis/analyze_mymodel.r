@@ -38,7 +38,6 @@ cmd = paste(
 
 system(cmd)
 matdata <- readMat(tmpResultPath)
-
 utilisations = matdata$U
 responseTimes = matdata$R
 throughputs = matdata$X

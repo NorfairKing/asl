@@ -4,6 +4,7 @@ module AslBuild.Reports.ExperimentFormat.Types where
 import           Data.List
 
 import           AslBuild.Experiment
+import           AslBuild.Experiments.Extreme.Types
 import           AslBuild.Experiments.Factorial.Types
 import           AslBuild.Experiments.MaximumThroughput.Types
 import           AslBuild.Experiments.ReplicationEffect.Types
@@ -95,6 +96,18 @@ instance ExperimentFormat FactorialCfg where
         , ["Middleware threads per read pool", show defaultMiddleThreads]
         , runtimeLine ecf fRuntime
         ]
+
+instance ExperimentFormat ExtremeCfg where
+    renderSetupTable ecf@ExtremeCfg{..} = tabular $
+        [ ["Number of server machines", "7"]
+        , ["Number of client machines", "3"]
+        , ["Virtual clients per machine", show defaultConcurrency]
+        , workloadLine
+        , writePercentageLine [0.1]
+        , ["Replication", "7"]
+        , ["Middleware threads per read pool", show defaultMiddleThreads]
+        , runtimeLine ecf exRuntime
+        ] ++ logfileLines ecf
 
 workloadLine :: [String]
 workloadLine = workloadLineFor defaultMemaslapConfig
