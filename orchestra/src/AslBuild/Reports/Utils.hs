@@ -3,17 +3,32 @@ module AslBuild.Reports.Utils where
 import           Data.List
 
 tabularWithHeader :: [String] -> [[String]] -> String
-tabularWithHeader _ [] = ""
-tabularWithHeader _ ([]:_) = ""
-tabularWithHeader header ((d:ds):cs) =
-    tabular $ header : ((("\\hline " ++ d) : ds) : cs)
+tabularWithHeader header rows =
+    tabularWithHeaderAndAllignment (replicate (length header) AllCenter) header rows
+
+tabularWithHeaderAndAllignment :: [TabAll] -> [String] -> [[String]] -> String
+tabularWithHeaderAndAllignment _ _ [] = ""
+tabularWithHeaderAndAllignment _ _ ([]:_) = ""
+tabularWithHeaderAndAllignment alls header ((d:ds):cs) =
+    tabularWithAllignment alls $ header : ((("\\hline " ++ d) : ds) : cs)
+
+-- Tabular allignment
+data TabAll = AllLeft | AllCenter | AllRight
+
+instance Show TabAll where
+    show AllLeft   = "l"
+    show AllCenter = "c"
+    show AllRight  = "r"
 
 tabular :: [[String]] -> String
-tabular [] = ""
-tabular rows = unlines $
-    [ "\\begin{tabular}{" ++ concat (replicate (length (head rows)) "|c") ++ "|}"
+tabular rows = tabularWithAllignment (replicate (length rows) AllCenter) rows
+
+tabularWithAllignment :: [TabAll] -> [[String]] -> String
+tabularWithAllignment [] _ = ""
+tabularWithAllignment alls rows = unlines $
+    [ "\\begin{tabular}{|" ++ intercalate "|" (map show alls) ++ "|}"
     ]
-    ++ map tabRow rows ++
+    ++ map (tabRow . take (length alls)) rows ++
     [ "\\hline"
     , "\\end{tabular}"
     ]

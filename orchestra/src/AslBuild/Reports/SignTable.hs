@@ -49,7 +49,7 @@ signTableFileWithPostfix ecf postfix = changeFilename (++ postfix) $ signTablePr
 signTableFiles :: ExperimentConfig a => a -> [FilePath]
 signTableFiles ecf = do
     measure <- ["tps", "resp"]
-    extra <- ["results", "add", "mul", "legend"]
+    extra <- ["results", "legend"] ++ [intercalate "-" [a, b] | a <- ["add", "mul"], b <- ["signtable", "variations"]]
     pure $ signTableFileWithPostfix ecf $ intercalate "-" [measure, extra]
 
 signTableFileForReport :: FilePath -> Int -> FilePath
@@ -66,9 +66,9 @@ genTpsSignTable :: FactorialCfg -> Action ()
 genTpsSignTable = genSignTableWith
     tpsResults
     avgTpsResults
-    (/10)
+    id
     "tps"
-    "Throughput (10 transactions / second)"
+    "Throughput (transactions / second)"
 
 genRespSignTable :: FactorialCfg -> Action ()
 genRespSignTable = genSignTableWith
@@ -168,8 +168,8 @@ genResultsTable funcRes funcAvgRes convFunc measSuf ecf = do
         pure (individuals, res)
     let indivHeader = take 3 (drop 1 headerPrefix)
     let resultsHeader = indivHeader ++ ["$y$", "$\\bar{y}$"]
-    let resultsRows = flip map realRes $ \(indivs, res) -> [show $ map roundD indivs, show res]
-    let resultsTable = tabularWithHeader
+    let resultsRows = flip map realRes $ \(indivs, res) -> [show $ map roundD indivs, printf "%.2f" res]
+    let resultsTable = tabularWithHeaderAndAllignment [AllCenter, AllCenter, AllCenter, AllCenter, AllRight]
             resultsHeader
             (zipWith (++) (map (map show) $ transpose $ map columnFor indivHeader) resultsRows)
 
@@ -256,14 +256,13 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
         effDivs = map (/ fromIntegral tot) effects
 
     let secondToLastRow = map (show . roundD) effects ++ ["Total", ""]
-    let effectRow = map (show . roundD) effDivs ++ ["Effect", ""]
+    let effectRow = map (show . roundD) effDivs ++ ["Total/8", ""]
     let effectRows = [secondToLastRow, effectRow]
 
-    -- let errss = flip map fullResVec $ \res ->
+    let preds = flip map signRows $ \signRow -> sum $ mult (map fromIntegral signRow) effDivs
+
     let errss :: [[Double]]
-        errss = flip map (zip fullResVec signRows) $ \(ress_, signRow) ->
-            let pred_ = sum $ mult (map fromIntegral signRow) effDivs
-            in map (\res -> res - pred_) ress_
+        errss = flip map (zip fullResVec preds) $ \(ress_, pred_) -> map (\res -> res - pred_) ress_
 
 
     let rows = flip map (zip (zip signRowSs tups) errss) $ \((row, (_, res)), errs) ->
@@ -281,21 +280,24 @@ genSingleSignTable funcRes funcAvgRes convFunc measSuf ecf _ _ suffix = do
         sst = ssy - ss0
 
     let variations = map ((* totR) . (** 2)) $ drop 1 effDivs
-        variationRow = [""] ++ map (show . roundD) variations ++ ["Var", show $ roundD sse]
-
         relvars = map (/ sst) variations
 
     let showPerc = (printf "%.2f" :: Double -> String) . (*100)
-        relvarsRow = [""] ++ map showPerc relvars ++ ["Rel Var ($\\%$)", showPerc $ sse / sst]
-        variationRows = [variationRow, relvarsRow]
 
     let headerRest = ["$\\bar{y}$", "Err"]
         header = headerPrefix ++ headerRest
-        table = rows ++ effectRows ++ variationRows
+        table = rows ++ effectRows
 
     let signTable = tabularWithHeader
             header
             table
 
-    let tableFile = signTableFileWithPostfix ecf $ intercalate "-" [measSuf, suffix]
+    let tableFile = signTableFileWithPostfix ecf $ intercalate "-" [measSuf, suffix, "signtable"]
     writeFile' tableFile signTable
+
+    let predTable = tabularWithHeaderAndAllignment [AllCenter, AllRight, AllRight]
+            ["Factor", "Variation", "Percentage"]
+            (transpose [drop 1 headerPrefix ++ ["Error"], map (show . roundD) (variations ++ [sse]), map showPerc (relvars ++ [sse/sst])])
+
+    let predictionFile = signTableFileWithPostfix ecf $ intercalate "-" [measSuf, suffix, "variations"]
+    writeFile' predictionFile predTable

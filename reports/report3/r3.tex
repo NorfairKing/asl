@@ -23,8 +23,6 @@
 
 
 
-
-
 \begin{document}
 
 \title{Advanced Systems Lab (Fall'16) -- Third Milestone}
@@ -304,12 +302,14 @@ A factorial experiment with replication has been run to explore the impact of th
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-2k-factorial-sign-table-tps-legend.tex}}
-  \caption{Throughput Sign Table}
+  \caption{Symbol definitions}
   \label{fig:tps-sign-table-legend}
 \end{figure}
 
 Three repititions were performed for each setup.
-The details of this experiment can be found in figure \ref{fig:sut-2k-factorial}.
+For each of these factors, two different configurations were specified.
+All the elements of the carthesian product of these configurations are tested.
+The details of this experiment's setups can be found in figure \ref{fig:sut-2k-factorial}.
 
 \begin{figure}[H]
   \centering
@@ -318,7 +318,7 @@ The details of this experiment can be found in figure \ref{fig:sut-2k-factorial}
   \label{fig:sut-2k-factorial}
 \end{figure}
 
-The results of this experiment can be found in \TODO{figure}
+The results of this experiment can be found in figure \ref{fig:tps-sign-table-results}.
 
 \begin{figure}[H]
   \centering
@@ -327,16 +327,51 @@ The results of this experiment can be found in \TODO{figure}
   \label{fig:tps-sign-table-results}
 \end{figure}
 
+In figure \ref{fig:tps-sign-table-add-model}, we can find a sign table of an additive model of this $2^3 \cdot 3$ experiment.
+
 \begin{figure}[H]
   \centering
-  \input{\genfile{remote-2k-factorial-sign-table-tps-add.tex}}
+  \input{\genfile{remote-2k-factorial-sign-table-tps-add-signtable.tex}}
   \caption{Throughput Sign Table (additive model)}
-  \label{fig:tps-sign-table-add}
+  \label{fig:tps-sign-table-add-model}
 \end{figure}
+
+In figure \ref{fig:tps-sign-table-add-vars}
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-tps-add-variations.tex}}
+  \caption{Throughput Variation Table (additive model)}
+  \label{fig:tps-sign-table-add-vars}
+\end{figure}
+
+This table suggests that the replication coefficient has the highest impact on throughput out of the factors that were considered.
+This is consistent with the common knowledge \cite{} that the network is one of the most expensive parts of a distributed system.
+Indeed, the higher the replication coefficient, the more servers ever write request has to hit, the longer it takes for a request to be handled, the fewer requests can be handled in a given amount of time time, the lower the throughput.
+
+The next most important factor is the write percentage.
+This makes sense because write requests are more expensive than read requests, especially if replication is used (see above).
+
+The third most important factor is, interestingly, an interaction factor.
+The interaction between the replication coefficient and the write percentage is the third most important factor.
+This means that the impact of the replication coefficient on the throughput is even greater in the case of a greater write percentage and vice versa.
+This is because writes become a lot more expensive if replication is used, but writes need not be much more expensive than reads if no replication is used.
+
+The last factor that has a significant impact is the size of requests.
+This is because larger requests are more expensive for Memcache to process, but also because the middleware needs to do more work in order to process a larger request.
+Every byte of a request is copied twice.
+The first time to parse it from the contents of a ByteBuffer and the second time to render back the response as a ByteBuffer.
+As a result, it makes sense that throughput decreases as request value increases.
+
+There are two more factors that have little impact on throughput: The combination of request value size and the write percentage, and the combination of all three individual factors.
+
+Lastly almost none of the variation is explained by experimental error, which tells us that the experiments were rather internally consistent.
+
+For completeness: A multiplicative model was tried as well, but because difference between the maximum $y$ and the minimum $y$ is small so it gave similar results and the additive model already has little variation explained by error.
 
 % \begin{figure}[H]
 %   \centering
-%   \input{\genfile{remote-2k-factorial-sign-table-tps-mul.tex}}
+%   \input{\genfile{remote-2k-factorial-sign-table-tps-mul-signtable.tex}}
 %   \caption{Throughput Sign Table (multiplicative model)}
 %   \label{fig:tps-sign-table-mul}
 % \end{figure}
@@ -445,9 +480,11 @@ In conclusion, the data gathered during the performed experiments looks valid.
 
   % \bibitem{lazowska}
     % Lazowska, Edward D., et al. Quantitative system performance: computer system analysis using queueing network models. Prentice-Hall, Inc., 1984.
+  \bibitem{latency}
+    Latency Numbers Every Programmer Should Know \url{https://gist.github.com/jboner/2841832}
 
-  % \bibitem{qr}
-    % The `queuing' package for the R programming language \url{https://cran.r-project.org/web/packages/queueing/index.html}
+  \bibitem{qr}
+    The `queuing' package for the Octave programming language \url{http://www.moreno.marzolla.name/software/queueing/}
 \end{thebibliography}
 
 % \begin{figure}[H]
