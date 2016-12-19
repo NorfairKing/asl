@@ -1,26 +1,27 @@
 {-# LANGUAGE DeriveGeneric #-}
+
 module AslBuild.Middleware.Types where
 
-import           Data.Aeson
-import           GHC.Generics
+import Data.Aeson
+import GHC.Generics
 
-import           AslBuild.Types
+import AslBuild.Types
 
-data MiddlewareFlags
-    = MiddlewareFlags
-    { mwIp                :: String
-    , mwPort              :: Int
-    , mwNrThreads         :: Int
+data MiddlewareFlags = MiddlewareFlags
+    { mwIp :: String
+    , mwPort :: Int
+    , mwNrThreads :: Int
     , mwReplicationFactor :: Int
-    , mwServers           :: [RemoteServerUrl]
-    , mwVerbosity         :: LogLevel
-    , mwTraceFile         :: FilePath
-    , mwReadSampleRate    :: Maybe Int
-    , mwWriteSampleRate   :: Maybe Int
+    , mwServers :: [RemoteServerUrl]
+    , mwVerbosity :: LogLevel
+    , mwTraceFile :: FilePath
+    , mwReadSampleRate :: Maybe Int
+    , mwWriteSampleRate :: Maybe Int
     } deriving (Show, Eq, Generic)
 
 instance FromJSON MiddlewareFlags
-instance ToJSON   MiddlewareFlags
+
+instance ToJSON MiddlewareFlags
 
 data LogLevel
     = LogOff
@@ -32,12 +33,13 @@ data LogLevel
     deriving (Show, Eq, Generic)
 
 logLevelInt :: LogLevel -> Int
-logLevelInt LogOff    = 0
-logLevelInt LogInfo   = 1
-logLevelInt LogFine   = 2
-logLevelInt LogFiner  = 3
+logLevelInt LogOff = 0
+logLevelInt LogInfo = 1
+logLevelInt LogFine = 2
+logLevelInt LogFiner = 3
 logLevelInt LogFinest = 4
-logLevelInt LogAll    = 5
+logLevelInt LogAll = 5
 
 instance FromJSON LogLevel
-instance ToJSON   LogLevel
+
+instance ToJSON LogLevel

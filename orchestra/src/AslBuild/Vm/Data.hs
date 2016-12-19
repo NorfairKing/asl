@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+
 module AslBuild.Vm.Data
     ( vmDataRules
     , getVms
@@ -6,20 +7,19 @@ module AslBuild.Vm.Data
     , clearVmData
     ) where
 
-import           Control.Monad
-import           Data.Aeson.Encode.Pretty   (encodePretty)
+import Control.Monad
+import Data.Aeson.Encode.Pretty (encodePretty)
 import qualified Data.ByteString.Lazy.Char8 as LB8
-import           Data.List                  (intersect)
+import Data.List (intersect)
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import Development.Shake
+import Development.Shake.FilePath
 
-import           AslBuild.Constants
-import           AslBuild.Ssh
-import           AslBuild.Types
-import           AslBuild.Utils
-import           AslBuild.Vm.Types
-
+import AslBuild.Constants
+import AslBuild.Ssh
+import AslBuild.Types
+import AslBuild.Utils
+import AslBuild.Vm.Types
 
 azureVmJsonFile :: FilePath
 azureVmJsonFile = tmpDir </> "azure-vm-data.json"
@@ -33,15 +33,17 @@ clearVmDataRule = "clear-vm-data"
 vmDataRules :: Rules ()
 vmDataRules = do
     azureVmJsonFile %> \_ ->
-        cmd (FileStdout azureVmJsonFile)
-            azureCmd "vm" "list-ip-address"
-            "--resource-group" resourceGroupName
+        cmd
+            (FileStdout azureVmJsonFile)
+            azureCmd
+            "vm"
+            "list-ip-address"
+            "--resource-group"
+            resourceGroupName
             "--json"
-
     vmDataFile %> \_ -> do
         avmData <- getAzureVmData
         writeJSON vmDataFile $ azureUnpack avmData
-
     clearVmDataRule ~> clearVmData
 
 getAzureVmData :: Action AzureVmData
@@ -57,7 +59,7 @@ getRawVmData = do
 getVmLogins :: Action [RemoteLogin]
 getVmLogins = do
     vms <- getRawVmData
-    return $ map (\VmData{..} -> RemoteLogin (Just vmAdmin) vmFullUrl) vms
+    return $ map (\VmData {..} -> RemoteLogin (Just vmAdmin) vmFullUrl) vms
 
 getVms
     :: Int -- Number of clients
@@ -71,18 +73,20 @@ getVms nrc nrm nrs = do
     let clients = take nrc clientOrServerElligibles
     let middles = take nrm middleElligibles
     let servers = take nrs $ drop nrc clientOrServerElligibles
-    when (any (not . null) [clients `intersect` middles, middles `intersect` servers, clients `intersect` servers]) $
+    when
+        (any
+             (not . null)
+             [clients `intersect` middles, middles `intersect` servers, clients `intersect` servers]) $
         fail $ "Vms intersect:\n" ++ LB8.unpack (encodePretty (clients, middles, servers))
-
     if any (\(a, b) -> a /= length b) [(nrc, clients), (nrm, middles), (nrs, servers)]
-    then fail "Something went wrong requesting servers."
-    else return (clients, middles, servers)
+        then fail "Something went wrong requesting servers."
+        else return (clients, middles, servers)
 
 middleElligible :: VmData -> Bool
-middleElligible VmData{..} = vmType == "Basic_A4"
+middleElligible VmData {..} = vmType == "Basic_A4"
 
 clientOrServerElligible :: VmData -> Bool
-clientOrServerElligible VmData{..} = vmType == "Basic_A2"
+clientOrServerElligible VmData {..} = vmType == "Basic_A2"
 
 clearVmData :: Action ()
 clearVmData = cmd "rm" "-f" azureVmJsonFile vmDataFile customKnownHostsFile

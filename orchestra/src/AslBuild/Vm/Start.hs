@@ -1,19 +1,19 @@
 module AslBuild.Vm.Start where
 
-import           Development.Shake
+import Development.Shake
 
-import           AslBuild.CommonActions
-import           AslBuild.Constants
-import           AslBuild.Experiment
-import           AslBuild.Experiments.Extreme
-import           AslBuild.Experiments.Factorial
-import           AslBuild.Experiments.MaximumThroughput
-import           AslBuild.Experiments.ReplicationEffect
-import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Experiments.ThinkTime
-import           AslBuild.Experiments.WriteEffect
-import           AslBuild.Vm.Names
-import           AslBuild.Vm.Types
+import AslBuild.CommonActions
+import AslBuild.Constants
+import AslBuild.Experiment
+import AslBuild.Experiments.Extreme
+import AslBuild.Experiments.Factorial
+import AslBuild.Experiments.MaximumThroughput
+import AslBuild.Experiments.ReplicationEffect
+import AslBuild.Experiments.StabilityTrace
+import AslBuild.Experiments.ThinkTime
+import AslBuild.Experiments.WriteEffect
+import AslBuild.Vm.Names
+import AslBuild.Vm.Types
 
 startVmsRule :: String
 startVmsRule = "start-vms"
@@ -27,10 +27,8 @@ startVms :: [VmData] -> Action ()
 startVms = startVmsByName . map vmName
 
 startVmsByName :: [String] -> Action ()
-startVmsByName ls = phPar ls $ \n ->
-    cmd azureCmd "vm" "start"
-        "--resource-group" resourceGroupName
-        "--name" n
+startVmsByName ls =
+    phPar ls $ \n -> cmd azureCmd "vm" "start" "--resource-group" resourceGroupName "--name" n
 
 experimentStartVmsRules :: Rules ()
 experimentStartVmsRules = do
@@ -42,9 +40,13 @@ experimentStartVmsRules = do
     mapM_ makeStartVmRule allFactorialExperiments
     mapM_ makeStartVmRule allExtremeExperiments
 
-startVmRuleFor :: ExperimentConfig a => a -> String
+startVmRuleFor
+    :: ExperimentConfig a
+    => a -> String
 startVmRuleFor ecf = "start-" ++ experimentTarget ecf ++ "-vms"
 
-makeStartVmRule :: ExperimentConfig a => a -> Rules ()
-makeStartVmRule ecf = startVmRuleFor ecf ~>
-    startVmsByName (vmNamesForHLConfig $ highLevelConfig ecf)
+makeStartVmRule
+    :: ExperimentConfig a
+    => a -> Rules ()
+makeStartVmRule ecf =
+    startVmRuleFor ecf ~> startVmsByName (vmNamesForHLConfig $ highLevelConfig ecf)

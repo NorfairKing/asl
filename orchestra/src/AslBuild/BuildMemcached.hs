@@ -1,10 +1,10 @@
 module AslBuild.BuildMemcached where
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import Development.Shake
+import Development.Shake.FilePath
 
-import           AslBuild.Constants
-import           AslBuild.Utils
+import AslBuild.Constants
+import AslBuild.Utils
 
 memcachedRule :: String
 memcachedRule = "memcached"
@@ -16,9 +16,7 @@ buildMemcachedRules :: Rules ()
 buildMemcachedRules = do
     memcachedBinRules
     memaslapBinRules
-
     memcachedRule ~> need [memcachedBin, memaslapBin]
-
     cleanMemcachedRule ~> do
         removeFilesAfter outDir [memcachedBin, memaslapBin]
         removeFilesAfter tmpDir ["//"]
@@ -48,10 +46,9 @@ libmemcachedArchiveConfigureFile :: FilePath
 libmemcachedArchiveConfigureFile = libmemcachedArchiveFullDir </> configure
 
 libmemcachedUrl :: String
-libmemcachedUrl = "https://launchpad.net/libmemcached/1.0"
-    </> libmemcachedVersion
-    </> "+download"
-    </> libmemcachedArchiveFile
+libmemcachedUrl =
+    "https://launchpad.net/libmemcached/1.0" </> libmemcachedVersion </> "+download" </>
+    libmemcachedArchiveFile
 
 makeFileInMemaslapDir :: FilePath
 makeFileInMemaslapDir = libmemcachedArchiveFullDir </> makefile
@@ -62,28 +59,20 @@ memaslapBinInCacheDir = libmemcachedArchiveFullDir </> "clients" </> memaslapBin
 memaslapBinRules :: Rules ()
 memaslapBinRules = do
     libmemcachedArchiveFullFile %> \_ ->
-        cmd wgetCmd libmemcachedUrl
-            "--output-document" libmemcachedArchiveFullFile
-
+        cmd wgetCmd libmemcachedUrl "--output-document" libmemcachedArchiveFullFile
     libmemcachedArchiveConfigureFile %> \_ -> do
         need [libmemcachedArchiveFullFile]
-        cmd tarCmd
-            "--extract"
-            "--verbose"
-            "--file" libmemcachedArchiveFullFile
-            "--directory" tmpDir
-
+        cmd tarCmd "--extract" "--verbose" "--file" libmemcachedArchiveFullFile "--directory" tmpDir
     makeFileInMemaslapDir %> \_ -> do
         need [libmemcachedArchiveConfigureFile]
-        cmd (Cwd libmemcachedArchiveFullDir)
+        cmd
+            (Cwd libmemcachedArchiveFullDir)
             (AddEnv "LDFLAGS" "-lpthread")
-            ("." </> configure) "--enable-memaslap"
-
+            ("." </> configure)
+            "--enable-memaslap"
     memaslapBinInCacheDir %> \_ -> do
         need [makeFileInMemaslapDir]
-        cmd (Cwd libmemcachedArchiveFullDir)
-            "make" "--jobs"
-
+        cmd (Cwd libmemcachedArchiveFullDir) "make" "--jobs"
     memaslapBin `byCopying` memaslapBinInCacheDir
 
 memcachedBinName :: FilePath
@@ -125,25 +114,14 @@ memcachedBinInCacheDir = memcachedArchiveFullDir </> memcachedBinName
 memcachedBinRules :: Rules ()
 memcachedBinRules = do
     memcachedArchiveFullFile %> \_ ->
-        cmd wgetCmd memcachedUrl
-            "--output-document" memcachedArchiveFullFile
-
+        cmd wgetCmd memcachedUrl "--output-document" memcachedArchiveFullFile
     memcachedArchiveConfigureFile %> \_ -> do
         need [memcachedArchiveFullFile]
-        cmd "tar"
-            "--extract"
-            "--verbose"
-            "--file" memcachedArchiveFullFile
-            "--directory" tmpDir
-
+        cmd "tar" "--extract" "--verbose" "--file" memcachedArchiveFullFile "--directory" tmpDir
     makeFileInMemcachedDir %> \_ -> do
         need [memcachedArchiveConfigureFile]
-        cmd (Cwd memcachedArchiveFullDir)
-            ("." </> configure) "--enable-memaslap"
-
+        cmd (Cwd memcachedArchiveFullDir) ("." </> configure) "--enable-memaslap"
     memcachedBinInCacheDir %> \_ -> do
         need [makeFileInMemcachedDir]
-        cmd (Cwd memcachedArchiveFullDir)
-            "make" "--jobs"
-
+        cmd (Cwd memcachedArchiveFullDir) "make" "--jobs"
     memcachedBin `byCopying` memcachedBinInCacheDir

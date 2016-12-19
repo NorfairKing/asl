@@ -1,63 +1,61 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module AslBuild.Models.MMm.Internal where
 
-import           Data.Monoid
-import           GHC.Generics
+import Data.Monoid
+import GHC.Generics
 
-import           Data.Csv
-import qualified Data.Vector               as V
+import Data.Csv
+import qualified Data.Vector as V
 
-import           AslBuild.Analysis.Types
-import           AslBuild.Models.MMm.Types
-import           AslBuild.Utils
+import AslBuild.Analysis.Types
+import AslBuild.Models.MMm.Types
+import AslBuild.Utils
 
-data SimplifiedReplicationCsvLine
-    = SimplifiedReplicationCsvLine
-    { mmmModel   :: MMmModel
-    , actualTps  :: MetaAvg
+data SimplifiedReplicationCsvLine = SimplifiedReplicationCsvLine
+    { mmmModel :: MMmModel
+    , actualTps :: MetaAvg
     , actualResp :: MetaAvg
     } deriving (Show, Eq, Generic)
 
 instance ToNamedRecord SimplifiedReplicationCsvLine where
-    toNamedRecord SimplifiedReplicationCsvLine{..} =
-             toNamedRecord mmmModel
-          <> mapKeys ("resp" <>) (toNamedRecord actualResp)
-          <> mapKeys ("tps" <>) (toNamedRecord actualTps)
+    toNamedRecord SimplifiedReplicationCsvLine {..} =
+        toNamedRecord mmmModel <> mapKeys ("resp" <>) (toNamedRecord actualResp) <>
+        mapKeys ("tps" <>) (toNamedRecord actualTps)
 
 instance DefaultOrdered SimplifiedReplicationCsvLine where
     headerOrder _ =
-             headerOrder (undefined :: MMmModel)
-          <> V.map ("resp" <>) (headerOrder (undefined :: MetaAvg))
-          <> V.map ("tps" <>)  (headerOrder (undefined :: MetaAvg))
-
+        headerOrder (undefined :: MMmModel) <>
+        V.map ("resp" <>) (headerOrder (undefined :: MetaAvg)) <>
+        V.map ("tps" <>) (headerOrder (undefined :: MetaAvg))
 
 instance ToNamedRecord MMmModel where
-    toNamedRecord mmm@MMmModel{..} = namedRecord
-        [ "arrivalRate" .= arrivalRate
-        , "serviceRate" .= serviceRate
-        , "nrServers" .= nrServers
-        , "trafficIntensity" .= mmmTrafficIntensity mmm
-        , "meanResponseTime" .= mmmMeanResponseTime mmm
-        , "stdDevResponseTime" .= mmmStdDevResponseTime mmm
-        , "meanWaitingTime" .= mmmMeanWaitingTime mmm
-        , "stdDevWaitingTime" .= mmmStdDevResponseTime mmm
-        ]
+    toNamedRecord mmm@MMmModel {..} =
+        namedRecord
+            [ "arrivalRate" .= arrivalRate
+            , "serviceRate" .= serviceRate
+            , "nrServers" .= nrServers
+            , "trafficIntensity" .= mmmTrafficIntensity mmm
+            , "meanResponseTime" .= mmmMeanResponseTime mmm
+            , "stdDevResponseTime" .= mmmStdDevResponseTime mmm
+            , "meanWaitingTime" .= mmmMeanWaitingTime mmm
+            , "stdDevWaitingTime" .= mmmStdDevResponseTime mmm
+            ]
 
 instance DefaultOrdered MMmModel where
-    headerOrder _ = header
-        [ "arrivalRate"
-        , "serviceRate"
-        , "nrServers"
-        , "trafficIntensity"
-        , "meanResponseTime"
-        , "stdDevResponseTime"
-        , "meanWaitingTime"
-        , "stdDevWaitingTime"
-        ]
-
+    headerOrder _ =
+        header
+            [ "arrivalRate"
+            , "serviceRate"
+            , "nrServers"
+            , "trafficIntensity"
+            , "meanResponseTime"
+            , "stdDevResponseTime"
+            , "meanWaitingTime"
+            , "stdDevWaitingTime"
+            ]
 
 mmmTrafficIntensity :: MMmModel -> Double
 mmmTrafficIntensity mmm = λ / (m * μ)

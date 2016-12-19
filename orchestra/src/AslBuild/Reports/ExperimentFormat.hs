@@ -1,20 +1,20 @@
 module AslBuild.Reports.ExperimentFormat where
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import Development.Shake
+import Development.Shake.FilePath
 
-import           AslBuild.Constants
-import           AslBuild.Experiment
-import           AslBuild.Experiments.Extreme
-import           AslBuild.Experiments.Factorial
-import           AslBuild.Experiments.MaximumThroughput
-import           AslBuild.Experiments.ReplicationEffect
-import           AslBuild.Experiments.StabilityTrace
-import           AslBuild.Experiments.ThinkTime
-import           AslBuild.Experiments.WriteEffect
-import           AslBuild.Reports.Common
-import           AslBuild.Reports.ExperimentFormat.Types
-import           AslBuild.Utils
+import AslBuild.Constants
+import AslBuild.Experiment
+import AslBuild.Experiments.Extreme
+import AslBuild.Experiments.Factorial
+import AslBuild.Experiments.MaximumThroughput
+import AslBuild.Experiments.ReplicationEffect
+import AslBuild.Experiments.StabilityTrace
+import AslBuild.Experiments.ThinkTime
+import AslBuild.Experiments.WriteEffect
+import AslBuild.Reports.Common
+import AslBuild.Reports.ExperimentFormat.Types
+import AslBuild.Utils
 
 experimentTablesRule :: String
 experimentTablesRule = "experiment-tables"
@@ -28,30 +28,40 @@ experimentTablesRules = do
     ttTargets <- mapM experimentFormatRulesFor allThinkTimeExperiments
     fTargets <- mapM experimentFormatRulesFor allFactorialExperiments
     exTargets <- mapM experimentFormatRulesFor allExtremeExperiments
+    experimentTablesRule ~>
+        need
+            (mtTargets ++ reTargets ++ weTargets ++ stTargets ++ ttTargets ++ fTargets ++ exTargets)
 
-    experimentTablesRule ~> need (mtTargets ++ reTargets ++ weTargets ++ stTargets ++ ttTargets ++ fTargets ++ exTargets)
-
-experimentFormatRuleFor :: ExperimentConfig a => a -> String
+experimentFormatRuleFor
+    :: ExperimentConfig a
+    => a -> String
 experimentFormatRuleFor ecf = experimentTarget ecf ++ "-table"
 
-experimentFormatRulesFor :: (ExperimentConfig a, ExperimentFormat a) => a -> Rules String
+experimentFormatRulesFor
+    :: (ExperimentConfig a, ExperimentFormat a)
+    => a -> Rules String
 experimentFormatRulesFor ecf = do
-    experimentFormatFile ecf %> \outFile ->
-        writeFile' outFile $ renderSetupTable ecf
+    experimentFormatFile ecf %> \outFile -> writeFile' outFile $ renderSetupTable ecf
     let thisRule = experimentFormatRuleFor ecf
     thisRule ~> need [experimentFormatFile ecf]
     return thisRule
 
-experimentFormatFile :: ExperimentConfig a => a -> FilePath
+experimentFormatFile
+    :: ExperimentConfig a
+    => a -> FilePath
 experimentFormatFile ecf = reportsTmpDir </> experimentTarget ecf ++ "-table" <.> texExt
 
 tableFileForReport :: FilePath -> Int -> FilePath
 tableFileForReport file i = file `replaceDirectory` reportGenfileDir i
 
-useExperimentTableInReport :: ExperimentConfig a => a -> Int -> Rules ()
+useExperimentTableInReport
+    :: ExperimentConfig a
+    => a -> Int -> Rules ()
 useExperimentTableInReport ecf i = tableFileForReport eff i `byCopying` eff
-  where eff = experimentFormatFile ecf
+  where
+    eff = experimentFormatFile ecf
 
-dependOnExperimentTableForReport :: ExperimentConfig a => a -> Int -> Action ()
+dependOnExperimentTableForReport
+    :: ExperimentConfig a
+    => a -> Int -> Action ()
 dependOnExperimentTableForReport ecf i = need [tableFileForReport (experimentFormatFile ecf) i]
-

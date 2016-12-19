@@ -1,6 +1,6 @@
 module AslBuild.Models.MM1.Utils where
 
-import           AslBuild.Models.MM1.Types
+import AslBuild.Models.MM1.Types
 
 mm1TrafficIntensity :: MM1Model -> Double
 mm1TrafficIntensity mm1 = λ / μ

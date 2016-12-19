@@ -1,29 +1,25 @@
 module AslBuild.Reports.Common where
 
-import           Control.Monad
+import Control.Monad
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import Development.Shake
+import Development.Shake.FilePath
 
-import           AslBuild.Constants
-import           AslBuild.Utils
+import AslBuild.Constants
+import AslBuild.Utils
 
 commonTex :: FilePath
 commonTex = reportsDir </> "common" <.> texExt
 
 buildLatexIn :: FilePath -> FilePath -> Action ()
 buildLatexIn texFile texDir =
-    cmd (Cwd texDir)
-        "latexmk"
-        texFile
-        "-pdf"
-        "-interaction=nonstopmode"
-        "-shell-escape"
+    cmd (Cwd texDir) "latexmk" texFile "-pdf" "-interaction=nonstopmode" "-shell-escape"
 
 compileDotToEps :: FilePath -> FilePath -> Rules ()
-compileDotToEps dotFile epsFile = epsFile %> \_ -> do
-    need [dotFile]
-    cmd (FileStdout epsFile) dotCmd "-Teps" dotFile
+compileDotToEps dotFile epsFile =
+    epsFile %> \_ -> do
+        need [dotFile]
+        cmd (FileStdout epsFile) dotCmd "-Teps" dotFile
 
 reportRule :: Int -> String
 reportRule i = "report" ++ show i
@@ -86,19 +82,14 @@ report
     -> Rules ()
 report i texPreAction customRules = do
     reportRule i ~> need [reportOut i]
-
     customRules
-
     reportOut i `byCopying` reportInBuildDir i
-
     reportInBuildDir i %> \_ -> do
         need [commonTex, reportTexInBuildDir i, reportBibInBuildDir i]
-
         texPreAction
-
-        reportTex i`buildLatexIn` reportDir i
-
+        reportTex i `buildLatexIn` reportDir i
     reportCleanRule i ~> do
         removeFilesAfter "" [reportOut i]
-        removeFilesAfter (reportDir i)
+        removeFilesAfter
+            (reportDir i)
             ["//*.pdf", "//*.aux", "//*.log", "//*.fls", "//*.fdb_latexmk"]

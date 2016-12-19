@@ -1,10 +1,10 @@
 module AslBuild.Orc where
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import Development.Shake
+import Development.Shake.FilePath
 
-import           AslBuild.Constants
-import           AslBuild.Utils
+import AslBuild.Constants
+import AslBuild.Utils
 
 buildBinInStack :: FilePath
 buildBinInStack = aslDir </> ".stack-work/install/x86_64-linux/lts-7.9/8.0.1/bin/orc"
@@ -22,4 +22,3 @@ orcRules = do
         files <- getDirectoryFiles "" [aslBuildDir <//> "*.hs"]
         need files
         cmd (Cwd aslBuildDir) stackCmd "build"
-

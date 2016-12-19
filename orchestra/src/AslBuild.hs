@@ -2,9 +2,9 @@ module AslBuild
     ( aslBuild
     ) where
 
-import           System.Environment (getArgs, withArgs)
+import System.Environment (getArgs, withArgs)
 
-import           AslBuild.Build
+import AslBuild.Build
 
 aslBuild :: IO ()
 aslBuild = do

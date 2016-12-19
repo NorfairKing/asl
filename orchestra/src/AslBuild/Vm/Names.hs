@@ -1,14 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
+
 module AslBuild.Vm.Names where
 
-import           AslBuild.Experiment.Types
-import           AslBuild.Types
+import AslBuild.Experiment.Types
+import AslBuild.Types
 
-vmNamesForHLConfig
-    :: HighLevelConfig
-    -> [String]
-vmNamesForHLConfig HighLevelConfig{..}
-    = case location of
+vmNamesForHLConfig :: HighLevelConfig -> [String]
+vmNamesForHLConfig HighLevelConfig {..} =
+    case location of
         Local -> []
         Remote -> vmNamesForRequirements nrClients 1 nrServers
 
@@ -17,8 +16,7 @@ vmNamesForRequirements
     -> Int -- Nr middlewares
     -> Int -- Nr servers
     -> [String]
-vmNamesForRequirements nrc nrm nrs
-    = clients ++ middlewares ++ servers
+vmNamesForRequirements nrc nrm nrs = clients ++ middlewares ++ servers
   where
     clients = take nrc clientVmNames
     middlewares = take nrm $ filter (`notElem` clients) middlewareVmNames
@@ -41,6 +39,5 @@ serverVmNames = a2VmNames
 
 a2VmNames :: [String]
 a2VmNames = do
-    suffix <- [1..10] :: [Int]
+    suffix <- [1 .. 10] :: [Int]
     return $ "foraslvms" ++ show suffix
-

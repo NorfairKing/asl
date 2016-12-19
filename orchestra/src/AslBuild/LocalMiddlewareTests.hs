@@ -1,14 +1,14 @@
 module AslBuild.LocalMiddlewareTests where
 
-import           Development.Shake
+import Development.Shake
 
-import           AslBuild.LocalMiddlewareTest.MultiClientTest
-import           AslBuild.LocalMiddlewareTest.MultipleClientsTest
-import           AslBuild.LocalMiddlewareTest.MultipleServersTest
-import           AslBuild.LocalMiddlewareTest.ParseTest
-import           AslBuild.LocalMiddlewareTest.ReplicationFailureTest
-import           AslBuild.LocalMiddlewareTest.ReplicationTest
-import           AslBuild.LocalMiddlewareTest.SimpleTest
+import AslBuild.LocalMiddlewareTest.MultiClientTest
+import AslBuild.LocalMiddlewareTest.MultipleClientsTest
+import AslBuild.LocalMiddlewareTest.MultipleServersTest
+import AslBuild.LocalMiddlewareTest.ParseTest
+import AslBuild.LocalMiddlewareTest.ReplicationFailureTest
+import AslBuild.LocalMiddlewareTest.ReplicationTest
+import AslBuild.LocalMiddlewareTest.SimpleTest
 
 localMiddlewareTestsRule :: String
 localMiddlewareTestsRule = "local-middleware-tests"
@@ -22,13 +22,14 @@ localMiddlewareTestRules = do
     localMiddlewareReplicationTestRules
     localMiddlewareReplicationFailureTestRules
     localMiddlewareSimpleTestRules
-
-    localMiddlewareTestsRule ~> mapM_ (need . (:[]))
-        [ localMiddlewareParseTestRule
-        , localMiddlewareMultiClientTestRule
-        , localMiddlewareReplicationTestRule
-        , localMiddlewareReplicationFailureTestRule
-        , localMiddlewareSimpleTestRule
-        , localMiddlewareMultipleServersTestRule
-        , localMiddlewareMultipleClientsTestRule
-        ]
+    localMiddlewareTestsRule ~>
+        mapM_
+            (need . (: []))
+            [ localMiddlewareParseTestRule
+            , localMiddlewareMultiClientTestRule
+            , localMiddlewareReplicationTestRule
+            , localMiddlewareReplicationFailureTestRule
+            , localMiddlewareSimpleTestRule
+            , localMiddlewareMultipleServersTestRule
+            , localMiddlewareMultipleClientsTestRule
+            ]
