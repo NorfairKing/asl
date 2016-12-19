@@ -178,7 +178,7 @@ This ratio is so large because the model does not take parallelisation in accoun
 A system with only one queue and one server that achieved a service rate as high as \input{\model{remote-stability-trace-mm1-service-rate.tex}} with an arrival rate of \input{\model{remote-stability-trace-mm1-arrival-rate.tex}} would have to have a much shorter response time and waiting time than the real system.
 
 Indeed, the ratio of the measured response time to the predicted response time is close to the total number of workers in the real system.
-The ratio is still smaller of course, because not every worker in the system is necessarily constantly busy.
+The ratio is still smaller, of course, because not every worker in the system is necessarily constantly busy.
 
 The predicted number of jobs in the system is compared to the total number of clients in the system, an over-approximation for the real number of jobs in the system.
 The predicted number of jobs in the queue is compared to this approximation minus the total number of workers in the real system, an approximation of the total numbor of jobs in any queues in the middleware.
