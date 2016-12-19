@@ -77,9 +77,8 @@ codeHealthRule = "code-health"
 
 codeHealth :: Rules ()
 codeHealth = do
-    codeHealthRule ~> need [trailingWhitespaceRule, indentationRule, hlintRule, sanityRule]
+    codeHealthRule ~> need [trailingWhitespaceRule, hlintRule, sanityRule]
     trailingWhitespace
-    indentation
     hlint
     sanity
 
@@ -94,18 +93,6 @@ trailingWhitespace =
     trailingWhitespaceRule ~> do
         need [scriptsLib, trailingWhitespaceScript]
         cmd (Cwd aslDir) "scripts/trailing_whitespace_test.sh"
-
-indentationRule :: String
-indentationRule = "indentation"
-
-indentationScript :: FilePath
-indentationScript = scriptsDir </> "indentation.sh"
-
-indentation :: Rules ()
-indentation =
-    indentationRule ~> do
-        need [scriptsLib, indentationScript]
-        cmd (Cwd aslDir) "scripts/indentation.sh"
 
 hlintRule :: String
 hlintRule = "hlint"
