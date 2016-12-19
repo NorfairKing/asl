@@ -82,7 +82,7 @@ A model of the situation can be found in figure \ref{ref:complete-system}.
 \subsection{Boundaries of M/M/1 model}
 
 To make a M/M/1 model of the entire system, we have to treat the system under test as a black box.
-The black box is drawn from the middleware, across the network on the network on the server side and across the servers.
+The black box is drawn from the middleware, across the network on the server side and across the servers.
 
 This black box seemed the most appropriate.
 Adding the network on the client-side to the black box would add more network-traveling to the service that we are modelling.
@@ -107,6 +107,7 @@ In figure \ref{fig:mm1-black-box}, there is an illustration of the black box use
 \end{figure}
 
 The 'service' that the black box is providing is exactly one Memcache operation.
+In the end, this is precisely the point of using a middleware like this.
 The black box abstracts away from a lot of details, so while it's relatively easy to define what the 'service' is, we cannot really point to a component of the real system and call it the 'queue' of this model.
 
 \subsection{Parameter estimation}
@@ -156,6 +157,9 @@ The mean waiting time means the time that a request spends in the M/M/1 model qu
 
 \subsection{Comparison and mapping between comparison and system components}
 
+Because the real system is much more complex than the system in an $M/M/1$ model, we cannot map measurements onto predictions perfectly.
+The data in figure \ref{fig:mm1-measurements} are the most relevant data available.
+
 \begin{figure}[H]
   \centering
   \input{\model{remote-stability-trace-mm1-measurements.tex}}
@@ -163,11 +167,9 @@ The mean waiting time means the time that a request spends in the M/M/1 model qu
   \label{fig:mm1-measurements}
 \end{figure}
 
-Because the real system is much more complex than the system in an $M/M/1$ model, we cannot map measurements onto predictions perfectly.
-The data in figure \ref{fig:mm1-measurements} are the most relevant data available.
-
 The mean response time predicted by the model is compared to the average total time between receiving a request and sending a response (in the middleware).
-The mean waiting time is compared to the time between being enqueued and being dequeued by a request.
+This is called the mean time in middleware or the response time of the middleware.
+The mean waiting time is compared to the time between being enqueued and being dequeued for any request.
 
 In both cases we see that the prediction is not even close to the measurements.
 The ratio between the measurements and the predictions are \input{\model{remote-stability-trace-mm1-resprat.tex}} and \input{\model{remote-stability-trace-mm1-waitrat.tex}} for response time and waiting time respectively.
@@ -182,9 +184,9 @@ The predicted number of jobs in the system is compared to the total number of cl
 The predicted number of jobs in the queue is compared to this approximation minus the total number of workers in the real system, an approximation of the total numbor of jobs in any queues in the middleware.
 
 Once again we see that the predictions are a lot smaller than than the measured values.
-This is for the same reason: A system with one queue and one server that can process jobs with the given service rate at the given arrival rate would have much fewer jobs in the system and in its queue than the real system with parallelisation.
+This is for the same reason: A system with one queue and one server, that can process jobs with the given service rate at the given arrival rate, would have much fewer jobs in the system and in its queue than the real system with parallelisation.
 
-In fact, this can be show by looking at the ratio between the number of jobs in the queue and the number of jobs in the system.
+In fact, this can be shown by looking at the ratio between the number of jobs in the queue and the number of jobs in the system.
 These ratios are very close, precicely as we would expect.
 
 \section{Analysis of System Based on Scalability Data}\label{sec:analysis-scalability}
@@ -297,7 +299,7 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
 
 % Design a $2^k$ factorial experiment and follow the best practices outlined in the book and in the lecture to analyze the results. You are free to choose the parameters for the experiment and in case you have already collected data in the second milestone that can be used as source for this experiment, you can reuse it. Otherwise, in case you need to run new experiments anyway, we recommend exploring the impact of request size on the middleware together with an other parameter.
 
-A factorial experiment with replication has been run to explore the impact of three factors $A$, $B$, and $C$ on a response variable $y$ as listed in figure \ref{fig:tps-sign-table-legend}.
+A full factorial experiment with replication has been run to explore the impact of three factors $A$, $B$, and $C$ on a response variable $y$; as listed in figure \ref{fig:tps-sign-table-legend}.
 
 \begin{figure}[H]
   \centering
@@ -306,9 +308,9 @@ A factorial experiment with replication has been run to explore the impact of th
   \label{fig:tps-sign-table-legend}
 \end{figure}
 
-Three repititions were performed for each setup.
+Three repetitions were performed for each setup.
 For each of these factors, two different configurations were specified.
-All the elements of the carthesian product of these configurations are tested.
+All the elements of the Carthesian product of these configurations are tested.
 The details of this experiment's setups can be found in figure \ref{fig:sut-2k-factorial}.
 
 \begin{figure}[H]
@@ -336,8 +338,6 @@ In figure \ref{fig:tps-sign-table-add-model}, we can find a sign table of an add
   \label{fig:tps-sign-table-add-model}
 \end{figure}
 
-In figure \ref{fig:tps-sign-table-add-vars}
-
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-2k-factorial-sign-table-tps-add-variations.tex}}
@@ -345,19 +345,22 @@ In figure \ref{fig:tps-sign-table-add-vars}
   \label{fig:tps-sign-table-add-vars}
 \end{figure}
 
-This table suggests that the replication coefficient has the highest impact on throughput out of the factors that were considered.
+In figure \ref{fig:tps-sign-table-add-vars} variation explained by each factor is laid out, as well as the relative variation explained by each factor.
+
+This table suggests that the replication coefficient has the highest impact on throughput, out of the factors that were considered.
 A higher replication coefficient means that every write request needs to hit additional Memcache servers.
 This means that a significant ratio of the requests that passes through the middleware, the write requests, are suddenly a lot more expensive.
 As a result, the average request will take longer to get processed and consequently fewer requests can be processed in a given amount of time.
 The fact that this is the most important factor is consistent with the common knowledge \cite{latency} that the network is one of the most expensive parts of a distributed system.
 
 The next most important factor is the write percentage.
-This makes sense because write requests are more expensive than read requests, especially if replication is used (see above).
+This makes sense because write requests only have one thread to deal with them per server, as opposed to the entire thread pool that read requests get.
+In addition to this, write requests are more expensive than read requests as soon as any replication is used.
 
 The third most important factor is, interestingly, an interaction factor.
 The interaction between the replication coefficient and the write percentage is the third most important factor.
 This means that the impact of the replication coefficient on the throughput is even greater in the case of a greater write percentage and vice versa.
-This is because writes become a lot more expensive if replication is used, but writes need not be much more expensive than reads if no replication is used.
+This is because writes become a lot more expensive if replication is used, but writes need not be much more expensive than reads if no replication is used at all.
 
 The last factor that has a significant impact is the size of requests.
 This is because larger requests are more expensive for Memcache to process, but also because the middleware needs to do more work in order to process a larger request.
@@ -369,7 +372,7 @@ There are two more factors that have little impact on throughput: The combinatio
 
 Lastly almost none of the variation is explained by experimental error, which tells us that the experiments were rather internally consistent.
 
-For completeness: A multiplicative model was tried as well, but because difference between the maximum $y$ and the minimum $y$ is small so it gave similar results and the additive model already has little variation explained by error.
+For completeness: A multiplicative model was made as well, but because the difference between the maximum $y$ and the minimum $y$ is small, it gave similar results and the additive model already has little variation explained by error.
 
 % \begin{figure}[H]
 %   \centering
@@ -435,7 +438,7 @@ The details of this experiment can be found in figure \ref{fig:sut-think-time}.
 \end{figure}
 
 The middleware logs timestamps for the arrival of every request and for the time when the middleware responds.
-The difference between the moment in time when the middleware responds to one requests, and the moment in time where it receives the next request is an estimate of the think time of the client.
+The difference between the moment in time when the middleware responds to one request, and the moment in time where it receives the next request is an estimate of the think time of the client.
 This estimate is an over-approximation, but it should be relatively tight as the client, middleware and server are run on the same machine.
 
 Using this method, the average think time of a client was estimated to be $\input{\genfile{remote-replication-effect-irtl-think-time.tex}}$ microseconds on average.
@@ -455,7 +458,7 @@ The results can be found in figure \ref{fig:irtl-table}.
 
 As we can see, the estimated response time is smaller than the actual response time.
 The error is small but it makes sense.
-The average response time is not perfectly representative for the response time for a typical request because of the fact that the response times come from a skewed distribution with a long tail and the average is heavily influenced by outliers.
+The average response time is not perfectly representative for the response time of a typical request, because of the fact that the response times comes from a skewed distribution with a long tail, and the average is heavily influenced by outliers.
 This can be seen in figure \ref{fig:histo-resp}
 
 \begin{figure}[H]
