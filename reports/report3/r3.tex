@@ -350,7 +350,7 @@ In figure \ref{fig:tps-sign-table-add-vars} variation explained by each factor i
 This table suggests that the replication coefficient has the highest impact on throughput, out of the factors that were considered.
 A higher replication coefficient means that every write request needs to hit additional Memcache servers.
 This means that a significant ratio of the requests that passes through the middleware, the write requests, are suddenly a lot more expensive.
-As a result, the average request will take longer to get processed and consequently fewer requests can be processed in a given amount of time.
+As a result, the average request will take longer to be processed and consequently fewer requests can be processed in a given amount of time.
 The fact that this is the most important factor is consistent with the common knowledge \cite{latency} that the network is one of the most expensive parts of a distributed system.
 
 The next most important factor is the write percentage.
@@ -360,7 +360,7 @@ In addition to this, write requests are more expensive than read requests as soo
 The third most important factor is, interestingly, an interaction factor.
 The interaction between the replication coefficient and the write percentage is the third most important factor.
 This means that the impact of the replication coefficient on the throughput is even greater in the case of a greater write percentage and vice versa.
-This is because writes become a lot more expensive if replication is used, but writes need not be much more expensive than reads if no replication is used at all.
+This is because writes become significantly more expensive if replication is used, but writes need not be much more expensive than reads if no replication is used at all.
 
 The last factor that has a significant impact is the size of requests.
 This is because larger requests are more expensive for Memcache to process, but also because the middleware needs to do more work in order to process a larger request.
