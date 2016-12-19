@@ -5,11 +5,13 @@ import           Control.Monad.IO.Class
 import           Text.Printf
 
 import           Development.Shake
+import           Development.Shake.FilePath
 
 import           AslBuild.Analysis.Memaslap
 import           AslBuild.Analysis.Trace
 import           AslBuild.Analysis.Types
 import           AslBuild.Analysis.Utils
+import           AslBuild.Constants
 import           AslBuild.Experiment
 import           AslBuild.Experiments.MaximumThroughput
 import           AslBuild.Experiments.StabilityTrace
@@ -19,9 +21,9 @@ import           AslBuild.Reports.Utils
 import           AslBuild.Utils
 
 import           AslBuild.Models.MM1.Middleware
-import           AslBuild.Models.MM1.Report
 import           AslBuild.Models.MM1.Types
 import           AslBuild.Models.MM1.Utils
+import           AslBuild.Models.Utils
 
 mm1Rule :: String
 mm1Rule = "mm1-models"
@@ -49,11 +51,26 @@ ruleForStabilityTraces = "stability-trace-mm1-models"
 ruleForMaximumThroughputs :: String
 ruleForMaximumThroughputs = "maximum-throughput-mm1-models"
 
+mm1ModelTexFilePrefix :: ExperimentConfig a => a -> FilePath
+mm1ModelTexFilePrefix ecf = reportsTmpDir </> experimentTarget ecf ++ "-mm1" <.> texExt
+
+mm1ModelTexFileWithPostfix :: ExperimentConfig a => a -> String -> FilePath
+mm1ModelTexFileWithPostfix ecf postfix = changeFilename (++ "-" ++ postfix) $ mm1ModelTexFilePrefix ecf
+
+mm1ModelTexFiles :: ExperimentConfig a => a -> [FilePath]
+mm1ModelTexFiles ecf = do
+    postfix <- ["model", "measurements", "resprat", "waitrat", "arrival-rate", "service-rate"]
+    pure $ mm1ModelTexFileWithPostfix ecf postfix
+
+mm1ModelFileForReport :: FilePath -> Int -> FilePath
+mm1ModelFileForReport file i = file `replaceDirectory` modelDirForReport i
+
 useMM1ModelInReport :: ExperimentConfig a => a -> Int -> Rules ()
-useMM1ModelInReport ecf i = mm1ModelFileForReport ecf i `byCopying` mm1ModelTexFile ecf
+useMM1ModelInReport ecf i = forM_ (mm1ModelTexFiles ecf) $ \eff ->
+    mm1ModelFileForReport eff i `byCopying` eff
 
 dependOnMM1ModelForReport :: ExperimentConfig a => a -> Int -> Action ()
-dependOnMM1ModelForReport ecf i = need [mm1ModelFileForReport ecf i]
+dependOnMM1ModelForReport ecf i = need $ map (`mm1ModelFileForReport` i) $ mm1ModelTexFiles ecf
 
 mm1RuleFor :: ExperimentConfig a => a -> String
 mm1RuleFor ecf = experimentTarget ecf ++ "-mm1-model"
@@ -62,10 +79,10 @@ mm1RulesFor :: ExperimentConfig a => a -> Rules (Maybe String)
 mm1RulesFor ecf = onlyIfResultsExist ecf $ do
     estimateRule <- mm1EstimationRulesFor ecf
     middleRule <- mm1MiddlewareRulesFor ecf
-    reportRule <- mm1ReportRulesFor ecf
+    reportR <- mm1ReportRulesFor ecf
 
     let mm1target = mm1RuleFor ecf
-    mm1target ~> need [estimateRule, middleRule, reportRule]
+    mm1target ~> need [estimateRule, middleRule, reportR]
     return mm1target
 
 readMM1ModelFile :: MonadIO m => FilePath -> m MM1Model
@@ -126,24 +143,21 @@ mm1ReportRuleFor ecf = experimentTarget ecf ++ "-mm1-report-files"
 
 mm1ReportRulesFor :: ExperimentConfig a => a -> Rules String
 mm1ReportRulesFor ecf = do
-    let modelTexFile = mm1ModelTexFile ecf
-    modelTexFile %> \_ -> do
-        content <- makeMM1ReportContent ecf
-        writeFile' modelTexFile content
+    let modelTexFiles = mm1ModelTexFiles ecf
+    modelTexFiles &%> \_ -> makeMM1ReportContent ecf
 
     let target_ = mm1ReportRuleFor ecf
-    target_ ~> need [modelTexFile]
+    target_ ~> need modelTexFiles
     pure target_
 
-makeMM1ReportContent :: ExperimentConfig a => a -> Action String
+makeMM1ReportContent :: ExperimentConfig a => a -> Action ()
 makeMM1ReportContent ecf = do
-    -- TODO combine repititions
     slocss <- readResultsSummaryLocationsForCfg ecf
-    (unlines <$>) $ forP slocss $ \slocs -> do
+    forP_ slocss $ \slocs -> do
         erss <- mapM readResultsSummary slocs
         mrfs <- case mapM merMiddleResultsFile erss of
             Nothing -> fail "must have a middleware to evaluate mm1 model."
-            Just m -> pure m
+            Just m  -> pure m
 
         let combAvgDurFile = combinedAvgDurationFile ecf mrfs
         let mm1ModelFile = mm1ModelEstimateFileFor ecf slocs
@@ -162,43 +176,55 @@ makeMM1ReportContent ecf = do
         let totalNrClients = nrUsers setup
 
         mf <- case backendSetup setup of
-                Left _ -> fail "need middleware."
+                Left _        -> fail "need middleware."
                 Right (ms, _) -> pure $ mMiddlewareFlags ms
         let readThreadsPerServer = mwNrThreads mf
             nrSers = length $ mwServers mf
         let totalNrWorkers = (readThreadsPerServer + 1) * nrSers
 
+        let predictedMeanResp = mm1MeanResponseTime mm1
+        let predictedMeanWait = mm1MeanWaitingTime mm1
+
+        writeFile' (mm1ModelTexFileWithPostfix ecf "arrival-rate") (showDub $ arrivalRate mm1)
+        writeFile' (mm1ModelTexFileWithPostfix ecf "service-rate") (showDub $ serviceRate mm1)
+        writeFile' (mm1ModelTexFileWithPostfix ecf "resprat") (showDub $ timeFromMiddle actualMeanResp / timeFromModel predictedMeanWait)
+        writeFile' (mm1ModelTexFileWithPostfix ecf "waitrat") (showDub $ timeFromMiddle actualAvgWait / timeFromModel predictedMeanWait)
+
         let t1 = tabularWithHeader
-                [ "Measure", "Model"]
-                [ dline "Arrival rate (transactions / second)"  (arrivalRate mm1)
-                , dline "Service rate (transactions / second)"  (serviceRate mm1)
-                , dline "Traffic intensity (no unit)"           (mm1TrafficIntensity mm1)
-                , dline "Mean response time ($\\mu s$)"       (timeFromModel $ mm1MeanResponseTime mm1)
-                , dline "Std Dev response time ($\\mu s$)"    (timeFromModel $ mm1StdDevResponseTime mm1)
-                , dline "Mean waiting time ($\\mu s$)"        (timeFromModel $ mm1MeanWaitingTime mm1)
-                , dline "Std Dev waiting time ($\\mu s$)"     (timeFromModel $ mm1StdDevWaitingTime mm1)
-                , dline "Jobs in the queue"                   (mm1WaitingJobs mm1)
-                , dline "Jobs in the system"                  (mm1MeanNrJobs mm1)
-                , dline "Jobs in queue/jobs in system"        (mm1WaitingJobs mm1 / mm1MeanNrJobs mm1)
+                [ "Measure", "Model", "Unit"]
+                [ dline "Arrival rate"                  (arrivalRate mm1) "(transactions / second)"
+                , dline "Service rate"                  (serviceRate mm1) "(transactions / second)"
+                , dline "Traffic intensity"             (mm1TrafficIntensity mm1) ""
+                , dline "Mean response time"            predictedMeanResp "$\\mu s$"
+                , dline "Std Dev response time"         (timeFromModel $ mm1StdDevResponseTime mm1) "$\\mu s$"
+                , dline "Mean waiting time"             predictedMeanWait "$\\mu s$"
+                , dline "Std Dev waiting time"          (timeFromModel $ mm1StdDevWaitingTime mm1) "$\\mu s$"
+                , dline "Jobs in the queue"             (mm1WaitingJobs mm1) "Jobs"
+                , dline "Jobs in the system"            (mm1MeanNrJobs mm1) "Jobs"
+                , dline "Jobs in queue/jobs in system"  (mm1WaitingJobs mm1 / mm1MeanNrJobs mm1) ""
                 ]
+        writeFile' (mm1ModelTexFileWithPostfix ecf "model") t1
+
         let t2 = tabularWithHeader
-                [ "Measure", "Measurement"]
-                [ dline "Mean time in middleware ($\\mu s$)"       (timeFromMiddle actualMeanResp)
-                , dline "Std Dev time in middleware ($\\mu s$)"    (timeFromMiddle actualStdDevResp)
-                , dline "Mean time in queue ($\\mu s$)"             (timeFromMiddle actualAvgWait)
-                , dline "Std Dev time in queue ($\\mu s$)"          (timeFromMiddle actualStdDevWait)
-                , ["Total nr of workers", unwords ["$(", show readThreadsPerServer, "+ 1)", "\\times", show nrSers, "=", show totalNrWorkers, "$"]]
-                , iline "Jobs in the queue"                         (totalNrClients - totalNrWorkers)
-                , iline "Jobs in the system"                        totalNrClients
-                , dline "Jobs in queue/jobs in system"              (fromIntegral (totalNrClients - totalNrWorkers) / fromIntegral totalNrClients )
+                [ "Measure", "Measurement", "Unit"]
+                [ dline "Mean time in middleware"       (timeFromMiddle actualMeanResp) "$\\mu s$"
+                , dline "Std Dev time in middleware"    (timeFromMiddle actualStdDevResp) "$\\mu s$"
+                , dline "Mean time in queue"            (timeFromMiddle actualAvgWait) "$\\mu s$"
+                , dline "Std Dev time in queue"         (timeFromMiddle actualStdDevWait) "$\\mu s$"
+                , iline "Jobs in the system"            totalNrClients "Jobs"
+                , ["Total nr of workers", unwords ["$(", show readThreadsPerServer, "+ 1)", "\\times", show nrSers, "=", show totalNrWorkers, "$"], "Jobs"]
+                , ["Jobs in the queue", unwords["$(", show totalNrClients, "-", show totalNrWorkers, ") =", show $ totalNrClients - totalNrWorkers, "$"], "Jobs"]
+                , dline "Jobs in queue/jobs in system"  (fromIntegral (totalNrClients - totalNrWorkers) / fromIntegral totalNrClients ) ""
                 ]
-        pure $ unlines [t1, t2]
+        writeFile' (mm1ModelTexFileWithPostfix ecf "measurements") t2
+
+
   where
     -- Model only
-    dline :: String -> Double -> [String]
-    dline title val = [title, showDub val]
-    iline :: Show i => String -> i -> [String]
-    iline title val = [title, show val]
+    dline :: String -> Double -> String -> [String]
+    dline title val u = [title, showDub val, u]
+    iline :: Show i => String -> i -> String -> [String]
+    iline title val u = [title, show val, u]
     timeFromModel :: Double -> Double
     timeFromModel = (* (1000 * 1000))
     timeFromMiddle :: Double -> Double

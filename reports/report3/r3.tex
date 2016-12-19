@@ -108,11 +108,12 @@ In figure \ref{fig:mm1-black-box}, there is an illustration of the black box use
   \label{fig:mm1-black-box}
 \end{figure}
 
+The 'service' that the black box is providing is exactly one Memcache operation.
+The black box abstracts away from a lot of details, so while it's relatively easy to define what the 'service' is, we cannot really point to a component of the real system and call it the 'queue' of this model.
 
 \subsection{Parameter estimation}
 
 Next we pretend that everything in this black box corresponds to a system as modeled by an M/M/1 model, and try to estimate the parameters $\lambda$ and $\mu$ of the M/M/1 model.
-To justify the following estimation of the parameters, we rely on the fact that we are dealing with a closed system.
 
 The model parameters will be estimated on a stability trace experiment that was run in the first part of the project.
 However, due to updates to the system, this experiment has had to be re-run.
@@ -129,6 +130,7 @@ The details of the configuration can be found in figure \ref{fig:sut-stability-t
 
 The arrival rate $\lambda$ is estimated by the average\footnote{over the seconds of the trace} throughput as seen by the clients.
 Indeed, because we are dealing with a closed system, the rate at which requests arrive at the black box is exactly equal to the rate at which requests get processed.
+To justify this way of estimating $\lambda$, we rely on the fact that we are dealing with a closed system.
 
 \subsubsection{Estimation of the service rate $\mu$}
 
@@ -145,47 +147,47 @@ On the right-hand side we can see a comparison with data gathered from the syste
 
 \begin{figure}[H]
   \centering
-  \input{\model{remote-stability-trace-mm1.tex}}
+  \input{\model{remote-stability-trace-mm1-model.tex}}
   \caption{M/M/1 model}
   \label{fig:mm1-model}
 \end{figure}
 
 It is important to note that 'response time' means the total time before the black box replies.
 It has little to do with what the clients call the 'response time'.
-The mean waiting time on the left means the time that a request spends in the M/M/1 model queue before being processed.
+The mean waiting time means the time that a request spends in the M/M/1 model queue before being processed.
 
-The data that these predictions are compared with are the best available data for the comparison:
-The mean response time is compared to the difference between the average total time spent between receiving a request and sending a response by the middleware.
+\subsection{Comparison and mapping between comparison and system components}
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-stability-trace-mm1-measurements.tex}}
+  \caption{M/M/1 model}
+  \label{fig:mm1-measurements}
+\end{figure}
+
+Because the real system is much more complex than the system in an $M/M/1$ model, we cannot map measurements onto predictions perfectly.
+The data in figure \ref{fig:mm1-measurements} are the most relevant data available.
+
+The mean response time predicted by the model is compared to the average total time between receiving a request and sending a response (in the middleware).
 The mean waiting time is compared to the time between being enqueued and being dequeued by a request.
 
-\subsection{Mapping between comparison and system components}
+In both cases we see that the prediction is not even close to the measurements.
+The ratio between the measurements and the predictions are \input{\model{remote-stability-trace-mm1-resprat.tex}} and \input{\model{remote-stability-trace-mm1-waitrat.tex}} for response time and waiting time respectively.
 
-The M/M/1 model is a very limited model that cannot accurately represent the black box that it is covering.
-However, it can still provide some insight in the system at hand.
+This ratio is so large because the model does not take parallelisation in account.
+A system with only one queue and one server that achieved a service rate as high as \input{\model{remote-stability-trace-mm1-service-rate.tex}} with an arrival rate of \input{\model{remote-stability-trace-mm1-arrival-rate.tex}} would have to have a much shorter response time and waiting time than the real system.
 
-In the second part of figure \ref{fig:mm1-model}, we find some data gathered from experiments performed with the real system.
-The 'response time' predicted by the model can be compared with the 'response time' (total time between receiving a request and responding to the request).
-As we can see the real response time is much higher than the predicted response time.
-This makes sense as the model does not take parallelisation into account.
+Indeed, the ratio of the measured response time to the predicted response time is close to the total number of workers in the real system.
+The ratio is still smaller of course, because not every worker in the system is necessarily constantly busy.
 
-Nevertheless, there are some interesting observations to be made.
+The predicted number of jobs in the system is compared to the total number of clients in the system, an over-approximation for the real number of jobs in the system.
+The predicted number of jobs in the queue is compared to this approximation minus the total number of workers in the real system, an approximation of the total numbor of jobs in any queues in the middleware.
 
-TODO MENTION ACTUAL NUMBERS WHEN THE DATA IS FINAL.
+Once again we see that the predictions are a lot smaller than than the measured values.
+This is for the same reason: A system with one queue and one server that can process jobs with the given service rate at the given arrival rate would have much fewer jobs in the system and in its queue than the real system with parallelisation.
 
-The model predicts a number of jobs in the queue and in the system.
-The corresponding data of the real system is as follows.
-Given that we are dealing with a closed system, there are approximately as many jobs in the system as there are (virtual) clients.
-Similarly, given this approximation, there are approximately as many jobs in the system's queue(s) as there are are in the system, minus the amount that are being handled at the moment.
-The number of jobs that are currently being handled is approximately equal to the total number of workers in the system.
-
-The predicted number of jobs on the queue and in the system is much smaller than these estimates, but interestingly the ratio between the number of jobs in on the queue and the number of jobs in the system are remarkably similar.
-This makes sense because both the queues and the handling of queues are parallelised in the real system.
-
-Second, since there are many \TODO{how many} threads dequeuing from the same queue, it should hold that the predicted queueing time  times that number equals the actual queuing time.
-\TODO{WHY}
-We that this is in fact the case \TODO{show numbers}!
-
-\TODO{other connections}
+In fact, this can be show by looking at the ratio between the number of jobs in the queue and the number of jobs in the system.
+These ratios are very close, precicely as we would expect.
 
 \section{Analysis of System Based on Scalability Data}\label{sec:analysis-scalability}
 
