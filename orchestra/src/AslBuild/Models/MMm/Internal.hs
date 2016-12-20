@@ -21,6 +21,8 @@ data SimplifiedReplicationCsvLine = SimplifiedReplicationCsvLine
     , mmmModel :: MMmModel
     , actualTps :: MetaAvg
     , actualResp :: MetaAvg
+    , memaslapResp :: MetaAvg
+    , maxActualTps :: Double
     } deriving (Show, Eq, Generic)
 
 instance ToNamedRecord SimplifiedReplicationCsvLine where
@@ -29,17 +31,20 @@ instance ToNamedRecord SimplifiedReplicationCsvLine where
             [ "replicationFactor" .= replicationFactor
             , "replicationCoeff" .= replicationCoeff
             , "numberOfMemcacheds" .= numberOfMemcacheds
+            , "maxActualTps" .= maxActualTps
             ] <>
         toNamedRecord mmmModel <>
         mapKeys ("resp" <>) (toNamedRecord actualResp) <>
-        mapKeys ("tps" <>) (toNamedRecord actualTps)
+        mapKeys ("tps" <>) (toNamedRecord actualTps) <>
+        mapKeys ("mresp" <>) (toNamedRecord memaslapResp)
 
 instance DefaultOrdered SimplifiedReplicationCsvLine where
     headerOrder _ =
-        header ["replicationFactor", "replicationCoeff", "numberOfMemcacheds"] <>
+        header ["replicationFactor", "replicationCoeff", "numberOfMemcacheds", "maxActualTps"] <>
         headerOrder (undefined :: MMmModel) <>
         V.map ("resp" <>) (headerOrder (undefined :: MetaAvg)) <>
-        V.map ("tps" <>) (headerOrder (undefined :: MetaAvg))
+        V.map ("tps" <>) (headerOrder (undefined :: MetaAvg)) <>
+        V.map ("mresp" <>) (headerOrder (undefined :: MetaAvg))
 
 instance ToNamedRecord MMmModel where
     toNamedRecord mmm@MMmModel {..} =

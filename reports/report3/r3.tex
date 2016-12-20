@@ -200,8 +200,8 @@ These ratios are very close, precicely as we would expect.
 
 \subsection{Boundaries of M/M/m models}
 
-For this model, we use the same black box as in the last section.
-In figure \ref{fig:mmm-black-box}, there is an illustration of the black box used for this model.
+For these model, we use the same black box as in the last section.
+In figure \ref{fig:mmm-black-box}, there is an illustration of the black box used for these models.
 
 \begin{figure}[H]
   \centering
@@ -311,31 +311,40 @@ A number of observations can be made about this plot.
     As the increase in predicted response times is mainly due to the increase in the number of workers in the middleware, and this increase in number of workers is independent of the replication coefficient, it makes sense that the increase in predicted response times is also independent of the replication coefficient.
 
   \item
-    The real response times decrease for an increasing number of servers
+    The real response times decrease for an increasing number of servers.
 
     This makes sense because more servers allow for a better distribution of the load.
     With more servers, queues will more often be empty and as a result, requests spend less time in queues.
     As a result, the response time decreases.
 
-  \item
-    The decrease in real response times is dependent on the replication coefficient.
-    The response time decreases more slowly the higher the replication coefficient.
-\end{itemize}
+    Keep in mind that this is the response time as measured by the middleware.
+    The response time as measured by the clients does in fact behave exactly as the throughput would suggest in a closed system.
+    This can be seen in figure \ref{fig:replication-mmm-absresp}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{\plot{remote-replication-effect-mmm-model-byrepcof.png}}
-  \caption{Response time by Replication Coefficient}
-  \label{fig:replication-mmm-byrepcof}
-\end{figure}
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=.7\textwidth]{\plot{remote-replication-effect-mmm-model-absresp.png}}
+      \caption{Response time by Replication Coefficient}
+      \label{fig:replication-mmm-absresp}
+    \end{figure}
+
+    The reason behind this difference in the response time as measured by the middleware and the response time as measured by the client is due to the following phenomenon.
+    As the total number of workers increases with the number of servers, the workers have to contend more and more for CPU time.
+    That means that the thread that receives in the requests gets an increasingly smaller share of time to do so.
+    As long as requests haven't been received, their 'timer' for response time doesn't start yet.
+
+  \item
+    The decrease in real response times (as measured by the middleware) is dependent on the replication coefficient.
+
+    The same situation as described in the previous point happens for all different replication coefficients. 
+    However, as the replication coefficient increases, the replication factor increases and, as a result, write requests become a lot more expensive
+    This can be seen in both the response times as measured by the clients (figure \ref{fig:replication-mmm-byrepcof}) and the response times as measured by the middleware (figure \ref{fig:replication-mmm-absresp}).
+    This effect of more expensive write requests on the response time somewhat cancels out the effect of an increased number of servers on the response time (as measured by the middleware) that was described in the previous point.
+    As a result the response time decreases more slowly the higher the replication coefficient.
+    
+\end{itemize}
 
 Figure \ref{fig:replication-mmm-bynrsers} shows the same data as figure \ref{fig:replication-mmm-byrepcof}, but first grouped by the number of servers and then by the replication factor.
-
-On this plot we additionally see:
-
-\begin{itemize}
-  \item Both in the models and in the real data, the response time increases as the replication factor increases.
-\end{itemize}
 
 \begin{figure}[H]
   \centering
@@ -344,8 +353,25 @@ On this plot we additionally see:
   \label{fig:replication-mmm-bynrsers}
 \end{figure}
 
-\TODO{DO SOMETHING SIMILAR FOR THE WRITE EFFECT EXPERIMENT}
+On this plot we additionally see:
 
+\begin{itemize}
+  \item Both in the models and in the real data, the response time increases as the replication factor increases.
+
+    The reason why the real response times increase as the replication factor increases was already discussed previously: because write requests become more expensive.
+    The reason that the model models this trend well, is because of the decrease in maximum throughput as a result of an increased replication factor on throughput.
+    This can be seen in figure \ref{fig:replication-mmm-maxtps}.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=.7\textwidth]{\plot{remote-replication-effect-mmm-model-maxtps.png}}
+      \caption{Response time by Replication Coefficient}
+      \label{fig:replication-mmm-maxtps}
+    \end{figure}
+
+    A decrease in maximum throughput, for a fixed number of servers, directly results in a decreased service rate of the model.
+    As a result it makes sense that the response time predicted by the models increases.
+\end{itemize}
 
 \section{System as Network of Queues}\label{sec:network-of-queues}
 
