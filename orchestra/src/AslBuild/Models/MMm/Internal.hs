@@ -15,19 +15,21 @@ import AslBuild.Models.MMm.Types
 import AslBuild.Utils
 
 data SimplifiedReplicationCsvLine = SimplifiedReplicationCsvLine
-    { mmmModel :: MMmModel
+    { replicationFactor :: Int
+    , mmmModel :: MMmModel
     , actualTps :: MetaAvg
     , actualResp :: MetaAvg
     } deriving (Show, Eq, Generic)
 
 instance ToNamedRecord SimplifiedReplicationCsvLine where
     toNamedRecord SimplifiedReplicationCsvLine {..} =
-        toNamedRecord mmmModel <> mapKeys ("resp" <>) (toNamedRecord actualResp) <>
+        namedRecord ["replicationFactor" .= replicationFactor] <> toNamedRecord mmmModel <>
+        mapKeys ("resp" <>) (toNamedRecord actualResp) <>
         mapKeys ("tps" <>) (toNamedRecord actualTps)
 
 instance DefaultOrdered SimplifiedReplicationCsvLine where
     headerOrder _ =
-        headerOrder (undefined :: MMmModel) <>
+        header ["replicationFactor"] <> headerOrder (undefined :: MMmModel) <>
         V.map ("resp" <>) (headerOrder (undefined :: MetaAvg)) <>
         V.map ("tps" <>) (headerOrder (undefined :: MetaAvg))
 

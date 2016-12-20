@@ -1,3 +1,5 @@
+library(ggplot2)
+library(reshape2)
 args <- commandArgs(trailingOnly=TRUE)
 
 if (length(args) < 3) {
@@ -10,30 +12,23 @@ inFile <- args[2]
 outFile <- args[3]
 
 res = read.csv(inFile, header=TRUE, colClasses="numeric")
-print(res)
-
-resp = res$respavgavg
 
 startPng(outFile)
-plot(
-    NULL
-  , NULL
-  , type='n'
-  , xlim=c(0,1)
-  , ylim=c(0,max(resp))
-  , xlab="Utilisation rate"
-  , ylab="Response time (microseconds)"
-  )
 
-colors = c("red", "blue", "green")
+df <- data.frame(
+        nrServers = res$nrServers 
+      , replicationFactor = res$replicationFactor
+      , modelResp = res$meanResponseTime * 1000 * 1000 * 10
+      , realResp = res$respavgavg
+      )
 
-for (i in (1:nrow(res))) {
-  rhos = seq(from=0, to=0.95, by=0.01)
-  mu = res$serviceRate[i]
-  m = res$nrServers[i]
-  r = (1 / mu) * (1 + (rhos / (m * (1 - rhos)))) * 1000 * 1000
-  
-  c = colors[(i %% length(colors)) + 1]
-  lines(rhos, r, col=c)
-}
-points(res$trafficIntensity, resp)
+head(df)
+
+df.long <- melt(df, id.vars = c("nrServers", "replicationFactor"))
+
+print(df.long)
+
+gg <- ggplot(df.long)
+gg <- gg + geom_bar(aes(x = factor(replicationFactor), y = value, fill=variable), stat = "identity", position="dodge")
+gg <- gg + facet_grid (~ nrServers, scales="free_x")
+print(gg)

@@ -13,6 +13,8 @@ import AslBuild.Analysis.Utils
 import AslBuild.Constants
 import AslBuild.Experiment
 import AslBuild.Experiments.ReplicationEffect
+import AslBuild.Middle.Types
+import AslBuild.Middleware.Types
 import AslBuild.Models.MMm.Internal
 import AslBuild.Models.MMm.Report
 import AslBuild.Models.MMm.Types
@@ -156,19 +158,28 @@ mmmPlotsRulesFor ecf = do
                 let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
                 need [mmmFile, combinedResultsFile]
                 mmm <- readJSON mmmFile
+                ers <- readResultsSummary $ head slocs
+                setup <- readExperimentSetupForSummary ers
                 crs <- readCombinedClientsResults combinedResultsFile
+                (ms, _) <-
+                    case backendSetup setup of
+                        Left _ -> fail "Need middleware for M/M/m model."
+                        Right tup -> pure tup
+                let repfac = mwReplicationFactor $ mMiddlewareFlags ms
                 pure
                     SimplifiedReplicationCsvLine
-                    { mmmModel = mmm
+                    { replicationFactor = repfac
+                    , mmmModel = mmm
                     , actualTps = avgBothResults $ avgTpsResults crs
                     , actualResp = avgBothResults $ avgRespResults crs
                     }
-        putLoud $ unwords ["Making simplified CSV file", csvFile, "for" ++ experimentTarget ecf]
+        putLoud $ unwords ["Making simplified CSV file", csvFile, "for", experimentTarget ecf]
         writeCSV csvFile ls
     let plots = mmmReplicationEffectPlotsFor ecf
     plots &%> \_ -> do
         need [csvFile, mmmReplicationAnalysisScript, commonRLib, rBin, csvFile]
         putLoud $ unwords ["Making plots from CSV file", csvFile, ": ", show plots]
+        needRLibs ["ggplot2", "reshape2"]
         rScript mmmReplicationAnalysisScript commonRLib csvFile $ dropExtensions $ head plots
     let rule = mmmPlotsRuleFor ecf
     rule ~> need (csvFile : plots)

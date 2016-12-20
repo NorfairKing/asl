@@ -27,7 +27,7 @@ rlib name =
         cmd rBin tmpInstallScript
 
 rLibs :: [String]
-rLibs = ["igraph", "caTools", "pkgmaker", "ggplot2", "R.matlab", "RJSONIO"]
+rLibs = ["igraph", "caTools", "pkgmaker", "ggplot2", "R.matlab", "RJSONIO", "reshape2"]
 
 rArchive :: FilePath
 rArchive = tmpDir </> "R.tar.gz"
