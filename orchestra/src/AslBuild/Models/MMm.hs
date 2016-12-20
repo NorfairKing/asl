@@ -84,10 +84,7 @@ estimateMMmModel ecf slocs = do
     res <- readCombinedClientsResults combinedResultsFile
     ers <- readResultsSummary $ head slocs
     setup <- readExperimentSetupForSummary ers
-    m <-
-        case backendSetup setup of
-            Left _ -> fail "must have middleware to compute mmm model"
-            Right (_, ss) -> pure $ length ss
+    let m = nrWorkers setup
     -- Arrival rate as Average throughput
     let λ = avgAvgs $ avgBothResults $ avgTpsResults res
     -- Service rate as Maxiumum throughput divided by the number of servers

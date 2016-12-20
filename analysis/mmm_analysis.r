@@ -19,7 +19,7 @@ startPng(byNrSersFile)
 df <- data.frame(
         nrServers = res$nrServers 
       , replicationFactor = res$replicationFactor
-      , modelResp = res$meanResponseTime * 1000 * 1000 * 10
+      , modelResp = res$meanResponseTime * 1000 * 1000
       , realResp = res$respavgavg
       )
 df.long <- melt(df, id.vars = c("nrServers", "replicationFactor"))
@@ -35,7 +35,7 @@ startPng(byRepCofFile)
 df <- data.frame(
         nrServers = res$nrServers 
       , replicationCoefficient = res$replicationCoeff
-      , modelResp = res$meanResponseTime * 1000 * 1000 * 10
+      , modelResp = res$meanResponseTime * 1000 * 1000
       , realResp = res$respavgavg
       )
 df.long <- melt(df, id.vars = c("nrServers", "replicationCoefficient"))
