@@ -1,6 +1,7 @@
 module AslBuild.Models.MMm where
 
 import Control.Monad
+import Data.List
 
 import Development.Shake
 import Development.Shake.FilePath
@@ -125,9 +126,14 @@ makeMMmReportContent
     => a -> Action String
 makeMMmReportContent ecf = pure $ experimentTarget ecf
 
+mmmReplicationEffectPlotsPrefix :: ReplicationEffectCfg -> FilePath
+mmmReplicationEffectPlotsPrefix ecf =
+    experimentPlotsDir ecf </> intercalate "-" [experimentTarget ecf, "mmm-model"]
+
 mmmReplicationEffectPlotsFor :: ReplicationEffectCfg -> [FilePath]
-mmmReplicationEffectPlotsFor ecf =
-    [experimentPlotsDir ecf </> experimentTarget ecf ++ "-mmm-model" <.> pngExt]
+mmmReplicationEffectPlotsFor ecf = do
+    postfixes <- ["bynrsers", "byrepcof"]
+    pure $ intercalate "-" [mmmReplicationEffectPlotsPrefix ecf, postfixes] <.> pngExt
 
 useMMmPlotsInReport :: ReplicationEffectCfg -> Int -> Rules ()
 useMMmPlotsInReport ecf = usePlotsInReport $ mmmReplicationEffectPlotsFor ecf
@@ -147,6 +153,9 @@ mmmPlotsRuleFor
     => a -> String
 mmmPlotsRuleFor ecf = experimentTarget ecf ++ "-mmm-plot-files"
 
+replicationCoefficient :: Int -> Int -> Double
+replicationCoefficient nrSers repFac = fromIntegral (repFac - 1) / fromIntegral (nrSers - 1)
+
 mmmPlotsRulesFor :: ReplicationEffectCfg -> Rules String
 mmmPlotsRulesFor ecf = do
     let csvFile = mmmSimplifiedReplicationCsv ecf
@@ -161,14 +170,16 @@ mmmPlotsRulesFor ecf = do
                 ers <- readResultsSummary $ head slocs
                 setup <- readExperimentSetupForSummary ers
                 crs <- readCombinedClientsResults combinedResultsFile
-                (ms, _) <-
+                (ms, sss) <-
                     case backendSetup setup of
                         Left _ -> fail "Need middleware for M/M/m model."
                         Right tup -> pure tup
                 let repfac = mwReplicationFactor $ mMiddlewareFlags ms
+                let repcof = replicationCoefficient (length sss) repfac
                 pure
                     SimplifiedReplicationCsvLine
                     { replicationFactor = repfac
+                    , replicationCoeff = repcof
                     , mmmModel = mmm
                     , actualTps = avgBothResults $ avgTpsResults crs
                     , actualResp = avgBothResults $ avgRespResults crs
@@ -180,7 +191,8 @@ mmmPlotsRulesFor ecf = do
         need [csvFile, mmmReplicationAnalysisScript, commonRLib, rBin, csvFile]
         putLoud $ unwords ["Making plots from CSV file", csvFile, ": ", show plots]
         needRLibs ["ggplot2", "reshape2"]
-        rScript mmmReplicationAnalysisScript commonRLib csvFile $ dropExtensions $ head plots
+        rScript mmmReplicationAnalysisScript commonRLib csvFile $
+            mmmReplicationEffectPlotsPrefix ecf
     let rule = mmmPlotsRuleFor ecf
     rule ~> need (csvFile : plots)
     pure rule

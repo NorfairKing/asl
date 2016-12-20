@@ -16,6 +16,7 @@ import AslBuild.Utils
 
 data SimplifiedReplicationCsvLine = SimplifiedReplicationCsvLine
     { replicationFactor :: Int
+    , replicationCoeff :: Double
     , mmmModel :: MMmModel
     , actualTps :: MetaAvg
     , actualResp :: MetaAvg
@@ -23,13 +24,15 @@ data SimplifiedReplicationCsvLine = SimplifiedReplicationCsvLine
 
 instance ToNamedRecord SimplifiedReplicationCsvLine where
     toNamedRecord SimplifiedReplicationCsvLine {..} =
-        namedRecord ["replicationFactor" .= replicationFactor] <> toNamedRecord mmmModel <>
+        namedRecord
+            ["replicationFactor" .= replicationFactor, "replicationCoeff" .= replicationCoeff] <>
+        toNamedRecord mmmModel <>
         mapKeys ("resp" <>) (toNamedRecord actualResp) <>
         mapKeys ("tps" <>) (toNamedRecord actualTps)
 
 instance DefaultOrdered SimplifiedReplicationCsvLine where
     headerOrder _ =
-        header ["replicationFactor"] <> headerOrder (undefined :: MMmModel) <>
+        header ["replicationFactor", "replicationCoeff"] <> headerOrder (undefined :: MMmModel) <>
         V.map ("resp" <>) (headerOrder (undefined :: MetaAvg)) <>
         V.map ("tps" <>) (headerOrder (undefined :: MetaAvg))
 
