@@ -20,7 +20,7 @@ df <- data.frame(
         nrServers = res$numberOfMemcacheds 
       , replicationFactor = res$replicationFactor
       , modelResp = res$meanResponseTime * 1000 * 1000
-      , realResp = res$respavgavg
+      , realResp = res$respavgavg / 1000
       )
 df.long <- melt(df, id.vars = c("nrServers", "replicationFactor"))
 
@@ -38,7 +38,7 @@ df <- data.frame(
         nrServers = res$numberOfMemcacheds 
       , replicationCoefficient = res$replicationCoeff
       , modelResp = res$meanResponseTime * 1000 * 1000
-      , realResp = res$respavgavg
+      , realResp = res$respavgavg / 1000
       )
 df.long <- melt(df, id.vars = c("nrServers", "replicationCoefficient"))
 
@@ -47,4 +47,24 @@ gg <- gg + geom_bar(aes(x = factor(nrServers), y = value, fill=variable), stat =
 gg <- gg + facet_grid (~ replicationCoefficient, scales="free_x")
 gg <- gg + ggtitle("Response time by replication coefficient") + xlab("number of servers") + ylab("Response time μs")
 gg <- gg + scale_fill_discrete(name="Kind", labels=c("Model", "Real"))
+print(gg)
+
+absTpsFile = paste(outPrefix, "abstps", sep="-")
+startPng(absTpsFile)
+
+df <- data.frame(
+        nrServers = res$numberOfMemcacheds
+      , replicationCoefficient = res$replicationCoeff
+      , throughput = res$tpsavgavg
+      , tpsStd = res$tpsavgstd
+      )
+df$ID<-seq.int(nrow(df))
+
+
+gg <- ggplot(df, aes(x=factor(nrServers), y = throughput, fill=ID))
+gg <- gg + geom_bar(stat="identity", position="dodge")
+gg <- gg + geom_errorbar(aes(ymin=throughput - tpsStd, ymax=throughput + tpsStd), width=0.5)
+gg <- gg + facet_grid (~ replicationCoefficient, scales="free_x")
+gg <- gg + ggtitle("Absulote measured throughput by Replication Coefficient") + xlab("Number of servers") + ylab("Response time μs")
+gg <- gg + theme(legend.position="none")
 print(gg)

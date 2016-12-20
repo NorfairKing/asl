@@ -70,6 +70,9 @@ A model of the situation can be found in figure \ref{ref:complete-system}.
   \label{ref:complete-system}
 \end{figure}
 
+In this report I will use the same definitions as in the last report.
+Section 3 of the previous report lists them clearly.
+
 \section{System as One Unit}\label{sec:system-one-unit}
 
 % Length: 1-2 pages
@@ -197,6 +200,7 @@ These ratios are very close, precicely as we would expect.
 
 \subsection{Boundaries of M/M/m models}
 
+For this model, we use the same black box as in the last section.
 In figure \ref{fig:mmm-black-box}, there is an illustration of the black box used for this model.
 
 \begin{figure}[H]
@@ -215,15 +219,132 @@ In figure \ref{fig:mmm-black-box}, there is an illustration of the black box use
   \label{fig:mmm-black-box}
 \end{figure}
 
+\subsection{Parameter estimation}
+
+The arrival rate $\lambda$ is estimated just like for the M/M/1 model in the last section: as the average throughput.
+The reasoning behind this estimation is exactly the same as in the previous section.
+
+\subsubsection{Estimation of the number of servers}
+
+To estimate the number of servers $m$ in the $M/M/m$ model, it is tempting to use the number of Memcache instances.
+However, because all the workers in the middleware can work almost entirely in parallel, it makes more sense to use the total number of workers in the middleware instead.
+This total number of workers is equal to the number of Memcache instances times the number of threads in each reader thread pool plus one for the worker thread per server.
+
+\subsubsection{Estimation of the service rate $\mu$}
+
+The service rate $\mu$ is estimated using the maximum throughput, just like in the previous section, but unlike in the previous section, the service rate is estimate as this maximum throughput divided by the number of servers in this $M/M/m$ model.
+
+\subsubsection{Experiment}
+
+The data from which the $M/M/m$ models are estimated comes from the 'effect on replication experiment' from the previous report.
+Due to updates in the system, this experiment was re-run. The details of the setups can be found in figure \ref{fig:sut-remote-replication-effect}.
+
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{\plot{remote-replication-effect-mmm-model-bynrsers.png}}
+  \input{\genfile{remote-replication-effect-table.tex}}
+  \caption{Experiment setup}
+  \label{fig:sut-remote-replication-effect}
 \end{figure}
+
+\subsection{Characteristics of the models}
+
+For each different setup, a seperate $M/M/m$ model was built according to the estimation techniques above.
+The resulting models can be found in figure \ref{fig:mmm-model}.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-replication-effect-mmm.tex}}
+  \caption{M/M/m models}
+  \label{fig:mmm-model}
+\end{figure}
+
+In this table $S$ is the number of memcache instances, $R$ is the replication factor, $\rho$ is the traffic intensity and $E[r]$ is the predicted average response time.
+
+The traffic intensity and response time are predicted according to the formulas in Box 31.2 of the book \cite{jain2010art}.
+
+\subsection{Comparison with real data and analysis}
+
+In figure \ref{fig:replication-mmm-byrepcof} and \ref{fig:replication-mmm-bynrsers}, response times are plotted.
+The 'Real' response times are the 'response times' as measured by the middleware.
+This is the total time for an average request being received and a response being sent.
+The 'Model' response times are the average responses of the model system predicted by each $M/M/m$ model.
+
+In figure \ref{fig:replication-mmm-byrepcof}, the bars are first grouped by replication coefficient, and then by number of servers.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{\plot{remote-replication-effect-mmm-model-byrepcof.png}}
+  \caption{Response time by Replication Coefficient}
+  \label{fig:replication-mmm-byrepcof}
 \end{figure}
+
+A number of observations can be made about this plot.
+
+\begin{itemize}
+  \item
+    The models predict a severe increase in response time for an increased number of servers.
+  
+    This is because of the way the models are constructed from both the throughput and number of workers.
+    To explain, we have to look at a similar plot, but this time plotting absolute throughput on the y axis as in figure \ref{fig:replication-mmm-abstps}.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=.7\textwidth]{\plot{remote-replication-effect-mmm-model-abstps.png}}
+      \caption{Response time by Replication Coefficient}
+      \label{fig:replication-mmm-abstps}
+    \end{figure}
+
+    As we can see, for fixed replication coefficients $0$ and $0.5$ and an increasing number of Memcache instances, throughput first increases and then decreases.
+    This is because the number of worker threads in the middleware increases for every new server.
+    This increase in number of worker threads helps throughput when going from $3$ to $5$ servers, but when going from $5$ to $7$ servers, the extra workers don't help anymore because of the way they need to contend for CPU time.
+    This initial increase weakens as the replication coefficient increases because of how much more expensive writes become, and for full replication it is completely gone.
+    Overall throughput decreases (slightly) as the number of servers increases.
+
+    However, the number of workers increases rapidly (linearly) as more servers are added.
+    This means that that the service rates of the models decrease as the number of servers grow, mainly because the number of servers in the model increases so quickly.
+    When service rates drop in the models, the predicted response time increses, which is why this observation concerning response times makes sense.
+
+  \item
+    The severity of this increase is independent of the replication coefficient.
+
+    After the previous explanation, this makes perfect sense as well.
+    As the increase in predicted response times is mainly due to the increase in the number of workers in the middleware, and this increase in number of workers is independent of the replication coefficient, it makes sense that the increase in predicted response times is also independent of the replication coefficient.
+
+  \item
+    The real response times decrease for an increasing number of servers
+
+    This makes sense because more servers allow for a better distribution of the load.
+    With more servers, queues will more often be empty and as a result, requests spend less time in queues.
+    As a result, the response time decreases.
+
+  \item
+    The decrease in real response times is dependent on the replication coefficient.
+    The response time decreases more slowly the higher the replication coefficient.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{\plot{remote-replication-effect-mmm-model-byrepcof.png}}
+  \caption{Response time by Replication Coefficient}
+  \label{fig:replication-mmm-byrepcof}
+\end{figure}
+
+Figure \ref{fig:replication-mmm-bynrsers} shows the same data as figure \ref{fig:replication-mmm-byrepcof}, but first grouped by the number of servers and then by the replication factor.
+
+On this plot we additionally see:
+
+\begin{itemize}
+  \item Both in the models and in the real data, the response time increases as the replication factor increases.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{\plot{remote-replication-effect-mmm-model-bynrsers.png}}
+  \caption{Response time by Number of Servers}
+  \label{fig:replication-mmm-bynrsers}
+\end{figure}
+
+\TODO{DO SOMETHING SIMILAR FOR THE WRITE EFFECT EXPERIMENT}
 
 
 \section{System as Network of Queues}\label{sec:network-of-queues}
@@ -496,12 +617,5 @@ In conclusion, the data gathered during the performed experiments looks valid.
   \bibitem{qr}
     The `queuing' package for the Octave programming language \url{http://www.moreno.marzolla.name/software/queueing/}
 \end{thebibliography}
-
-% \begin{figure}[H]
-%   \centering
-%   \input{\genfile{remote-replication-effect-table.tex}}
-%   \caption{Replication effect experiment}
-%   \label{fig:sut-replication-effoct}
-% \end{figure}
 
 \end{document}

@@ -1,26 +1,31 @@
+{-# LANGUAGE RecordWildCards #-}
 module AslBuild.Models.MMm where
 
-import Control.Monad
-import Data.List
+import           Control.Monad
+import           Control.Monad.IO.Class
+import           Data.List
+import           Text.Printf
 
-import Development.Shake
-import Development.Shake.FilePath
+import           Development.Shake
+import           Development.Shake.FilePath
 
-import AslBuild.Analysis.BuildR
-import AslBuild.Analysis.Common
-import AslBuild.Analysis.Memaslap
-import AslBuild.Analysis.Types
-import AslBuild.Analysis.Utils
-import AslBuild.Constants
-import AslBuild.Experiment
-import AslBuild.Experiments.ReplicationEffect
-import AslBuild.Middle.Types
-import AslBuild.Middleware.Types
-import AslBuild.Models.MMm.Internal
-import AslBuild.Models.MMm.Report
-import AslBuild.Models.MMm.Types
-import AslBuild.Reports.Common
-import AslBuild.Utils
+import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.Common
+import           AslBuild.Analysis.Memaslap
+import           AslBuild.Analysis.Trace
+import           AslBuild.Analysis.Types
+import           AslBuild.Analysis.Utils
+import           AslBuild.Constants
+import           AslBuild.Experiment
+import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Middle.Types
+import           AslBuild.Middleware.Types
+import           AslBuild.Models.MMm.Internal
+import           AslBuild.Models.MMm.Report
+import           AslBuild.Models.MMm.Types
+import           AslBuild.Reports.Common
+import           AslBuild.Reports.Utils
+import           AslBuild.Utils
 
 mmmRule :: String
 mmmRule = "mmm-models"
@@ -91,6 +96,9 @@ estimateMMmModel ecf slocs = do
     let μ = avg (avgMaxTps res) / fromIntegral m
     pure $ MMmModel λ μ m
 
+readMMmModelFile :: MonadIO m => FilePath -> m MMmModel
+readMMmModelFile = readJSON
+
 useMMmModelInReport
     :: ExperimentConfig a
     => a -> Int -> Rules ()
@@ -121,7 +129,36 @@ mmmReportRulesFor ecf = do
 makeMMmReportContent
     :: ExperimentConfig a
     => a -> Action String
-makeMMmReportContent ecf = pure $ experimentTarget ecf
+makeMMmReportContent ecf = do
+    slocss <- readResultsSummaryLocationsForCfg ecf
+    trips <- forP slocss $ \slocs -> do
+        let modelFile = mmmModelEstimateFileFor ecf slocs
+        need [modelFile]
+        model <- readMMmModelFile modelFile
+        ers <- readResultsSummary $ head slocs
+        setup <- readExperimentSetupForSummary ers
+        pure (modelFile, model, setup)
+
+    putLoud $ unwords ["Making M/M/m model tex file from models", show $ map (\(a, _, _) ->a ) trips]
+
+    rows <- forM trips $ \(_, model@MMmModel{..}, setup) -> do
+        (ms, sss) <- case backendSetup setup of
+            Left _    -> fail "need middleware for mmm texfiles"
+            Right tup -> pure tup
+        let repfac = mwReplicationFactor $ mMiddlewareFlags ms
+        pure
+            [ printf "%d" $ length sss
+            , printf "%d" $ repfac
+            , printf "%.f" arrivalRate
+            , printf "%.2f" serviceRate
+            , show nrServers
+            , printf "%.3f" $ mmmTrafficIntensity model
+            , printf "%.f" $ mmmMeanResponseTime model * 1000 * 1000
+            ]
+    let tab = tabularWithHeader
+            ["$S$", "$R$", "$\\lambda$", "$\\mu$", "$m$", "$\\rho$", "E[r] ($\\mu s$)"]
+            rows
+    pure tab
 
 mmmReplicationEffectPlotsPrefix :: ReplicationEffectCfg -> FilePath
 mmmReplicationEffectPlotsPrefix ecf =
@@ -129,7 +166,7 @@ mmmReplicationEffectPlotsPrefix ecf =
 
 mmmReplicationEffectPlotsFor :: ReplicationEffectCfg -> [FilePath]
 mmmReplicationEffectPlotsFor ecf = do
-    postfixes <- ["bynrsers", "byrepcof"]
+    postfixes <- ["bynrsers", "byrepcof", "abstps"]
     pure $ intercalate "-" [mmmReplicationEffectPlotsPrefix ecf, postfixes] <.> pngExt
 
 useMMmPlotsInReport :: ReplicationEffectCfg -> Int -> Rules ()
@@ -163,13 +200,19 @@ mmmPlotsRulesFor ecf = do
                 let mmmFile = mmmModelEstimateFileFor ecf slocs
                 let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
                 need [mmmFile, combinedResultsFile]
-                mmm <- readJSON mmmFile
-                ers <- readResultsSummary $ head slocs
-                setup <- readExperimentSetupForSummary ers
+                erss <- mapM readResultsSummary slocs
+                mes <- case mapM merMiddleResultsFile erss of
+                    Nothing -> fail "Need middleware traces for M/M/m model."
+                    Just m  -> pure m
+                let combinedMiddlewareFile = combinedAvgDurationFile ecf mes
+                need [combinedMiddlewareFile]
+                mmm <- readMMmModelFile mmmFile
+                setup <- readExperimentSetupForSummary $ head erss
                 crs <- readCombinedClientsResults combinedResultsFile
+                mrs <- readCombinedAvgDursFile combinedMiddlewareFile
                 (ms, sss) <-
                     case backendSetup setup of
-                        Left _ -> fail "Need middleware for M/M/m model."
+                        Left _    -> fail "Need middleware for M/M/m model."
                         Right tup -> pure tup
                 let nrMemcacheds = length sss
                 let repfac = mwReplicationFactor $ mMiddlewareFlags ms
@@ -181,7 +224,7 @@ mmmPlotsRulesFor ecf = do
                     , numberOfMemcacheds = nrMemcacheds
                     , mmmModel = mmm
                     , actualTps = avgBothResults $ avgTpsResults crs
-                    , actualResp = avgBothResults $ avgRespResults crs
+                    , actualResp = totalDuration mrs
                     }
         putLoud $ unwords ["Making simplified CSV file", csvFile, "for", experimentTarget ecf]
         writeCSV csvFile ls
