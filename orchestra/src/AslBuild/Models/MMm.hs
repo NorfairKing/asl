@@ -171,12 +171,14 @@ mmmPlotsRulesFor ecf = do
                     case backendSetup setup of
                         Left _ -> fail "Need middleware for M/M/m model."
                         Right tup -> pure tup
+                let nrMemcacheds = length sss
                 let repfac = mwReplicationFactor $ mMiddlewareFlags ms
-                let repcof = replicationCoefficient (length sss) repfac
+                let repcof = replicationCoefficient nrMemcacheds repfac
                 pure
                     SimplifiedReplicationCsvLine
                     { replicationFactor = repfac
                     , replicationCoeff = repcof
+                    , numberOfMemcacheds = nrMemcacheds
                     , mmmModel = mmm
                     , actualTps = avgBothResults $ avgTpsResults crs
                     , actualResp = avgBothResults $ avgRespResults crs
