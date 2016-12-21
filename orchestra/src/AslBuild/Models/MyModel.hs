@@ -5,6 +5,7 @@ module AslBuild.Models.MyModel where
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Hashable
+import Text.Printf
 
 import Development.Shake
 import Development.Shake.FilePath
@@ -256,5 +257,35 @@ genTexfilesFor
     :: ExperimentConfig a
     => a -> Action ()
 genTexfilesFor ecf = do
-    let tab = tabularWithHeader ["Hi"] [["Hi"]]
+    slocss <- readResultsSummaryLocationsForCfg ecf
+    slocs <-
+        case slocss of
+            [x] -> pure x
+            _ -> fail "Need exactly one model for Mymodel texfiles."
+    let myModelFile = myModelEstimateFileFor ecf slocs
+    need [myModelFile]
+    MyModel {..} <- readMyModelFile myModelFile
+    let unmodeltime = (* (1000 * 1000))
+    let tab =
+            tabularWithHeader
+                ["Measure", "Value", "Unit"]
+                [ ["Arrival rate", printf "%.f" overallArrivalRate, "transactions / second"]
+                , [ "Acceptor service time"
+                  , printf "%.f" $ unmodeltime acceptorServiceTime
+                  , "$\\mu s$"
+                  ]
+                , [ "Read worker service time"
+                  , printf "%.f" $ unmodeltime getServiceTime
+                  , "$\\mu s$"
+                  ]
+                , ["Nr of reader servers", printf "%.f" getNrServers, "Servers"]
+                , [ "Write sender service time"
+                  , printf "%.f" $ unmodeltime setServiceTime
+                  , "$\\mu s$"
+                  ]
+                , [ "Write receiver service time"
+                  , printf "%.f" $ unmodeltime setIServiceTime
+                  , "$\\mu s$"
+                  ]
+                ]
     writeFile' (myModelModelTexFileWithPostfix ecf "model") tab

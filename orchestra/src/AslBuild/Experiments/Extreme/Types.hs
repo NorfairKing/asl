@@ -35,7 +35,8 @@ instance ExperimentConfig ExtremeCfg where
                         modif defaultMiddle $ \m ->
                             m
                             { mMiddlewareFlags =
-                                  (mMiddlewareFlags m) {mwReplicationFactor = length sers}
+                                  (mMiddlewareFlags m)
+                                  {mwReplicationFactor = (length sers `div` 2) + 1}
                             }
                 let defaultClients =
                         genClientSetup fc cls (middleRemoteServer . middle) signGlobally exRuntime
