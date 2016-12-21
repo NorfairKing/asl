@@ -10,6 +10,7 @@ import AslBuild.Experiments.ThinkTime
 import AslBuild.IRTL
 import AslBuild.Models.MM1
 import AslBuild.Models.MMm
+import AslBuild.Models.MyModel
 
 import AslBuild.Reports.Common
 import AslBuild.Reports.ExperimentFormat
@@ -24,7 +25,6 @@ report3Rules = report 3 texPreAction customRules
         remoteStabilityTrace `useMM1ModelInReport` 3
         remoteReplicationEffect `useMMmModelInReport` 3
         remoteReplicationEffect `useMMmPlotsInReport` 3
-        -- remoteWriteEffect `useMMmModelInReport` 3
         remoteReplicationEffect `useIrtlGenfileInReport` 3
         remoteReplicationEffect `useIrtlPlotInReport` 3
         remoteReplicationEffect `useIrtlThinkTimeFileInReport` 3
@@ -34,6 +34,7 @@ report3Rules = report 3 texPreAction customRules
         remoteFactorial `useSignTableInReport` 3
         remoteFactorial `useExperimentTableInReport` 3
         remoteExtreme `useExperimentTableInReport` 3
+        remoteExtreme `useMyModelInReport` 3
         useTheseLogfileListingsForReport
             3
             [ loglistingFileFor remoteStabilityTrace
@@ -46,7 +47,6 @@ report3Rules = report 3 texPreAction customRules
         remoteStabilityTrace `dependOnMM1ModelForReport` 3
         remoteReplicationEffect `dependOnMMmModelForReport` 3
         remoteReplicationEffect `dependOnMMmPlotsForReport` 3
-        -- remoteWriteEffect `dependOnMMmModelForReport` 3
         remoteReplicationEffect `dependOnIrtlGenfileForReport` 3
         remoteReplicationEffect `dependOnIrtlPlotForReport` 3
         remoteReplicationEffect `dependOnIrtlThinkTimeFileForReport` 3
@@ -56,5 +56,6 @@ report3Rules = report 3 texPreAction customRules
         remoteFactorial `dependOnSignTableForReport` 3
         remoteFactorial `dependOnExperimentTableForReport` 3
         remoteExtreme `dependOnExperimentTableForReport` 3
+        remoteExtreme `dependOnMyModelForReport` 3
         need [architecturePng]
         dependOnLogfileListingsForReport 3

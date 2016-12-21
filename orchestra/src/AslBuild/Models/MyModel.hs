@@ -25,6 +25,7 @@ import AslBuild.Middle.Types
 import AslBuild.Middleware.Types
 import AslBuild.Models.MyModel.Types
 import AslBuild.Models.Utils
+import AslBuild.Reports.Utils
 import AslBuild.Utils
 
 myModelRule :: String
@@ -42,26 +43,6 @@ ruleForReplicationEffects = "replication-effect-my-models"
 ruleForExtremes :: String
 ruleForExtremes = "extreme-my-models"
 
-myModelTexFile
-    :: ExperimentConfig a
-    => a -> FilePath
-myModelTexFile ecf = reportsTmpDir </> experimentTarget ecf ++ "-my-model" <.> texExt
-
-myModelFileForReport
-    :: ExperimentConfig a
-    => a -> Int -> FilePath
-myModelFileForReport ecf = (myModelTexFile ecf `modelFileForReport`)
-
-useMyModelInReport
-    :: ExperimentConfig a
-    => a -> Int -> Rules ()
-useMyModelInReport ecf i = myModelFileForReport ecf i `byCopying` myModelTexFile ecf
-
-dependOnMyModelForReport
-    :: ExperimentConfig a
-    => a -> Int -> Action ()
-dependOnMyModelForReport ecf i = need [myModelFileForReport ecf i]
-
 myModelRuleFor
     :: ExperimentConfig a
     => a -> String
@@ -74,8 +55,9 @@ myModelRulesFor ecf =
     onlyIfResultsExist ecf $ do
         estr <- myEstimationRulesFor ecf
         evtr <- evaluationRulesFor ecf
+        tftr <- texfileRulesFor ecf
         let rule = myModelRuleFor ecf
-        rule ~> need [estr, evtr]
+        rule ~> need [estr, evtr, tftr]
         pure rule
 
 readMyModelFile
@@ -224,3 +206,55 @@ evaluationRulesFor ecf = do
                     (show setIServiceTime)
             unit $ cmd "cat" outResultPath
     pure rule
+
+myModelTexFilePrefix
+    :: ExperimentConfig a
+    => a -> FilePath
+myModelTexFilePrefix ecf = reportsTmpDir </> experimentTarget ecf ++ "-mymodel" <.> texExt
+
+myModelModelTexFileWithPostfix
+    :: ExperimentConfig a
+    => a -> String -> FilePath
+myModelModelTexFileWithPostfix ecf postfix =
+    changeFilename (++ "-" ++ postfix) $ myModelTexFilePrefix ecf
+
+myModelTexFiles
+    :: ExperimentConfig a
+    => a -> [FilePath]
+myModelTexFiles ecf = [myModelModelTexFileWithPostfix ecf "model"]
+
+myModelFileForReport :: FilePath -> Int -> FilePath
+myModelFileForReport file i = file `replaceDirectory` modelDirForReport i
+
+useMyModelInReport
+    :: ExperimentConfig a
+    => a -> Int -> Rules ()
+useMyModelInReport ecf i =
+    forM_ (myModelTexFiles ecf) $ \eff -> myModelFileForReport eff i `byCopying` eff
+
+dependOnMyModelForReport
+    :: ExperimentConfig a
+    => a -> Int -> Action ()
+dependOnMyModelForReport ecf i = need $ map (`myModelFileForReport` i) $ myModelTexFiles ecf
+
+texfileRuleFor
+    :: ExperimentConfig a
+    => a -> String
+texfileRuleFor ecf = experimentTarget ecf ++ "-mymodel-texfiles"
+
+texfileRulesFor
+    :: ExperimentConfig a
+    => a -> Rules String
+texfileRulesFor ecf = do
+    let texfiles = myModelTexFiles ecf
+    texfiles &%> \_ -> genTexfilesFor ecf
+    let rule = texfileRuleFor ecf
+    rule ~> need texfiles
+    pure rule
+
+genTexfilesFor
+    :: ExperimentConfig a
+    => a -> Action ()
+genTexfilesFor ecf = do
+    let tab = tabularWithHeader ["Hi"] [["Hi"]]
+    writeFile' (myModelModelTexFileWithPostfix ecf "model") tab
