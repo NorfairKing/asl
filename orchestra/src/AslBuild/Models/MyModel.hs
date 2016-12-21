@@ -162,52 +162,67 @@ octaveScript = analysisDir </> "octave_in.oct"
 octaveFunction :: FilePath
 octaveFunction = analysisDir </> "analyze_mymodel.m"
 
+mymodelSolutionFileFor :: ExperimentConfig a => a -> [FilePath] -> FilePath
+mymodelSolutionFileFor ecf =
+    changeFilename (const "my-model-solution") .
+    (`replaceSndDir` experimentAnalysisTmpDir ecf) . head
+
 evaluationRulesFor
     :: ExperimentConfig a
     => a -> Rules String
 evaluationRulesFor ecf = do
-    let rule = evaluationRuleFor ecf
-    rule ~> do
-        need [rBin, commonRLib, myModelEvaluationScript, octaveScript, octaveFunction]
-        needRLibs ["R.matlab", "RJSONIO"]
-        let tmpResultDir = "/tmp/octave_out"
-            outResultDir = "/tmp/model_out"
-        unit $ cmd "mkdir" "--parents" tmpResultDir
-        unit $ cmd "mkdir" "--parents" outResultDir
-        slocss <- readResultsSummaryLocationsForCfg ecf
-        forM_ slocss $ \slocs -> do
-            ers <- readResultsSummary $ head slocs
-            setup <- readExperimentSetupForSummary ers
-            (middleSetup, serverSetups) <-
-                case backendSetup setup of
-                    Left _    -> fail "need middlesetup for my model."
-                    Right tup -> pure tup
+    slocss <- readResultsSummaryLocationsForCfg ecf
+    solutionFiles <- forM slocss $ \slocs -> do
+        let solutionFile = mymodelSolutionFileFor ecf  slocs
+        solutionFile %> \_ -> do
             let modelFile = myModelEstimateFileFor ecf slocs
-            need [modelFile]
-            MyModel {..} <- readMyModelFile modelFile
-            let tmpResultPath = tmpResultDir </> show (hash slocs)
-                outResultPath = outResultDir </> show (hash slocs)
-            let nrSers = length serverSetups
-            let nrThds = mwNrThreads $ mMiddlewareFlags middleSetup
-            let writeProp = setProportion $ msConfig $ cMemaslapSettings $ head $ clientSetups setup
-            unless (getNrServers == fromIntegral nrThds) $ fail "wut."
-            unit $
-                rScript
-                    myModelEvaluationScript
-                    commonRLib
-                    tmpResultPath
-                    outResultPath
-                    (show nrSers)
-                    (show nrThds)
-                    (show writeProp)
-                    (show overallArrivalRate)
-                    (show acceptorServiceTime)
-                    (show getServiceTime)
-                    (show setServiceTime)
-                    (show setIServiceTime)
-            resultByOctave <- readJSON outResultPath :: Action ByOctaveMyModelSolution
-            putLoud $ show resultByOctave
+            need [modelFile, rBin, commonRLib, myModelEvaluationScript, octaveScript, octaveFunction]
+            needRLibs ["R.matlab", "RJSONIO"]
+            putLoud $ unwords ["Solving my model in", modelFile, "and dumping the result in", solutionFile]
+            solution <- solveMyModel ecf slocs
+            writeJSON solutionFile solution
+        pure solutionFile
+
+    let rule = evaluationRuleFor ecf
+    rule ~> need solutionFiles
     pure rule
+
+solveMyModel :: ExperimentConfig a => a -> [FilePath] -> Action MyModelSolution
+solveMyModel ecf slocs = do
+    ers <- readResultsSummary $ head slocs
+    setup <- readExperimentSetupForSummary ers
+    (middleSetup, serverSetups) <-
+        case backendSetup setup of
+            Left _    -> fail "need middlesetup for my model."
+            Right tup -> pure tup
+    let modelFile = myModelEstimateFileFor ecf slocs
+    MyModel {..} <- readMyModelFile modelFile
+    let tmpResultDir = "/tmp/octave_out"
+        outResultDir = "/tmp/model_out"
+    unit $ cmd "mkdir" "--parents" tmpResultDir
+    unit $ cmd "mkdir" "--parents" outResultDir
+    let tmpResultPath = tmpResultDir </> show (hash slocs)
+        outResultPath = outResultDir </> show (hash slocs)
+    let nrSers = length serverSetups
+    let nrThds = mwNrThreads $ mMiddlewareFlags middleSetup
+    let writeProp = setProportion $ msConfig $ cMemaslapSettings $ head $ clientSetups setup
+    unless (getNrServers == fromIntegral nrThds) $ fail "wut."
+    unit $
+        rScript
+            myModelEvaluationScript
+            commonRLib
+            tmpResultPath
+            outResultPath
+            (show nrSers)
+            (show nrThds)
+            (show writeProp)
+            (show overallArrivalRate)
+            (show acceptorServiceTime)
+            (show getServiceTime)
+            (show setServiceTime)
+            (show setIServiceTime)
+    resultByOctave <- readJSON outResultPath :: Action ByOctaveMyModelSolution
+    pure $ unOctave resultByOctave
 
 myModelTexFilePrefix
     :: ExperimentConfig a
