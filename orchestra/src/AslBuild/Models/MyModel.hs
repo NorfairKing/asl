@@ -2,32 +2,32 @@
 
 module AslBuild.Models.MyModel where
 
-import Control.Monad
-import Control.Monad.IO.Class
-import Data.Hashable
-import Text.Printf
+import           Control.Monad
+import           Control.Monad.IO.Class
+import           Data.Hashable
+import           Text.Printf
 
-import Development.Shake
-import Development.Shake.FilePath
+import           Development.Shake
+import           Development.Shake.FilePath
 
-import AslBuild.Analysis.BuildR
-import AslBuild.Analysis.Common
-import AslBuild.Analysis.Memaslap
-import AslBuild.Analysis.Trace
-import AslBuild.Analysis.Types
-import AslBuild.Analysis.Utils
-import AslBuild.Client.Types
-import AslBuild.Constants
-import AslBuild.Experiment
-import AslBuild.Experiments.Extreme
-import AslBuild.Experiments.ReplicationEffect
-import AslBuild.Memaslap.Types
-import AslBuild.Middle.Types
-import AslBuild.Middleware.Types
-import AslBuild.Models.MyModel.Types
-import AslBuild.Models.Utils
-import AslBuild.Reports.Utils
-import AslBuild.Utils
+import           AslBuild.Analysis.BuildR
+import           AslBuild.Analysis.Common
+import           AslBuild.Analysis.Memaslap
+import           AslBuild.Analysis.Trace
+import           AslBuild.Analysis.Types
+import           AslBuild.Analysis.Utils
+import           AslBuild.Client.Types
+import           AslBuild.Constants
+import           AslBuild.Experiment
+import           AslBuild.Experiments.Extreme
+import           AslBuild.Experiments.ReplicationEffect
+import           AslBuild.Memaslap.Types
+import           AslBuild.Middle.Types
+import           AslBuild.Middleware.Types
+import           AslBuild.Models.MyModel.Types
+import           AslBuild.Models.Utils
+import           AslBuild.Reports.Utils
+import           AslBuild.Utils
 
 myModelRule :: String
 myModelRule = "my-models"
@@ -101,7 +101,7 @@ estimateMyModel ecf slocs = do
     ers <- mapM readResultsSummary slocs
     mrfs <-
         case mapM merMiddleResultsFile ers of
-            Nothing -> fail "Need middles for my model."
+            Nothing  -> fail "Need middles for my model."
             Just mes -> pure mes
     let combinedResultsFile = combinedClientRepsetResultsFile ecf slocs
     let combinedAvgDursFile = combinedAvgDurationFile ecf mrfs
@@ -122,7 +122,7 @@ estimateMyModel ecf slocs = do
     avgWriteDurs <- readCombinedAvgDursFile combinedAvgWriteDursFile
     (middleSetup, _) <-
         case backendSetup setup of
-            Left _ -> fail "need middlesetup for my model."
+            Left _    -> fail "need middlesetup for my model."
             Right tup -> pure tup
     let unMiddleTime = (/ (10 ** 9))
     let parsingTime = avgAvgs (untilParsedTime avgDurs)
@@ -135,7 +135,7 @@ estimateMyModel ecf slocs = do
             avgAvgs (untilAskedTime avgReadDurs) + avgAvgs (untilRepliedTime avgReadDurs) +
             avgAvgs (untilRespondedTime avgReadDurs)
     let writer1ServiceTime = unMiddleTime $ avgAvgs (untilAskedTime avgWriteDurs)
-    let writer2ServiceTime = unMiddleTime $ avgAvgs (untilRepliedTime avgWriteDurs)
+    let writer2ServiceTime = unMiddleTime $ avgAvgs (untilRepliedTime avgWriteDurs) + avgAvgs (untilRespondedTime avgWriteDurs)
     -- Arrival rate at acceptor = average throughput
     let overArr = avgAvgs $ avgBothResults $ avgTpsResults cres
     pure
@@ -180,7 +180,7 @@ evaluationRulesFor ecf = do
             setup <- readExperimentSetupForSummary ers
             (middleSetup, serverSetups) <-
                 case backendSetup setup of
-                    Left _ -> fail "need middlesetup for my model."
+                    Left _    -> fail "need middlesetup for my model."
                     Right tup -> pure tup
             let modelFile = myModelEstimateFileFor ecf slocs
             need [modelFile]
@@ -261,7 +261,7 @@ genTexfilesFor ecf = do
     slocs <-
         case slocss of
             [x] -> pure x
-            _ -> fail "Need exactly one model for Mymodel texfiles."
+            _   -> fail "Need exactly one model for Mymodel texfiles."
     let myModelFile = myModelEstimateFileFor ecf slocs
     need [myModelFile]
     MyModel {..} <- readMyModelFile myModelFile

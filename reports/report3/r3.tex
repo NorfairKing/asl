@@ -379,17 +379,22 @@ On this plot we additionally see:
 
 % Based on the outcome of the different modeling efforts from the previous sections, build a comprehensive network of queues model for the whole system. Compare it with experimental data and use the methods discussed in the lecture and the book to provide an in-depth analysis of the behavior. This includes the identification and analysis of bottlenecks in your system. Make sure to follow the model-related guidelines described in the Notes!
 
-One queue at the front of the middleware, for incoming requests.
-This queue is hidden behind java's async io functionality, but it's still there.
-One MM1 queue per server, because we set memcached's number of threads to 1 and they each have a queue for incoming requests.
+\subsection{Definition of the network}
 
-Per server also the following queues:
-- an M/M/1 for writes
-- an M/M/T for reads, where T is the number of threads per read queue.
+The same black box is used as in the previous section.
+The modeled network is an open queuing network and it is defined as follows.
 
-We don't model anything more low-level than these systems. No CPU queue, no network queue, etc.
+For a given setup with $S$ servers and $T$ threads per reader threadpool, the queueing network consists of $1 + 3 \cdot S$ service centers.
+The first network is an $M/M/1$ service center and it represents the part of the middleware that handles incoming requests.
+Its queue is not explicitly visible in the code, because it is defined in Java's Asynchronous IO framework, but it is there nonetheless.
+Next, for each server, there is an $M/M/T$ service center that represents the $T$ threads in the reader threadpool.
+The `service' of this service center includes the synchronous sending of read requests, the network delay, the Memcache read operation, and sending back the response to the appropriate client.
+For each server, there are two more service centers that represent the parts of the middleware that handle writes.
+First there is an $M/M/1$ service center that represents the asynchronous sending of write requests.
+Directly behind that, there is an $M/M/\infty$ delay center, that represents the network delay, Memcache's write operations and sending back the response to the appropratie client if the replication is done.
+\footnote{For details on how write requests are handled, see the first report.}
 
-\TODO{make a nice illustration of this.}
+A detailed illustration of this queueing network can be found in figure \ref{fig:network-of-queues}
 
 \begin{figure}[H]
   \centering
@@ -438,6 +443,17 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
   \label{fig:network-of-queues}
 \end{figure}
 
+This network is the result of a modeling effort that included multiple trade-offs.
+\TODO{mention tradeoffs}
+
+\subsection{Experiment setup}
+
+A single model of this kind was built using the data of a new experiment.
+This experiment was designed so as to exhibit as many different aspect of the system under test.
+For this reason, many clients and servers were used, the middleware used many threads per reader queue, and the replication coefficient was neither set to 0.5.
+
+The details of this experiment can be found in figure \ref{fig:sut-remote-extreme}.
+
 \begin{figure}[H]
   \centering
   \input{\genfile{remote-extreme-table.tex}}
@@ -445,12 +461,50 @@ We don't model anything more low-level than these systems. No CPU queue, no netw
   \label{fig:sut-remote-extreme}
 \end{figure}
 
+\subsection{Parameter estimation}
+The network of queues as modelled above has 6 parameters and they were estimated as follows.
+
+\begin{enumerate}
+  \item
+    The overall arrival rate.
+
+    Given that the system that we are measuring data in is a closed system, we can estimate the overall arrival rate as the average throughput.
+
+  \item
+    The service time of the acceptor service center.
+
+    This service time was estimated as the time between receiving a request and enqueuing the request.
+  
+  \item
+    The service time of the read workers' service center.
+
+    This service time was estimated as the time between dequeuing a read request and responding to the request's client.
+
+  \item
+    The number of servers of the read worker's service center.
+
+    This number is estimated as the number threads per read thread pool.
+
+  \item 
+    The service rate of the first write service center.
+
+    This service time was estimated as the time between dequeueing a write request and forwarding the request to the first server.
+
+  \item
+    The service rate of the second write service center.
+
+    This service time was estimated as the time between forwarding a write request to the first server and sending the eventual response back to the client.
+\end{enumerate}
+
+The model that was derived from the data gathered from the experiment as detailed in figure \ref{fig:sut-remote-extreme} can be found in figure \ref{fig:mymodel-model}.
+
 \begin{figure}[H]
   \centering
   \input{\model{remote-extreme-mymodel-model.tex}}
   \caption{Network of queues model}
   \label{fig:mymodel-model}
 \end{figure}
+\TODO{mention poisson assumption}
 
 \section{Factorial Experiment}\label{sec:2k-experiment}
 
