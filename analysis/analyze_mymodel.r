@@ -38,13 +38,19 @@ cmd = paste(
 
 system(cmd)
 matdata <- readMat(tmpResultPath)
-utilisations = matdata$U
-responseTimes = matdata$R
-throughputs = matdata$X
+
+utilisations = matdata$U[1,]
+responseTimes = matdata$R[1,]
+nrRequests = matdata$Q[1,]
+throughputs = matdata$X[1,]
+nrVisits = matdata$V[1,]
+
+totalResponseTime = sum(nrVisits %*% responseTimes)
+avgNrRequests = sum(nrRequests)
 
 json <- structure(
-    list(utilisations, responseTimes, throughputs)
-  , .Names=c("utilisations", "responseTimes", "throughputs")
+    list(totalResponseTime, avgNrRequests, utilisations, responseTimes, throughputs, nrRequests, nrVisits)
+  , .Names=c("totalResponseTime", "avgNrRequests", "utilisations", "responseTimes", "throughputs", "nrRequests", "nrVisits")
   )
 contents <- toJSON(json)
 write(contents, outResultPath)

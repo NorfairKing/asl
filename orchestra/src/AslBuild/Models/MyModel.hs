@@ -205,7 +205,8 @@ evaluationRulesFor ecf = do
                     (show getServiceTime)
                     (show setServiceTime)
                     (show setIServiceTime)
-            unit $ cmd "cat" outResultPath
+            resultByOctave <- readJSON outResultPath :: Action ByOctaveMyModelSolution
+            putLoud $ show resultByOctave
     pure rule
 
 myModelTexFilePrefix
