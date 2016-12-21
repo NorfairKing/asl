@@ -238,7 +238,9 @@ myModelModelTexFileWithPostfix ecf postfix =
 myModelTexFiles
     :: ExperimentConfig a
     => a -> [FilePath]
-myModelTexFiles ecf = [myModelModelTexFileWithPostfix ecf "model"]
+myModelTexFiles ecf = do
+    postfix <- ["model", "characteristics"]
+    pure $ myModelModelTexFileWithPostfix ecf postfix
 
 myModelFileForReport :: FilePath -> Int -> FilePath
 myModelFileForReport file i = file `replaceDirectory` modelDirForReport i
@@ -279,10 +281,11 @@ genTexfilesFor ecf = do
             [x] -> pure x
             _   -> fail "Need exactly one model for Mymodel texfiles."
     let myModelFile = myModelEstimateFileFor ecf slocs
-    need [myModelFile]
+    let solutionFile = mymodelSolutionFileFor ecf  slocs
+    need [myModelFile, solutionFile]
     MyModel {..} <- readMyModelFile myModelFile
     let unmodeltime = (* (1000 * 1000))
-    let tab =
+    let modtab =
             tabularWithHeader
                 ["Measure", "Value", "Unit"]
                 [ ["Arrival rate", printf "%.f" overallArrivalRate, "transactions / second"]
@@ -304,4 +307,13 @@ genTexfilesFor ecf = do
                   , "$\\mu s$"
                   ]
                 ]
-    writeFile' (myModelModelTexFileWithPostfix ecf "model") tab
+    writeFile' (myModelModelTexFileWithPostfix ecf "model") modtab
+
+    MyModelSolution{..} <- readJSON solutionFile
+    let chartab = tabularWithHeader
+            ["Modeled measure", "Value", "Unit"]
+            [ ["Response time", printf "%.f" $ unmodeltime systemResponseTime, "$\\mu s$"]
+            , ["Average number of requests", printf "%.2f" avgNumberOfRequests, "Requests"]
+            ]
+
+    writeFile' (myModelModelTexFileWithPostfix ecf "characteristics") chartab
