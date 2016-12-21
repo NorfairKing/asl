@@ -119,7 +119,7 @@ instance ExperimentFormat ExtremeCfg where
         , ["Virtual clients per machine", show defaultConcurrency]
         , workloadLine
         , writePercentageLine [0.1]
-        , ["Replication", "7"]
+        , ["Replication", "4"]
         , ["Middleware threads per read pool", show defaultMiddleThreads]
         , runtimeLine ecf exRuntime
         ] ++
