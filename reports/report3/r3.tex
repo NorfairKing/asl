@@ -511,6 +511,13 @@ The model that was derived from the data gathered from the experiment as detaile
   \caption{Network of queues characteristics}
   \label{fig:mymodel-characteristics}
 \end{figure}
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-extreme-mymodel-real.tex}}
+  \caption{Network of queues measurements}
+  \label{fig:mymodel-real}
+\end{figure}
 \TODO{mention poisson assumption}
 
 \section{Factorial Experiment}\label{sec:2k-experiment}
@@ -575,6 +582,7 @@ The fact that this is the most important factor is consistent with the common kn
 
 The next most important factor is the write percentage.
 This makes sense because write requests only have one thread to deal with them per server, as opposed to the entire thread pool that read requests get.
+This matters because while forwarding requests happens asynchronously, sending responses back to clients happens synchronously.
 In addition to this, write requests are more expensive than read requests as soon as any replication is used.
 
 The third most important factor is, interestingly, an interaction factor.
@@ -593,34 +601,6 @@ There are two more factors that have little impact on throughput: The combinatio
 Lastly, almost none of the variation is explained by experimental error, which tells us that the experiments were rather internally consistent.
 
 For completeness: A multiplicative model was made as well, but because the difference between the maximum $y$ and the minimum $y$ is small, it gave similar results and the additive model already has little variation explained by error.
-
-% \begin{figure}[H]
-%   \centering
-%   \input{\genfile{remote-2k-factorial-sign-table-tps-mul-signtable.tex}}
-%   \caption{Throughput Sign Table (multiplicative model)}
-%   \label{fig:tps-sign-table-mul}
-% \end{figure}
-% 
-% \begin{figure}[H]
-%   \centering
-%   \input{\genfile{remote-2k-factorial-sign-table-resp-legend.tex}}
-%   \caption{Response Time Sign Table Legend}
-%   \label{fig:resp-sign-table-legend}
-% \end{figure}
-% 
-% \begin{figure}[H]
-%   \centering
-%   \input{\genfile{remote-2k-factorial-sign-table-resp-add.tex}}
-%   \caption{Response Time Sign Table (additive model)}
-%   \label{fig:resp-sign-table-add}
-% \end{figure}
-% 
-% \begin{figure}[H]
-%   \centering
-%   \input{\genfile{remote-2k-factorial-sign-table-resp-mul.tex}}
-%   \caption{Response Time Sign Table (multiplicative model)}
-%   \label{fig:resp-sign-table-mul}
-% \end{figure}
 
 \section{Interactive Law Verification}\label{sec:interactive-law}
 

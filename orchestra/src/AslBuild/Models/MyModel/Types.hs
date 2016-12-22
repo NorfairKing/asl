@@ -31,6 +31,7 @@ data MyModelSolution = MyModelSolution
     , throughputs         :: PerCenter Double
     , nrRequests          :: PerCenter Double
     , nrVisits            :: PerCenter Double
+    , serviceTimes        :: PerCenter Double
     } deriving (Show, Eq, Generic)
 
 instance ToJSON MyModelSolution
@@ -59,6 +60,7 @@ instance FromJSON ByOctaveMyModelSolution where
         tpss <- percenter o "throughputs"
         nrreqs <- percenter o "nrRequests"
         nrviss <- percenter o "nrVisits"
+        serss <- percenter o "serviceTimes"
         pure MyModelSolution
             { systemResponseTime  = totresp
             , avgNumberOfRequests = avgnrreq
@@ -67,6 +69,7 @@ instance FromJSON ByOctaveMyModelSolution where
             , throughputs         = tpss
             , nrRequests          = nrreqs
             , nrVisits            = nrviss
+            , serviceTimes        = serss
             }
       where
         percenter o_ key = do

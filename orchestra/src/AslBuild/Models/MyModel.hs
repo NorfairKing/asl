@@ -239,7 +239,7 @@ myModelTexFiles
     :: ExperimentConfig a
     => a -> [FilePath]
 myModelTexFiles ecf = do
-    postfix <- ["model", "characteristics"]
+    postfix <- ["model", "characteristics", "real"]
     pure $ myModelModelTexFileWithPostfix ecf postfix
 
 myModelFileForReport :: FilePath -> Int -> FilePath
@@ -280,9 +280,18 @@ genTexfilesFor ecf = do
         case slocss of
             [x] -> pure x
             _   -> fail "Need exactly one model for Mymodel texfiles."
+    erss <- mapM readResultsSummary slocs
+    mes <-
+                case mapM merMiddleResultsFile erss of
+                    Nothing -> fail "Need middleware traces for my model."
+                    Just m  -> pure m
     let myModelFile = myModelEstimateFileFor ecf slocs
     let solutionFile = mymodelSolutionFileFor ecf  slocs
-    need [myModelFile, solutionFile]
+    let combinedMiddlewareFile = combinedAvgDurationFile ecf mes
+    let readDursFile = combinedAvgReadDurationFile ecf mes
+    let writeDursFile = combinedAvgWriteDurationFile ecf mes
+    need [myModelFile, solutionFile, combinedMiddlewareFile, readDursFile, writeDursFile]
+    setup <- readExperimentSetupForSummary $ head erss
     MyModel {..} <- readMyModelFile myModelFile
     let unmodeltime = (* (1000 * 1000))
     let modtab =
@@ -314,6 +323,26 @@ genTexfilesFor ecf = do
             ["Modeled measure", "Value", "Unit"]
             [ ["Response time", printf "%.f" $ unmodeltime systemResponseTime, "$\\mu s$"]
             , ["Average number of requests", printf "%.2f" avgNumberOfRequests, "Requests"]
+            , ["Acceptor utilisation", printf "%.3f" $ forAcceptor utilisations, ""]
+            , ["Reader utilisation", printf "%.3f" $ forReader utilisations, ""]
+            , ["Write sender utilisation", printf "%.3f" $ forFirstWriter utilisations, ""]
+            , ["Write receiver utilisation", printf "%.3f" $ forSecondWriter utilisations, ""]
+            , ["Reader waiting time", printf "%.3f" $ unmodeltime $ forReader responseTimes - forReader serviceTimes, "$\\mu s$"]
+            , ["Write sender waiting time", printf "%.3f" $ unmodeltime $ forFirstWriter responseTimes - forFirstWriter serviceTimes, "$\\mu s$"]
             ]
 
     writeFile' (myModelModelTexFileWithPostfix ecf "characteristics") chartab
+    mrs <- readCombinedAvgDursFile combinedMiddlewareFile
+    readDurs <- readCombinedAvgDursFile readDursFile
+    writeDurs <- readCombinedAvgDursFile writeDursFile
+
+
+    let realtab = tabularWithHeader
+            ["Measure", "Value", "Unit"]
+            [ ["Response time", printf "%.f" $ avgAvgs $ totalDuration mrs, "$\\mu s$"]
+            , ["Number of clients", printf "%d" $ nrUsers setup, "Clients"]
+            , ["Read queue waiting time", printf "%.f" $ avgAvgs $ untilDequeuedTime readDurs, "$\\mu s$"]
+            , ["Write queue waiting time", printf "%.f" $ avgAvgs $ untilDequeuedTime writeDurs, "$\\mu s$"]
+            ]
+
+    writeFile' (myModelModelTexFileWithPostfix ecf "real") realtab
