@@ -336,13 +336,13 @@ genTexfilesFor ecf = do
     readDurs <- readCombinedAvgDursFile readDursFile
     writeDurs <- readCombinedAvgDursFile writeDursFile
 
-
+    let unmiddletime = (/1000)
     let realtab = tabularWithHeader
             ["Measure", "Value", "Unit"]
-            [ ["Response time", printf "%.f" $ avgAvgs $ totalDuration mrs, "$\\mu s$"]
+            [ ["Response time", printf "%.f" $ unmiddletime $ avgAvgs $ totalDuration mrs, "$\\mu s$"]
             , ["Number of clients", printf "%d" $ nrUsers setup, "Clients"]
-            , ["Read queue waiting time", printf "%.f" $ avgAvgs $ untilDequeuedTime readDurs, "$\\mu s$"]
-            , ["Write queue waiting time", printf "%.f" $ avgAvgs $ untilDequeuedTime writeDurs, "$\\mu s$"]
+            , ["Read queue waiting time", printf "%.f" $ unmiddletime $ avgAvgs $ untilDequeuedTime readDurs, "$\\mu s$"]
+            , ["Write queue waiting time", printf "%.f" $ unmiddletime $ avgAvgs $ untilDequeuedTime writeDurs, "$\\mu s$"]
             ]
 
     writeFile' (myModelModelTexFileWithPostfix ecf "real") realtab
