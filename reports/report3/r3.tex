@@ -110,7 +110,7 @@ In figure \ref{fig:mm1-black-box}, there is an illustration of the black box use
   \label{fig:mm1-black-box}
 \end{figure}
 
-The 'service' that the black box is providing is exactly one Memcache operation.
+The 'service' that the black box is providing is the same service as what a single Memcache instance would provide.
 In the end, this is precisely the point of using a middleware like this.
 The black box abstracts away from a lot of details, so while it's relatively easy to define what the 'service' is, we cannot really point to a component of the real system and call it the 'queue' of this model.
 
@@ -131,7 +131,7 @@ The details of the configuration can be found in figure \ref{fig:sut-stability-t
 
 \subsubsection{Estimation of the arrival rate $\lambda$}
 
-The arrival rate $\lambda$ is estimated by the average\footnote{over the seconds of the trace} throughput as seen by the clients.
+The arrival rate $\lambda$ is estimated by the average\footnote{over the 1 second intervals of the trace} throughput as seen by the clients.
 Indeed, because we are dealing with a closed system, the rate at which requests arrive at the black box is exactly equal to the rate at which requests are processed.
 To justify this way of estimating $\lambda$, we rely on the fact that we are dealing with a closed system.
 
@@ -673,10 +673,12 @@ The middleware logs timestamps for the arrival of every request and for the time
 The difference between the moment in time when the middleware responds to one request, and the moment in time where it receives the next request is an estimate of the think time of the client.
 This estimate is an over-approximation, but it should be relatively tight as the client, middleware and server are run on the same machine.
 
-Using this method, the average think time of a client was estimated to be $\input{\genfile{remote-replication-effect-irtl-think-time.tex}}$ microseconds on average.
+Using this method, the average think time of a client was estimated to be $Z = \input{\genfile{remote-replication-effect-irtl-think-time.tex}}$ microseconds on average.
 This will be used in the next section.
 
 \subsection{Verification}
+
+The data to be verified comes from the experiments on the topic of the effects of the replication effect as listed in figure \ref{fig:sut-remote-replication-effect}.
 
 To verify that the experimental data makes sense, we predict the response time $R$ from the throughput $X$, number of users $N$ and the estimated think time $Z$.
 The results can be found in figure \ref{fig:irtl-table}.
@@ -689,7 +691,7 @@ The results can be found in figure \ref{fig:irtl-table}.
 \end{figure}
 
 As we can see, the estimated response time is smaller than the actual response time.
-The error is small but it makes sense.
+The error is small and it makes sense.
 The average response time is not perfectly representative for the response time of a typical request, because of the fact that the response times comes from a skewed distribution with a long tail, and the average is heavily influenced by outliers.
 This can be seen in figure \ref{fig:histo-resp}
 

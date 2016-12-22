@@ -260,16 +260,16 @@ makeIrtTable ecf = do
             pure
                 [ show n
                 , showdub xa
-                , showdub $ mematime ra
                 , showdub $ mematime estimatedResponseTime
+                , showdub $ mematime ra
                 , showdub $ mematime $ ra - estimatedResponseTime
                 ]
     pure $
         tabularWithHeader
             [ "Users"
             , "Avg Throughput"
-            , "Avg Response time ($\\mu s$)"
-            , "Estimated response time"
+            , "Estimated Response Time"
+            , "Measured Response Time ($\\mu s$)"
             , "Difference"
             ]
             ls
