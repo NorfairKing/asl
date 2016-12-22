@@ -444,8 +444,13 @@ A detailed illustration of this queueing network can be found in figure \ref{fig
   \label{fig:network-of-queues}
 \end{figure}
 
-This network is the result of a modeling effort that included multiple trade-offs.
-\TODO{mention tradeoffs}
+The reasoning behind choosing an open queueing network as opposed to a closed network is twofold.
+
+\begin{itemize}
+  \item An open queueing network is more generally applicable than just a memaslap workload.
+  \item Modelling a closed queueing network would require additional estimates for network times and client think times.
+    While think times are easy to estimate (see section \ref{sec:think-time-estimation}), estimating network times accurately, while not interfering with acceptor queue times, is much harder and would require additional measurements.
+\end{itemize}
 
 \subsection{Experiment setup}
 
@@ -505,6 +510,9 @@ The model that was derived from the data gathered from the experiment as detaile
   \caption{Network of queues model parameters}
   \label{fig:mymodel-model}
 \end{figure}
+
+The most important characteristics of the model can be found in figure \ref{fig:mymodel-characteristics}.
+These numbers were computed using Octave's queueing package \cite{octave}.
 
 \begin{figure}[H]
   \centering
@@ -623,6 +631,7 @@ and we can measure the response time and the throughput of the system.
 The only data that is missing is the think time.
 
 \subsection{Think time}
+\label{sec:think-time-estimation}
 
 To estimate the think time of an average client, the following benchmark was performed.
 An experiment was configured with one server, one middleware, one client.
@@ -689,7 +698,7 @@ In conclusion, the data gathered during the performed experiments looks valid.
   \bibitem{latency}
     Latency Numbers Every Programmer Should Know \url{https://gist.github.com/jboner/2841832}
 
-  \bibitem{qr}
+  \bibitem{octave}
     The `queuing' package for the Octave programming language \url{http://www.moreno.marzolla.name/software/queueing/}
 \end{thebibliography}
 
