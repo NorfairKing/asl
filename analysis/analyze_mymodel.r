@@ -3,8 +3,8 @@ library(RJSONIO)
 
 args <- commandArgs(trailingOnly=TRUE)
 
-if (length(args) != 11) {
-    stop("Usage analyze_mymodel.r <common.r> <tmpResultPath> <outResultPath> <nrServers> <nrThreads> <writeProp> <arrivalRate> <arrivalRate> <acceptorServiceTime> <readServiceTime> <writeServiceTime> <writeDelayTime>")
+if (length(args) != 12) {
+    stop("Usage analyze_mymodel.r <common.r> <tmpResultPath> <outResultPath> <nrServers> <nrThreads> <writeProp> <arrivalRate> <arrivalRate> <acceptorServiceTime> <readServiceTime> <writeServiceTime> <writeDelayTime> <writeResponseTime>")
 }
 
 common <- args[1]
@@ -20,7 +20,7 @@ acceptorServiceTime   <- args[8]
 readServiceTime       <- args[9]
 writeServiceTime      <- args[10]
 writeDelayTime        <- args[11]
-
+writeResponseTime     <- args[12]
 
 cmd = paste(
       "octave"
@@ -34,6 +34,7 @@ cmd = paste(
     , readServiceTime     
     , writeServiceTime    
     , writeDelayTime      
+    , writeResponseTime
     )
 
 system(cmd)

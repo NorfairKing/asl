@@ -3,28 +3,11 @@ addpath("./analysis")
 result_path = "/tmp/octave_out.mat";
 
 arg_list = argv ();
-num_args_required = 9;
+num_args_required = 10;
 if(length(arg_list) != num_args_required)
     printf("Check usage: %d arguments given, %d required.\n", length(arg_list), num_args_required);
     return;
 endif
-% 
-% offset = 1;
-% result_path = arg_list{1}
-% 
-% nS = str2num(arg_list{1 + offset}) % number of servers
-% nR = str2num(arg_list{2 + offset}) % number of threads
-% nT = str2num(arg_list{3 + offset}) % number of threads
-% nC = str2num(arg_list{4 + offset}) % number of clients
-% pW = str2num(arg_list{5 + offset}) / 100 % proportion of writes
-% 
-% tNW_g = str2num(arg_list{6 + offset})
-% tNW_s = str2num(arg_list{7 + offset})
-% tLB_g = str2num(arg_list{8 + offset})
-% tLB_s = str2num(arg_list{9 + offset})
-% tWW = str2num(arg_list{10 + offset})
-% tRW = str2num(arg_list{11 + offset})
-% tMC = str2num(arg_list{12 + offset})
 
 resultPath            = arg_list{1};
 nrServers             = str2num(arg_list{2});
@@ -36,5 +19,6 @@ acceptorServiceTime   = str2num(arg_list{6});
 readServiceTime       = str2num(arg_list{7});
 writeServiceTime      = str2num(arg_list{8});
 writeDelayTime        = str2num(arg_list{9});
+writeResponseTime     = str2num(arg_list{10});
 
-[U, R, Q, X] = analyze_mymodel(resultPath, nrServers, nrThreads, writeProp, arrivalRate, acceptorServiceTime, readServiceTime, writeServiceTime, writeDelayTime);
+[U, R, Q, X] = analyze_mymodel(resultPath, nrServers, nrThreads, writeProp, arrivalRate, acceptorServiceTime, readServiceTime, writeServiceTime, writeDelayTime, writeResponseTime);

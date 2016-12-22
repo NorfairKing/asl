@@ -385,21 +385,22 @@ On this plot we additionally see:
 The same black box is used as in the previous section.
 The modeled network is an open queuing network and it is defined as follows.
 
-For a given setup with $S$ servers and $T$ threads per reader threadpool, the queueing network consists of $1 + 3 \cdot S$ service centers.
+For a given setup with $S$ servers and $T$ threads per reader threadpool, the queueing network consists of $1 + 4 \cdot S$ service centers.
 The first network is an $M/M/1$ service center and it represents the part of the middleware that handles incoming requests.
 Its queue is not explicitly visible in the code, because it is defined in Java's Asynchronous IO framework, but it is there nonetheless.
 Next, for each server, there is an $M/M/T$ service center that represents the $T$ threads in the reader threadpool.
 The `service' of this service center includes the synchronous sending of read requests, the network delay, the Memcache read operation, and sending back the response to the appropriate client.
-For each server, there are two more service centers that represent the parts of the middleware that handle writes.
+For each server, there are three more service centers that represent the parts of the middleware that handle writes.
 First there is an $M/M/1$ service center that represents the asynchronous sending of write requests.
-Directly behind that, there is an $M/M/\infty$ delay center, that represents the network delay, Memcache's write operations and sending back the response to the appropratie client if the replication is done.
+Directly behind that, there is an $M/M/\infty$ delay center, that represents the network delay and Memcache's write operations.
+Lastly, behind that, there is another $M/M/1$ service center that represents sending back the response to the appropriate client if the replication is done.
 \footnote{For details on how write requests are handled, see the first report.}
 
 A detailed illustration of this queueing network can be found in figure \ref{fig:network-of-queues}
 
 \begin{figure}[H]
   \centering
-  \begin{tikzpicture}[scale=0.7, every node/.style={scale=0.7}]
+  \begin{tikzpicture}[scale=0.5, every node/.style={scale=0.7}]
     % Connection accepter and initial reader
     \node at (9,2) {\Large Request Acceptor};
     \mmoqueue{200}{0}
@@ -409,20 +410,27 @@ A detailed illustration of this queueing network can be found in figure \ref{fig
     \node at (11.5,5.75) {\Large Readers};
     \node at (11.5,7.5) {\Large Writer};
 
+    \node at (16.5,9) {\Large Write sender};
+    \node at (23,9) {\Large Write processor};
+    \node at (30.5,9) {\Large Write responder};
 		\draw [thick] (12.2,0.5) -- (13,7);
 		\draw [->, thick] (13,7) -- (14,8);
 		\draw [->, thick] (13,7) -- (14,6);
 		\draw [->, thick] (19,7.5) -- (21,7.5);
+		\draw [->, thick] (26,7.5) -- (28,7.5);
     \mmoqueue{400}{200}
     \mmiqueue{600}{200}
+    \mmoqueue{800}{200}
     \mmmqueue{400}{150}
 
 		\draw [thick] (12.2,0.5) -- (13,3);
 		\draw [->, thick] (13,3) -- (14,4);
 		\draw [->, thick] (13,3) -- (14,2);
 		\draw [->, thick] (19,4) -- (21,4);
+		\draw [->, thick] (26,4) -- (28,4);
     \mmoqueue{400}{100}
     \mmiqueue{600}{100}
+    \mmoqueue{800}{100}
     \mmmqueue{400}{50}
 
     \node at (16, 0.5) {$\vdots$};
@@ -430,14 +438,17 @@ A detailed illustration of this queueing network can be found in figure \ref{fig
 		\draw [thick] (12.2,0.5) -- (13,-2);
 		\draw [->, thick] (13,-2) -- (14,-1);
 		\draw [->, thick] (13,-2) -- (14,-3);
+		\draw [->, thick] (26,-1.25) -- (28,-1.25);
 		\draw [->, thick] (19,-1.25) -- (21,-1.25);
     \mmoqueue{400}{-50}
     \mmiqueue{600}{-50}
+    \mmoqueue{800}{-50}
     \mmmqueue{400}{-100}
 
     \node at (16,-0.25) {$M/M/1$};
     \node at (16,-4.5) {$M/M/16$};
     \node at (23,-2.25) {$M/M/\infty$};
+    \node at (30,-2.25) {$M/M/1$};
 
   \end{tikzpicture}
   \caption{Comprehensive network of queues}
@@ -456,7 +467,7 @@ The reasoning behind choosing an open queueing network as opposed to a closed ne
 
 A single model of this kind was built using the data of a new experiment.
 This experiment was designed so as to exhibit as many different aspect of the system under test.
-For this reason, many clients and servers were used, the middleware used many threads per reader queue, and the replication coefficient was neither set to 0.5.
+For this reason, many clients and servers were used, the middleware used many threads per reader queue, and the replication coefficient was set to 0.5.
 
 The details of this experiment can be found in figure \ref{fig:sut-remote-extreme}.
 
@@ -468,39 +479,23 @@ The details of this experiment can be found in figure \ref{fig:sut-remote-extrem
 \end{figure}
 
 \subsection{Parameter estimation}
-The network of queues as modelled above has 6 parameters and they were estimated as follows.
+The network of queues as modelled above has 7 parameters and they were estimated as follows.
 
-\begin{enumerate}
-  \item
-    The overall arrival rate.
+The overall arrival rate.
 
-    Given that the system that we are measuring data in is a closed system, we can estimate the overall arrival rate as the average throughput.
+Given that the system that we are measuring data in is a closed system, we can estimate the overall arrival rate as the average throughput.
 
-  \item
-    The service time of the acceptor service center.
+The service time of the acceptor service center was estimated as the time between receiving a request and enqueuing the request.
 
-    This service time was estimated as the time between receiving a request and enqueuing the request.
-  
-  \item
-    The service time of the read workers' service center.
+The service time of the read workers' service center was estimated as the time between dequeuing a read request and responding to the request's client.
 
-    This service time was estimated as the time between dequeuing a read request and responding to the request's client.
+The number of servers of the read worker's service center was estimated as the number threads per read thread pool.
 
-  \item
-    The number of servers of the read worker's service center.
+The service rate of the first write service center was estimated as the time between dequeueing a write request and forwarding the request to the first server.
 
-    This number is estimated as the number threads per read thread pool.
+The service rate of the second write service center was estimated as the time between forwarding a write request to the first server and receiving the last response from the servers.
 
-  \item 
-    The service rate of the first write service center.
-
-    This service time was estimated as the time between dequeueing a write request and forwarding the request to the first server.
-
-  \item
-    The service rate of the second write service center.
-
-    This service time was estimated as the time between forwarding a write request to the first server and sending the eventual response back to the client.
-\end{enumerate}
+The service rate of the third write service center was estimated as the time between receiving the last response from the servers and and sending the response back to the client.
 
 The model that was derived from the data gathered from the experiment as detailed in figure \ref{fig:sut-remote-extreme} can be found in figure \ref{fig:mymodel-model}.
 
@@ -524,8 +519,15 @@ These numbers were computed using Octave's queueing package \cite{octave}.
 \subsection{Identification of bottlenecks}
 
 The writer receiver service centers have the highest utilisation, but because they are delay centers, they cannot be identified as the bottleneck of the system theoretically.
-As a result, we are forced to conclude that the acceptor service center is the bottleneck in this system.
-In the reality the situation is rather more complex than this model can capture.
+The service center with the highest utilisation that is not a delay center is the acceptor service center.
+We conclude that this is the bottleneck of the system.
+
+It makes sense that this is the bottleneck of the system because it is the only part of the middleware that does not scale with the number of servers that are available.
+In fact, as more servers are added, this part even shrinks in relative terms because of CPU contention between the threads.
+
+\subsection{Analysis of the model}
+
+In figure \ref{fig:mymodel-real}, there are measurements of the real system.
 
 \begin{figure}[H]
   \centering
@@ -533,7 +535,21 @@ In the reality the situation is rather more complex than this model can capture.
   \caption{Network of queues measurements}
   \label{fig:mymodel-real}
 \end{figure}
-\TODO{mention poisson assumption}
+
+The response time in this table corresponds to the response time as measured by the middleware.
+The prediction in figure \ref{fig:mymodel-characteristics} is relatively close to the real response time, but the distance is still significant.
+
+The real queue waiting times are much larger than the predcted queue times.
+In fact, if we take the weighted average of the real queue waiting times, then we get a value that is extremely close to the difference between the real response time and the predicted response time.
+
+\[ 0.9 \cdot 794 + 0.1 \cdot 5 = 751 \approx 711 = 3263 - 2552 \]
+
+However, the extreme under-estimation of the queue times by the model is entirely reasonable.
+This problem occurs because the model does not take into account the fact that all parallelisation in the middleware happens on the same machine.
+As such, the different threads have to contend with eachother for CPU time.
+This means that adding a new thread does not just create more capacity, it just divides up the capacity among more threads.
+Whenever a thread is scheduled to do work, it can work at the given service rate, but as the total number of workers in the middleware increases, each thread gets scheduled less frequently.
+If all middleware threads could work at their respective service rate all of the time, the model would predict queueing times more accurately.\footnote{An extra experiment I ran with only one server and 6 middleware thread confirms this.}
 
 \section{Factorial Experiment}\label{sec:2k-experiment}
 
