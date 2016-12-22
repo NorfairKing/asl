@@ -521,6 +521,12 @@ These numbers were computed using Octave's queueing package \cite{octave}.
   \label{fig:mymodel-characteristics}
 \end{figure}
 
+\subsection{Identification of bottlenecks}
+
+The writer receiver service centers have the highest utilisation, but because they are delay centers, they cannot be identified as the bottleneck of the system theoretically.
+As a result, we are forced to conclude that the acceptor service center is the bottleneck in this system.
+In the reality the situation is rather more complex than this model can capture.
+
 \begin{figure}[H]
   \centering
   \input{\model{remote-extreme-mymodel-real.tex}}
