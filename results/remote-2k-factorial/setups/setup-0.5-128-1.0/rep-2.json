@@ -1,0 +1,248 @@
+{
+    "esResultsSummaryFile": "results/remote-2k-factorial/summaries/summary-0.5-128-1.0/rep-2.json",
+    "esSetupFile": "results/remote-2k-factorial/setups/setup-0.5-128-1.0/rep-2.json",
+    "esRuntime": {
+        "tag": "Minutes",
+        "contents": 3
+    },
+    "clientSetups": [
+        {
+            "cLocalLog": "results/remote-2k-factorial/local-client-logs/remote-2k-factorial-0-client-local-log-0.5-128-1.0/rep-2",
+            "cIndex": 0,
+            "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/remote-2k-factorial/memaslap-configs/remote-2k-factorial-0-memaslap-config-0.5-128-1.0",
+            "cRemoteLog": "/tmp/asl/tmp/remote-2k-factorial/remote-2k-factorial-0-memaslap-remote-log-0.5-128-1.0/rep-2",
+            "cRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms1.westeurope.cloudapp.azure.com"
+            },
+            "cMemaslapSettings": {
+                "msConfig": {
+                    "valueDistributions": [
+                        {
+                            "distrMax": 128,
+                            "distrMin": 128,
+                            "distrProp": 1
+                        }
+                    ],
+                    "keysizeDistributions": [
+                        {
+                            "distrMax": 16,
+                            "distrMin": 16,
+                            "distrProp": 1
+                        }
+                    ],
+                    "setProportion": 0.5
+                },
+                "msFlags": {
+                    "msStatFreq": {
+                        "tag": "Seconds",
+                        "contents": 1
+                    },
+                    "msWindowSize": {
+                        "tag": "Kilo",
+                        "contents": 1
+                    },
+                    "msConfigFile": "/tmp/asl/tmp/remote-2k-factorial/remote-2k-factorial-0-memaslapcfg-0.5-128-1.0",
+                    "msWorkload": {
+                        "tag": "WorkFor",
+                        "contents": {
+                            "tag": "Minutes",
+                            "contents": 3
+                        }
+                    },
+                    "msOverwrite": 0.9,
+                    "msServers": [
+                        {
+                            "serverPort": 23456,
+                            "serverUrl": "10.0.0.10"
+                        }
+                    ],
+                    "msConcurrency": 35,
+                    "msThreads": 1
+                }
+            }
+        },
+        {
+            "cLocalLog": "results/remote-2k-factorial/local-client-logs/remote-2k-factorial-1-client-local-log-0.5-128-1.0/rep-2",
+            "cIndex": 1,
+            "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/remote-2k-factorial/memaslap-configs/remote-2k-factorial-1-memaslap-config-0.5-128-1.0",
+            "cRemoteLog": "/tmp/asl/tmp/remote-2k-factorial/remote-2k-factorial-1-memaslap-remote-log-0.5-128-1.0/rep-2",
+            "cRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms2.westeurope.cloudapp.azure.com"
+            },
+            "cMemaslapSettings": {
+                "msConfig": {
+                    "valueDistributions": [
+                        {
+                            "distrMax": 128,
+                            "distrMin": 128,
+                            "distrProp": 1
+                        }
+                    ],
+                    "keysizeDistributions": [
+                        {
+                            "distrMax": 16,
+                            "distrMin": 16,
+                            "distrProp": 1
+                        }
+                    ],
+                    "setProportion": 0.5
+                },
+                "msFlags": {
+                    "msStatFreq": {
+                        "tag": "Seconds",
+                        "contents": 1
+                    },
+                    "msWindowSize": {
+                        "tag": "Kilo",
+                        "contents": 1
+                    },
+                    "msConfigFile": "/tmp/asl/tmp/remote-2k-factorial/remote-2k-factorial-1-memaslapcfg-0.5-128-1.0",
+                    "msWorkload": {
+                        "tag": "WorkFor",
+                        "contents": {
+                            "tag": "Minutes",
+                            "contents": 3
+                        }
+                    },
+                    "msOverwrite": 0.9,
+                    "msServers": [
+                        {
+                            "serverPort": 23456,
+                            "serverUrl": "10.0.0.10"
+                        }
+                    ],
+                    "msConcurrency": 35,
+                    "msThreads": 1
+                }
+            }
+        },
+        {
+            "cLocalLog": "results/remote-2k-factorial/local-client-logs/remote-2k-factorial-2-client-local-log-0.5-128-1.0/rep-2",
+            "cIndex": 2,
+            "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/remote-2k-factorial/memaslap-configs/remote-2k-factorial-2-memaslap-config-0.5-128-1.0",
+            "cRemoteLog": "/tmp/asl/tmp/remote-2k-factorial/remote-2k-factorial-2-memaslap-remote-log-0.5-128-1.0/rep-2",
+            "cRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms3.westeurope.cloudapp.azure.com"
+            },
+            "cMemaslapSettings": {
+                "msConfig": {
+                    "valueDistributions": [
+                        {
+                            "distrMax": 128,
+                            "distrMin": 128,
+                            "distrProp": 1
+                        }
+                    ],
+                    "keysizeDistributions": [
+                        {
+                            "distrMax": 16,
+                            "distrMin": 16,
+                            "distrProp": 1
+                        }
+                    ],
+                    "setProportion": 0.5
+                },
+                "msFlags": {
+                    "msStatFreq": {
+                        "tag": "Seconds",
+                        "contents": 1
+                    },
+                    "msWindowSize": {
+                        "tag": "Kilo",
+                        "contents": 1
+                    },
+                    "msConfigFile": "/tmp/asl/tmp/remote-2k-factorial/remote-2k-factorial-2-memaslapcfg-0.5-128-1.0",
+                    "msWorkload": {
+                        "tag": "WorkFor",
+                        "contents": {
+                            "tag": "Minutes",
+                            "contents": 3
+                        }
+                    },
+                    "msOverwrite": 0.9,
+                    "msServers": [
+                        {
+                            "serverPort": 23456,
+                            "serverUrl": "10.0.0.10"
+                        }
+                    ],
+                    "msConcurrency": 35,
+                    "msThreads": 1
+                }
+            }
+        }
+    ],
+    "backendSetup": {
+        "Right": [
+            {
+                "mRemoteLogin": {
+                    "remoteUser": "syd",
+                    "remoteHost": "sydforaslvms11.westeurope.cloudapp.azure.com"
+                },
+                "mMiddlewareFlags": {
+                    "mwReadSampleRate": 1000,
+                    "mwServers": [
+                        {
+                            "serverPort": 12345,
+                            "serverUrl": "10.0.0.4"
+                        },
+                        {
+                            "serverPort": 12346,
+                            "serverUrl": "10.0.0.9"
+                        },
+                        {
+                            "serverPort": 12347,
+                            "serverUrl": "10.0.0.12"
+                        }
+                    ],
+                    "mwTraceFile": "/tmp/asl/tmp/remote-2k-factorial/remote-2k-factorial-trace-0.5-128-1.0/rep-2.csv",
+                    "mwNrThreads": 16,
+                    "mwReplicationFactor": 3,
+                    "mwWriteSampleRate": 1000,
+                    "mwPort": 23456,
+                    "mwIp": "10.0.0.10",
+                    "mwVerbosity": "LogOff"
+                },
+                "mLocalTrace": "results/remote-2k-factorial/traces/remote-2k-factorial-trace-0.5-128-1.0/rep-2.csv"
+            },
+            [
+                {
+                    "sIndex": 0,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12345
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms4.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 1,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12346
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms5.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 2,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12347
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms6.westeurope.cloudapp.azure.com"
+                    }
+                }
+            ]
+        ]
+    }
+}

@@ -1,0 +1,24 @@
+addpath("./analysis")
+
+result_path = "/tmp/octave_out.mat";
+
+arg_list = argv ();
+num_args_required = 10;
+if(length(arg_list) != num_args_required)
+    printf("Check usage: %d arguments given, %d required.\n", length(arg_list), num_args_required);
+    return;
+endif
+
+resultPath            = arg_list{1};
+nrServers             = str2num(arg_list{2});
+nrThreads             = str2num(arg_list{3});
+writeProp             = str2num(arg_list{4});
+arrivalRate           = str2num(arg_list{5});
+
+acceptorServiceTime   = str2num(arg_list{6});
+readServiceTime       = str2num(arg_list{7});
+writeServiceTime      = str2num(arg_list{8});
+writeDelayTime        = str2num(arg_list{9});
+writeResponseTime     = str2num(arg_list{10});
+
+[U, R, Q, X] = analyze_mymodel(resultPath, nrServers, nrThreads, writeProp, arrivalRate, acceptorServiceTime, readServiceTime, writeServiceTime, writeDelayTime, writeResponseTime);

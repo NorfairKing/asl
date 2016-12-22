@@ -1,36 +1,39 @@
 module AslBuild.Build where
 
-import           Development.Shake
+import Development.Shake
 
-import           AslBuild.Analysis
-import           AslBuild.BuildMemcached
-import           AslBuild.Clean
-import           AslBuild.CommitHash
-import           AslBuild.Create
-import           AslBuild.Experiments
-import           AslBuild.Jar
-import           AslBuild.LocalLogTest
-import           AslBuild.LocalMiddlewareTests
-import           AslBuild.Orc
-import           AslBuild.PreCommit
-import           AslBuild.Provision
-import           AslBuild.Reports
-import           AslBuild.RunDebug
-import           AslBuild.Ssh
-import           AslBuild.Test
-import           AslBuild.VisualVm
-import           AslBuild.Vm
+import AslBuild.Analysis
+import AslBuild.BuildMemcached
+import AslBuild.Clean
+import AslBuild.CommitHash
+import AslBuild.Create
+import AslBuild.Experiments
+import AslBuild.IRTL
+import AslBuild.Jar
+import AslBuild.LocalLogTest
+import AslBuild.LocalMiddlewareTests
+import AslBuild.Models
+import AslBuild.Orc
+import AslBuild.PreCommit
+import AslBuild.Provision
+import AslBuild.Reports
+import AslBuild.RunDebug
+import AslBuild.Ssh
+import AslBuild.Test
+import AslBuild.VisualVm
+import AslBuild.Vm
 
 doTheShake :: IO ()
 doTheShake = shakeArgs args theShake
   where
-    args = shakeOptions
+    args =
+        shakeOptions
         { shakeVerbosity = Loud
         , shakeThreads = 0 -- Use as many threads as processors
         }
 
 theShake :: Rules ()
-theShake  = do
+theShake = do
     commitHashRules
     orcRules
     jarRules
@@ -43,6 +46,8 @@ theShake  = do
     visualVmRules
     runDebugRules
     analysisRules
+    modelsRules
+    irtlRules
     sshRules
     createRules
     provisionRules

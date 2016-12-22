@@ -1,0 +1,308 @@
+{
+    "esResultsSummaryFile": "results/remote-extreme/summaries/summary/rep-5.json",
+    "esSetupFile": "results/remote-extreme/setups/setup/rep-5.json",
+    "esRuntime": {
+        "tag": "Minutes",
+        "contents": 3
+    },
+    "clientSetups": [
+        {
+            "cLocalLog": "results/remote-extreme/local-client-logs/remote-extreme-0-client-local-log/rep-5",
+            "cIndex": 0,
+            "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/remote-extreme/memaslap-configs/remote-extreme-0-memaslap-config",
+            "cRemoteLog": "/tmp/asl/tmp/remote-extreme/remote-extreme-0-memaslap-remote-log/rep-5",
+            "cRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms1.westeurope.cloudapp.azure.com"
+            },
+            "cMemaslapSettings": {
+                "msConfig": {
+                    "valueDistributions": [
+                        {
+                            "distrMax": 128,
+                            "distrMin": 128,
+                            "distrProp": 1
+                        }
+                    ],
+                    "keysizeDistributions": [
+                        {
+                            "distrMax": 16,
+                            "distrMin": 16,
+                            "distrProp": 1
+                        }
+                    ],
+                    "setProportion": 0.1
+                },
+                "msFlags": {
+                    "msStatFreq": {
+                        "tag": "Seconds",
+                        "contents": 1
+                    },
+                    "msWindowSize": {
+                        "tag": "Kilo",
+                        "contents": 1
+                    },
+                    "msConfigFile": "/tmp/asl/tmp/remote-extreme/remote-extreme-0-memaslapcfg",
+                    "msWorkload": {
+                        "tag": "WorkFor",
+                        "contents": {
+                            "tag": "Minutes",
+                            "contents": 3
+                        }
+                    },
+                    "msOverwrite": 0.9,
+                    "msServers": [
+                        {
+                            "serverPort": 23456,
+                            "serverUrl": "10.0.0.10"
+                        }
+                    ],
+                    "msConcurrency": 35,
+                    "msThreads": 1
+                }
+            }
+        },
+        {
+            "cLocalLog": "results/remote-extreme/local-client-logs/remote-extreme-1-client-local-log/rep-5",
+            "cIndex": 1,
+            "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/remote-extreme/memaslap-configs/remote-extreme-1-memaslap-config",
+            "cRemoteLog": "/tmp/asl/tmp/remote-extreme/remote-extreme-1-memaslap-remote-log/rep-5",
+            "cRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms10.westeurope.cloudapp.azure.com"
+            },
+            "cMemaslapSettings": {
+                "msConfig": {
+                    "valueDistributions": [
+                        {
+                            "distrMax": 128,
+                            "distrMin": 128,
+                            "distrProp": 1
+                        }
+                    ],
+                    "keysizeDistributions": [
+                        {
+                            "distrMax": 16,
+                            "distrMin": 16,
+                            "distrProp": 1
+                        }
+                    ],
+                    "setProportion": 0.1
+                },
+                "msFlags": {
+                    "msStatFreq": {
+                        "tag": "Seconds",
+                        "contents": 1
+                    },
+                    "msWindowSize": {
+                        "tag": "Kilo",
+                        "contents": 1
+                    },
+                    "msConfigFile": "/tmp/asl/tmp/remote-extreme/remote-extreme-1-memaslapcfg",
+                    "msWorkload": {
+                        "tag": "WorkFor",
+                        "contents": {
+                            "tag": "Minutes",
+                            "contents": 3
+                        }
+                    },
+                    "msOverwrite": 0.9,
+                    "msServers": [
+                        {
+                            "serverPort": 23456,
+                            "serverUrl": "10.0.0.10"
+                        }
+                    ],
+                    "msConcurrency": 35,
+                    "msThreads": 1
+                }
+            }
+        },
+        {
+            "cLocalLog": "results/remote-extreme/local-client-logs/remote-extreme-2-client-local-log/rep-5",
+            "cIndex": 2,
+            "cLocalMemaslapConfigFile": "/home/syd/.asl/tmp/remote-extreme/memaslap-configs/remote-extreme-2-memaslap-config",
+            "cRemoteLog": "/tmp/asl/tmp/remote-extreme/remote-extreme-2-memaslap-remote-log/rep-5",
+            "cRemoteLogin": {
+                "remoteUser": "syd",
+                "remoteHost": "sydforaslvms2.westeurope.cloudapp.azure.com"
+            },
+            "cMemaslapSettings": {
+                "msConfig": {
+                    "valueDistributions": [
+                        {
+                            "distrMax": 128,
+                            "distrMin": 128,
+                            "distrProp": 1
+                        }
+                    ],
+                    "keysizeDistributions": [
+                        {
+                            "distrMax": 16,
+                            "distrMin": 16,
+                            "distrProp": 1
+                        }
+                    ],
+                    "setProportion": 0.1
+                },
+                "msFlags": {
+                    "msStatFreq": {
+                        "tag": "Seconds",
+                        "contents": 1
+                    },
+                    "msWindowSize": {
+                        "tag": "Kilo",
+                        "contents": 1
+                    },
+                    "msConfigFile": "/tmp/asl/tmp/remote-extreme/remote-extreme-2-memaslapcfg",
+                    "msWorkload": {
+                        "tag": "WorkFor",
+                        "contents": {
+                            "tag": "Minutes",
+                            "contents": 3
+                        }
+                    },
+                    "msOverwrite": 0.9,
+                    "msServers": [
+                        {
+                            "serverPort": 23456,
+                            "serverUrl": "10.0.0.10"
+                        }
+                    ],
+                    "msConcurrency": 35,
+                    "msThreads": 1
+                }
+            }
+        }
+    ],
+    "backendSetup": {
+        "Right": [
+            {
+                "mRemoteLogin": {
+                    "remoteUser": "syd",
+                    "remoteHost": "sydforaslvms11.westeurope.cloudapp.azure.com"
+                },
+                "mMiddlewareFlags": {
+                    "mwReadSampleRate": 1000,
+                    "mwServers": [
+                        {
+                            "serverPort": 12345,
+                            "serverUrl": "10.0.0.7"
+                        },
+                        {
+                            "serverPort": 12346,
+                            "serverUrl": "10.0.0.4"
+                        },
+                        {
+                            "serverPort": 12347,
+                            "serverUrl": "10.0.0.9"
+                        },
+                        {
+                            "serverPort": 12348,
+                            "serverUrl": "10.0.0.12"
+                        },
+                        {
+                            "serverPort": 12349,
+                            "serverUrl": "10.0.0.8"
+                        },
+                        {
+                            "serverPort": 12350,
+                            "serverUrl": "10.0.0.14"
+                        },
+                        {
+                            "serverPort": 12351,
+                            "serverUrl": "10.0.0.6"
+                        }
+                    ],
+                    "mwTraceFile": "/tmp/asl/tmp/remote-extreme/remote-extreme-trace/rep-5.csv",
+                    "mwNrThreads": 16,
+                    "mwReplicationFactor": 4,
+                    "mwWriteSampleRate": 1000,
+                    "mwPort": 23456,
+                    "mwIp": "10.0.0.10",
+                    "mwVerbosity": "LogOff"
+                },
+                "mLocalTrace": "results/remote-extreme/traces/remote-extreme-trace/rep-5.csv"
+            },
+            [
+                {
+                    "sIndex": 0,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12345
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms3.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 1,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12346
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms4.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 2,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12347
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms5.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 3,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12348
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms6.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 4,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12349
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms7.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 5,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12350
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms8.westeurope.cloudapp.azure.com"
+                    }
+                },
+                {
+                    "sIndex": 6,
+                    "sMemcachedFlags": {
+                        "memcachedAsDaemon": true,
+                        "memcachedPort": 12351
+                    },
+                    "sRemoteLogin": {
+                        "remoteUser": "syd",
+                        "remoteHost": "sydforaslvms9.westeurope.cloudapp.azure.com"
+                    }
+                }
+            ]
+        ]
+    }
+}

@@ -1,17 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module AslBuild.Memaslap.LogParser
     ( parseLog
     ) where
 
-import           Control.Monad
-import           Text.Parsec
-import           Text.Parsec.Language
-import           Text.Parsec.String
-import qualified Text.Parsec.Token       as Token
+import Control.Monad
+import Text.Parsec
+import Text.Parsec.Language
+import Text.Parsec.String
+import qualified Text.Parsec.Token as Token
 
-import           Development.Shake
+import Development.Shake
 
-import           AslBuild.Memaslap.Types
+import AslBuild.Memaslap.Types
 
 parseLog :: FilePath -> Action (Maybe MemaslapLog)
 parseLog logFile = do
@@ -29,12 +30,7 @@ memaslapLog = do
     trips <- many statsTriple
     totals <- option Nothing $ Just <$> totalStatsT
     finals <- final
-    return MemaslapLog
-        { config = ()
-        , triples = trips
-        , totalStatsTrip = totals
-        , finalStats = finals
-        }
+    return MemaslapLog {config = (), triples = trips, totalStatsTrip = totals, finalStats = finals}
 
 header :: Parser ()
 header = do
@@ -68,22 +64,22 @@ ansiThingy = do
 statsTriple :: Parser StatsTriple
 statsTriple = do
     ansiThingy
-    gl <- optionMaybe $ try $ do
-        void $ string "Get Statistics"
-        void endOfLine
-        statisticsLog
-    sl <- optionMaybe $ try $ do
-        void $ string "Set Statistics"
-        void endOfLine
-        statisticsLog
+    gl <-
+        optionMaybe $
+        try $ do
+            void $ string "Get Statistics"
+            void endOfLine
+            statisticsLog
+    sl <-
+        optionMaybe $
+        try $ do
+            void $ string "Set Statistics"
+            void endOfLine
+            statisticsLog
     void $ string "Total Statistics"
     void endOfLine
     tl <- statisticsLog
-    return StatsTriple
-        { getStats = gl
-        , setStats = sl
-        , bothStats = tl
-        }
+    return StatsTriple {getStats = gl, setStats = sl, bothStats = tl}
 
 statisticsLog :: Parser StatisticsLog
 statisticsLog = do
@@ -113,10 +109,7 @@ statisticsLog = do
     ps <- statistics
     void $ string "Global"
     gs <- statistics
-    return StatisticsLog
-        { periodStats = ps
-        , globalStats = gs
-        }
+    return StatisticsLog {periodStats = ps, globalStats = gs}
 
 statistics :: Parser Statistics
 statistics = do
@@ -130,7 +123,8 @@ statistics = do
     av <- integer
     st <- doubleOrNan
     ge <- doubleOrNan
-    return Statistics
+    return
+        Statistics
         { time = t
         , ops = o
         , tps = tp
@@ -145,25 +139,24 @@ statistics = do
 
 doubleOrNan :: Parser Double
 doubleOrNan =
-    try (string "nan" >> spaces >> return (-1))
-    <|> try (string "-nan" >> spaces >> return (-1))
-    <|> double
+    try (string "nan" >> spaces >> return (-1)) <|> try (string "-nan" >> spaces >> return (-1)) <|>
+    double
 
 totalStatsT :: Parser TotalStatsTrip
 totalStatsT = do
-    gts <- optionMaybe $ try $ do
-        void $ string "Get Statistics "
-        totalStats
-    sts <- optionMaybe $ try $ do
-        void $ string "Set Statistics "
-        totalStats
+    gts <-
+        optionMaybe $
+        try $ do
+            void $ string "Get Statistics "
+            totalStats
+    sts <-
+        optionMaybe $
+        try $ do
+            void $ string "Set Statistics "
+            totalStats
     void $ string "Total Statistics "
     bts <- totalStats
-    return TotalStatsTrip
-        { totalGetStats = gts
-        , totalSetStats = sts
-        , totalBothStats = bts
-        }
+    return TotalStatsTrip {totalGetStats = gts, totalSetStats = sts, totalBothStats = bts}
 
 totalStats :: Parser TotalStats
 totalStats = do
@@ -179,10 +172,13 @@ totalStats = do
     spaces
     void $ string "Log2 Dist:"
     void endOfLine
-    void $ manyTill anyChar $ try $ do
-        void endOfLine -- An empty line
-        void endOfLine
-    return TotalStats
+    void $
+        manyTill anyChar $
+        try $ do
+            void endOfLine -- An empty line
+            void endOfLine
+    return
+        TotalStats
         { totalEvents = es
         , totalMin = mn
         , totalMax = mx
@@ -207,11 +203,11 @@ final = do
     wb <- titled "written_bytes:"
     rb <- titled "read_bytes:"
     ob <- titled "object_bytes:"
-    rt <- do
-        void $ string "Run time: "
-        v <- double
-        void $ char 's'
-        return v
+    rt <-
+        do void $ string "Run time: "
+           v <- double
+           void $ char 's'
+           return v
     spaces
     void $ string "Ops:"
     spaces
@@ -223,7 +219,8 @@ final = do
     spaces
     void $ string "Net_rate:"
     void $ anyChar `manyTill` try endOfLine
-    return FinalStats
+    return
+        FinalStats
         { finalGets = cg
         , finalSets = cs
         , finalGetMisses = gm
@@ -242,12 +239,13 @@ final = do
         void space
         integer
 
-integer :: Integral a => Parser a
+integer
+    :: Integral a
+    => Parser a
 integer = fromIntegral <$> Token.integer (Token.makeTokenParser emptyDef)
 
 double :: Parser Double
 double = Token.float $ Token.makeTokenParser emptyDef
-
 -- stop :: Parser a
 -- stop = do
 --     rest <- getInput

@@ -1,0 +1,100 @@
+% % % % % % % % % % % % % % %
+\documentclass[11pt]{article}
+\usepackage[a4paper, portrait, margin=1in]{geometry}
+% % % % % % % % % % % % % % %
+
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{firstpagefooter}
+{
+\lfoot{Version: 25.11.2016}
+\cfoot{}
+\rfoot{\thepage}
+}
+\cfoot{\thepage}
+
+
+\begin{document}
+
+\title{Advanced Systems Lab (Fall'16) -- Third Milestone}
+
+\author{Name: \emph{Your name}\\Legi number: \emph{Your legi
+number}}
+
+\date{
+\vspace{4cm}
+\textbf{Grading} \\
+\begin{tabular}{|c|c|}
+\hline  \textbf{Section} & \textbf{Points} \\ 
+\hline  1 &  \\ 
+\hline  2 &  \\ 
+\hline  3 &  \\ 
+\hline  4 &  \\ 
+\hline  5 &  \\ 
+\hline \hline Total & \\
+\hline 
+\end{tabular} 
+}
+
+\maketitle
+\thispagestyle{firstpagefooter}
+\newpage
+
+\section*{Notes on writing the report}
+
+The report does not need to be extensive but it must be concise, complete, and correct. Conciseness is important  in  terms  of  content  and explanations,  focusing  on  what  has  been  done and  explanations  of the results. A long report is not necessarily a better report, especially if there are aspects that  remain  unexplained.  Completeness  implies  that  the  report  should  give  a comprehensive idea of what has been done by mentioning all key aspects of the modeling and analysis effort. Limited analysis because of flaws in the system or lack of experimental data from Milestones 1 or 2 are not  valid  arguments  for  an incomplete  report.  If  bugs  or  lack  of  data  prevent  you  from  doing  a  correct analysis, the system must be debugged and new data collected. In case the system has been modified, include a short description of the changes as an appendix.
+
+Remember  that  this is  a  report  about modeling  and  analyzing the  system you  have  designed  and  built, using  the experimental data you have collected. There is no unique way to do the report and you may choose  to  focus  on  different  aspects  of  the  system  as  long  as  you deliver a  complete analysis of  its behavior. Keep in mind that, \emph{for all queuing models in the report}, you need to explain how the the parameters of the model were determined and from which experiments the data comes from (adding a reference to the exact graph, table, etc. from the previous milestones). You have to find all system metrics that can be derived using the corresponding formulas and then match to the experimental results, explaining the similarities and differences in quantitative and qualitative terms. The calculations and the numbers you derive might need to be explained with references to the logs and sources in the previous reports. Make sure to mark these references, as well as the ones pointing to experimental results clearly. \textit{Missing parts of the above requirements might lead to significant loss of points in each section.}
+
+The report should be organized in sections as explained in the next pages, and each section should address at least the questions mentioned for each point. You might be called for a meeting in person to clarify aspects of the report or the system and to make a short presentation of the work done. By submitting the report, you  confirm  that  you  have  done  the  work  on  your  own,  the  data used comes  from  experiments  your have  done,  you  have  written  the  report  on  your  own,  and  you have  not  copied  neither text nor data from other sources.
+
+\medskip
+The milestone is worth 200 points. 
+
+\section*{Formatting guidelines (same as for previous milestones)}
+We expect you to use this template for the report, but in case you want to use Word or an other text processor, keep in mind the following:
+\begin{itemize}
+\item  We expect you to submit \textbf{a single PDF that has the same section structure as this template, and answers all points we outline here}. If you use this file, you should remove this page with notes, and the short description provided by us at the beginning of sections.
+\item Keep the same cover page as on this document and \textbf{fill out your name and legi number}. Leave the grading table empty.
+\item  The main text should be in \textbf{single-column format with 11pt font on A4 paper}. In case you don't start with one of the files provided by us, \textbf{for margins use 2.54 cm (1 inch) on all sides}.
+\end{itemize}
+
+\pagebreak
+
+
+\section{System as One Unit}\label{sec:system-one-unit}
+
+Length: 1-2 pages
+
+Build an M/M/1 model of your entire system based on the stability trace that you had to run for the first milestone. Explain the characteristics and behavior of the model built, and compare it with the experimental data (collected both outside and inside the middleware). Analyze the modeled and real-life behavior of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments). Make sure to follow the model-related guidelines described in the Notes!
+
+\section{Analysis of System Based on Scalability Data}\label{sec:analysis-scalability}
+
+Length: 1-4 pages
+
+Starting from the different configurations that you used in the second milestone, build M/M/m queuing models of the system as a whole. Detail the characteristics of these series of models and compare them with experimental data. The goal is the analysis of the model and the real scalability of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments). Make sure to follow the model-related guidelines described in the Notes!
+
+\section{System as Network of Queues}\label{sec:network-of-queues}
+
+Length: 1-3 pages
+
+Based on the outcome of the different modeling efforts from the previous sections, build a comprehensive network of queues model for the whole system. Compare it with experimental data and use the methods discussed in the lecture and the book to provide an in-depth analysis of the behavior. This includes the identification and analysis of bottlenecks in your system. Make sure to follow the model-related guidelines described in the Notes!
+
+\section{Factorial Experiment}\label{sec:2k-experiment}
+
+Length: 1-3 pages
+
+Design a $2^k$ factorial experiment and follow the best practices outlined in the book and in the lecture to analyze the results. You are free to choose the parameters for the experiment and in case you have already collected data in the second milestone that can be used as source for this experiment, you can reuse it. Otherwise, in case you need to run new experiments anyway, we recommend exploring the impact of request size on the middleware together with an other parameter.
+
+\section{Interactive Law Verification}\label{sec:interactive-law}
+
+Length: 1-2 pages
+
+Check the validity of all experiments from one of the three sections in your Milestone 2 report using the interactive law (choose a section in which your system has at least 9 different configurations). Analyze the results and explain them in detail.
+
+\end{document}

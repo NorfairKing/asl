@@ -1,12 +1,12 @@
 module AslBuild.Create where
 
-import           Data.List                  (intercalate)
+import Data.List (intercalate)
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import Development.Shake
+import Development.Shake.FilePath
 
-import           AslBuild.Constants
-import           AslBuild.Ssh
+import AslBuild.Constants
+import AslBuild.Ssh
 
 create3VmsRule :: String
 create3VmsRule = "create-3vms"
@@ -34,47 +34,48 @@ template11vms = tmpDir </> template11vmsName
 
 createRules :: Rules ()
 createRules = do
-    [template3vms, template11vms] &%> \_ ->do
+    [template3vms, template11vms] &%> \_ -> do
         need [templateArchive]
         withTempDir $ \dir -> do
-            unit $ cmd tarCmd
-                "--extract"
-                "--verbose"
-                "--file" templateArchive
-                "--directory" dir
-
+            unit $ cmd tarCmd "--extract" "--verbose" "--file" templateArchive "--directory" dir
             let personalize :: FilePath -> FilePath -> Action ()
-                personalize fileIn fileOut = do
+                personalize fileIn fileOut
                     -- Init: remove trailing newline
+                 = do
                     pubkey <- init <$> readFile' customSshPublicKeyFile
                     let escape = concatMap replace
                         replace ' ' = "\\ "
                         replace '/' = "\\/"
                         replace '\\' = "\\\\"
                         replace c = [c]
-                    unit $ cmd (FileStdout fileOut) sedCmd
-                        [intercalate ";"
-                            [ "s/your_public_SSH_key/" ++ escape pubkey ++ "/g"
-                            , "s/your_nethz/" ++ escape myUsername ++ "/g"
-                            , "s/defaultValue\\\":\\ null/defaultValue\\\":\\ \\\"pass\\\"/g"
-                            ]]
-                        fileIn
-
+                    unit $
+                        cmd
+                            (FileStdout fileOut)
+                            sedCmd
+                            [ intercalate
+                                  ";"
+                                  [ "s/your_public_SSH_key/" ++ escape pubkey ++ "/g"
+                                  , "s/your_nethz/" ++ escape myUsername ++ "/g"
+                                  , "s/defaultValue\\\":\\ null/defaultValue\\\":\\ \\\"pass\\\"/g"
+                                  ]
+                            ]
+                            fileIn
             personalize (dir </> template3vmsName) template3vms
             personalize (dir </> template11vmsName) template11vms
-
     create3VmsRule ~> createResourceGroupFromTemplate template3vms
     create11VmsRule ~> createResourceGroupFromTemplate template11vms
-
-    deleteVmsRule ~>
-        cmd azureCmd "group" "delete"
-            "--name" resourceGroupName
-            "--nowait"
+    deleteVmsRule ~> cmd azureCmd "group" "delete" "--name" resourceGroupName "--nowait"
 
 createResourceGroupFromTemplate :: FilePath -> Action ()
 createResourceGroupFromTemplate template = do
     need [template]
-    cmd azureCmd "group" "create"
-        "--name" resourceGroupName
-        "--location" resourceGroupLocation
-        "--template-file" template
+    cmd
+        azureCmd
+        "group"
+        "create"
+        "--name"
+        resourceGroupName
+        "--location"
+        resourceGroupLocation
+        "--template-file"
+        template

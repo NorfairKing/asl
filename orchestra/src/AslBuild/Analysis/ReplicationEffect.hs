@@ -95,11 +95,14 @@ rulesForReplicationAnalysis rec = onlyIfResultsExist rec $ do
 
     let simplifiedCsv = simplifiedReplicationCsv rec
     simplifiedCsv %> \outFile -> do
+        -- TODO combine repititions
         slocs <- readResultsSummaryLocationsForCfg rec
-        lines_ <- forP slocs $ \sloc -> do
+        let combinedResultsFiles = map (combineClientResultsFile rec) $ concat slocs
+        need combinedResultsFiles
+        lines_ <- forP (concat slocs) $ \sloc -> do
             ers <- readResultsSummary sloc
             setup <- readExperimentSetupForSummary ers
-            res <- throughputResults rec $ erClientLogFiles ers
+            res <- readCombinedClientResults $ combineClientResultsFile rec sloc
             simplifiedCsvLines setup res
 
         writeCSV outFile $ concat lines_
@@ -140,7 +143,12 @@ simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
     let line k a = SimplifiedCsvLine
             { nrServers = nrsers
             , replicationFactor = repfac
-            , replicationCoefficient = (fromIntegral repfac - 1) / (fromIntegral nrsers - 1)
+            , replicationCoefficient =
+                let rfm = fromIntegral repfac - 1
+                    nrs = fromIntegral nrsers - 1
+                in if rfm == 0 && nrs == 0
+                    then 0
+                    else rfm / nrs
             , kind = k
             , respAvg = a
             }
@@ -151,8 +159,9 @@ simplifiedCsvLines ExperimentSetup{..} MemaslapClientResults{..} = do
 
 makeCostCsvFile :: ReplicationEffectCfg -> FilePath -> Action ()
 makeCostCsvFile rec outFile = do
+    -- TODO combine repititions
     slocs <- readResultsSummaryLocationsForCfg rec
-    lines_ <- forP slocs $ \sloc -> do
+    lines_ <- forP (concat slocs) $ \sloc -> do
         ers <- readResultsSummary sloc
         setup <- readExperimentSetupForSummary ers
         simplifiedCostCsvLines rec setup ers
@@ -167,8 +176,8 @@ simplifiedCostCsvLines rec ExperimentSetup{..} ExperimentResultSummary{..} = do
     let readDursFile = avgReadDurationFile rec erMiddleResultsFile
     let writeDursFile = avgWriteDurationFile rec erMiddleResultsFile
     need [readDursFile, writeDursFile]
-    avgReadDurs <- readJSON readDursFile
-    avgWriteDurs <- readJSON writeDursFile
+    avgReadDurs <- fmap (round . avg) <$> readAvgDurationsFile readDursFile
+    avgWriteDurs <- fmap (round . avg) <$> readAvgDurationsFile writeDursFile
     let (ms, sss) = fromRight backendSetup
     return $ concatMap
         (uncurry $ makeDurLines

@@ -1,0 +1,727 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper, portrait, margin=1in]{geometry}
+
+\input{../common.tex}
+
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+\usetikzlibrary{patterns}
+
+
+
+% Report Checklist:
+
+
+% Define service, waiting time and map them onto design for each model.
+% Explain where each number comes from.
+
+% - Make sure all the logfiles are there.
+% - Reason about why I chose these factors in the 2k factorial experiment.
+
+
+
+
+
+\begin{document}
+
+\title{Advanced Systems Lab (Fall'16) -- Third Milestone}
+
+\author{Name: \emph{\myname}\\Legi number: \emph{\myleginr}}
+
+\date{
+\vspace{4cm}
+\textbf{Grading} \\
+\begin{tabular}{|c|c|}
+\hline  \textbf{Section} & \textbf{Points} \\ 
+\hline  1 &  \\ 
+\hline  2 &  \\ 
+\hline  3 &  \\ 
+\hline  4 &  \\ 
+\hline  5 &  \\ 
+\hline \hline Total & \\
+\hline 
+\end{tabular} 
+}
+
+\maketitle
+\newpage
+
+\section{Overview}
+
+This report is the third installment in a series of three reports for the Advanced System Lab course.
+The two previous reports considered the building of a middleware and experimentation.
+This report will focus on modelling the middleware.
+
+A model of the situation can be found in figure \ref{ref:complete-system}.
+
+\begin{figure}[H]
+  \centering
+	
+  \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] (image) at (0,0) {\includegraphics[width=0.5\textwidth]{\asset{architecture.png}}};
+    \begin{scope}[x={(image.south east)},y={(image.north west)}]
+			\draw (-0.7,0.5) circle (1cm) node (C) {Clients};
+			\node (N) at (-0.3,0.5) [cloud, draw,cloud puffs=10,cloud puff arc=120, aspect=2, inner ysep=1em] {network};
+			\draw [->, thick] (C) -- (N) -- (image);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Complete view of the system}
+  \label{ref:complete-system}
+\end{figure}
+
+In this report I will use the same definitions as in the last report.
+Section 3 of the previous report lists them clearly.
+
+\section{System as One Unit}\label{sec:system-one-unit}
+
+% Length: 1-2 pages
+
+% Build an M/M/1 model of your entire system based on the stability trace that you had to run for the first milestone.
+% Explain the characteristics and behavior of the model built, and compare it with the experimental data (collected both outside and inside the middleware).
+% Analyze the modeled and real-life behavior of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments).
+% Make sure to follow the model-related guidelines described in the Notes!
+
+\subsection{Boundaries of M/M/1 model}
+
+To make a M/M/1 model of the entire system, we have to treat the system under test as a black box.
+The black box is drawn from the middleware, across the network on the server side and across the servers.
+
+This black box seemed the most appropriate.
+Adding the network on the client-side to the black box would add more network-traveling to the service that we are modelling.
+On the other hand, drawing the black box around the middleware only makes it hard to define what the service of the model is.
+
+In figure \ref{fig:mm1-black-box}, there is an illustration of the black box used for this model.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0, opacity=0.4] (image) at (0,0) {\includegraphics[width=0.5\textwidth]{\asset{architecture.png}}};
+    \begin{scope}[x={(image.south east)},y={(image.north west)}]
+			\draw (-0.7,0.5) circle (1cm) node (C) {Clients};
+			\node (N) at (-0.3,0.5) [cloud, draw,cloud puffs=10,cloud puff arc=120, aspect=2, inner ysep=1em] {network};
+			\draw [->, thick] (C) -- (N) -- (image);
+			\draw [pattern=north west lines, pattern color=blue, fill=black, fill opacity=0.3, text opacity=1] (0,0) rectangle (1.05,1.05);
+    	\node[anchor=south west,inner sep=0] (image) at (0,0.31) {\includegraphics[width=0.5\textwidth]{\asset{mm1.png}}};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Black box system for M/M/1 model}
+  \label{fig:mm1-black-box}
+\end{figure}
+
+The 'service' that the black box is providing is exactly one Memcache operation.
+In the end, this is precisely the point of using a middleware like this.
+The black box abstracts away from a lot of details, so while it's relatively easy to define what the 'service' is, we cannot really point to a component of the real system and call it the 'queue' of this model.
+
+\subsection{Parameter estimation}
+
+Next we pretend that everything in this black box corresponds to a system as modeled by an M/M/1 model, and try to estimate the parameters $\lambda$ and $\mu$ of the M/M/1 model.
+
+The model parameters will be estimated on a stability trace experiment that was run in the first part of the project.
+However, due to updates to the system, this experiment has had to be re-run.
+The details of the configuration can be found in figure \ref{fig:sut-stability-trace}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-stability-trace-table.tex}}
+  \caption{Stability trace}
+  \label{fig:sut-stability-trace}
+\end{figure}
+
+\subsubsection{Estimation of the arrival rate $\lambda$}
+
+The arrival rate $\lambda$ is estimated by the average\footnote{over the seconds of the trace} throughput as seen by the clients.
+Indeed, because we are dealing with a closed system, the rate at which requests arrive at the black box is exactly equal to the rate at which requests are processed.
+To justify this way of estimating $\lambda$, we rely on the fact that we are dealing with a closed system.
+
+\subsubsection{Estimation of the service rate $\mu$}
+
+The service rate $\mu$ is estimated by the maximum throughput throughput as seen by the clients over all the 1 second intervals of the experiment.
+This can be justified by realising that the service rate is the maximum speed at which the system can process requests.
+This means that taking the maximum throughput will yield a lower bound for the service rate.
+Because we consider many one second intervals, this estimation should give us a relatively accurate lower-bound for the service rate.
+
+\subsection{Comparison with experimental results}
+
+In figure \ref{fig:mm1-model}, we can see the M/M/1 model that was built according to guidelines of the previous subsection.
+On the left-hand side we can see the input parameters and output measures as predicted by the model.
+On the right-hand side we can see a comparison with data gathered from the system.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-stability-trace-mm1-model.tex}}
+  \caption{M/M/1 model}
+  \label{fig:mm1-model}
+\end{figure}
+
+It is important to note that 'response time' means the total time before the black box replies.
+It has little to do with what the clients call the 'response time'.
+The mean waiting time means the time that a request spends in the M/M/1 model queue before being processed.
+
+\subsection{Comparison and mapping between comparison and system components}
+
+Because the real system is much more complex than the system in an $M/M/1$ model, we cannot map measurements onto predictions perfectly.
+The data in figure \ref{fig:mm1-measurements} are the most relevant data available.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-stability-trace-mm1-measurements.tex}}
+  \caption{M/M/1 model}
+  \label{fig:mm1-measurements}
+\end{figure}
+
+The mean response time predicted by the model is compared to the average total time between receiving a request and sending a response (in the middleware).
+This is called the mean time in middleware or the response time of the middleware.
+The mean waiting time is compared to the time between being enqueued and being dequeued for any request.
+
+In both cases we see that the prediction is not even close to the measurements.
+The ratio between the measurements and the predictions are \input{\model{remote-stability-trace-mm1-resprat.tex}} and \input{\model{remote-stability-trace-mm1-waitrat.tex}} for response time and waiting time respectively.
+
+This ratio is so large because the model does not take parallelisation in account.
+A system with only one queue and one server that achieved a service rate as high as \input{\model{remote-stability-trace-mm1-service-rate.tex}} with an arrival rate of \input{\model{remote-stability-trace-mm1-arrival-rate.tex}} would have to have a much shorter response time and waiting time than the real system.
+
+Indeed, the ratio of the measured response time to the predicted response time is close to the total number of workers in the real system.
+The ratio is still smaller, of course, because not every worker in the system is necessarily constantly busy.
+
+The predicted number of jobs in the system is compared to the total number of clients in the system, an over-approximation for the real number of jobs in the system.
+The predicted number of jobs in the queue is compared to this approximation minus the total number of workers in the real system, an approximation of the total numbor of jobs in any queues in the middleware.
+
+Once again we see that the predictions are a lot smaller than than the measured values.
+This is for the same reason: A system with one queue and one server, that can process jobs with the given service rate at the given arrival rate, would have much fewer jobs in the system and in its queue than the real system with parallelisation.
+
+In fact, this can be shown by looking at the ratio between the number of jobs in the queue and the number of jobs in the system.
+These ratios are very close, precicely as we would expect.
+
+\section{Analysis of System Based on Scalability Data}\label{sec:analysis-scalability}
+
+% Length: 1-4 pages
+
+% Starting from the different configurations that you used in the second milestone, build M/M/m queuing models of the system as a whole. Detail the characteristics of these series of models and compare them with experimental data. The goal is the analysis of the model and the real scalability of the system (explain the similarities, the differences, and map them to aspects of the design or the experiments). Make sure to follow the model-related guidelines described in the Notes!
+
+\subsection{Boundaries of M/M/m models}
+
+For these model, we use the same black box as in the last section.
+In figure \ref{fig:mmm-black-box}, there is an illustration of the black box used for these models.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0, opacity=0.4] (image) at (0,0) {\includegraphics[width=0.5\textwidth]{\asset{architecture.png}}};
+    \begin{scope}[x={(image.south east)},y={(image.north west)}]
+			\draw (-0.7,0.5) circle (1cm) node (C) {Clients};
+			\node (N) at (-0.3,0.5) [cloud, draw,cloud puffs=10,cloud puff arc=120, aspect=2, inner ysep=1em] {network};
+			\draw [->, thick] (C) -- (N) -- (image);
+			\draw [pattern=north west lines, pattern color=blue, fill=black, fill opacity=0.3, text opacity=1] (0,0) rectangle (1.05,1.05);
+    	\node[anchor=south west,inner sep=0] (image) at (0,0.19) {\includegraphics[width=0.5\textwidth]{\asset{mmm.png}}};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Black box system for M/M/m model}
+  \label{fig:mmm-black-box}
+\end{figure}
+
+\subsection{Parameter estimation}
+
+The arrival rate $\lambda$ is estimated just like for the M/M/1 model in the last section: as the average throughput.
+The reasoning behind this estimation is exactly the same as in the previous section.
+
+\subsubsection{Estimation of the number of servers}
+
+To estimate the number of servers $m$ in the $M/M/m$ model, it is tempting to use the number of Memcache instances.
+However, because all the workers in the middleware can work almost entirely in parallel, it makes more sense to use the total number of workers in the middleware instead.
+This total number of workers is equal to the number of Memcache instances times the number of threads in each reader thread pool plus one for the worker thread per server.
+
+\subsubsection{Estimation of the service rate $\mu$}
+
+The service rate $\mu$ is estimated using the maximum throughput, just like in the previous section, but unlike in the previous section, the service rate is estimate as this maximum throughput divided by the number of servers in this $M/M/m$ model.
+
+\subsubsection{Experiment}
+
+The data from which the $M/M/m$ models are estimated comes from the 'effect on replication experiment' from the previous report.
+Due to updates in the system, this experiment was re-run. The details of the setups can be found in figure \ref{fig:sut-remote-replication-effect}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-replication-effect-table.tex}}
+  \caption{Experiment setup}
+  \label{fig:sut-remote-replication-effect}
+\end{figure}
+
+\subsection{Characteristics of the models}
+
+For each different setup, a seperate $M/M/m$ model was built according to the estimation techniques above.
+The resulting models can be found in figure \ref{fig:mmm-model}.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-replication-effect-mmm.tex}}
+  \caption{M/M/m models}
+  \label{fig:mmm-model}
+\end{figure}
+
+In this table $S$ is the number of memcache instances, $R$ is the replication factor, $\rho$ is the traffic intensity and $E[r]$ is the predicted average response time.
+
+The traffic intensity and response time are predicted according to the formulas in Box 31.2 of the book \cite{jain2010art}.
+
+\subsection{Comparison with real data and analysis}
+
+In figure \ref{fig:replication-mmm-byrepcof} and \ref{fig:replication-mmm-bynrsers}, response times are plotted.
+The 'Real' response times are the 'response times' as measured by the middleware.
+This is the total time for an average request being received and a response being sent.
+The 'Model' response times are the average responses of the model system predicted by each $M/M/m$ model.
+
+In figure \ref{fig:replication-mmm-byrepcof}, the bars are first grouped by replication coefficient, and then by number of servers.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{\plot{remote-replication-effect-mmm-model-byrepcof.png}}
+  \caption{Response time by Replication Coefficient}
+  \label{fig:replication-mmm-byrepcof}
+\end{figure}
+
+A number of observations can be made about this plot.
+
+\begin{itemize}
+  \item
+    The models predict a severe increase in response time for an increased number of servers.
+  
+    This is because of the way the models are constructed from both the throughput and number of workers.
+    To explain, we have to look at a similar plot, but this time plotting absolute throughput on the y axis as in figure \ref{fig:replication-mmm-abstps}.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=.7\textwidth]{\plot{remote-replication-effect-mmm-model-abstps.png}}
+      \caption{Response time by Replication Coefficient}
+      \label{fig:replication-mmm-abstps}
+    \end{figure}
+
+    As we can see, for fixed replication coefficients $0$ and $0.5$ and an increasing number of Memcache instances, throughput first increases and then decreases.
+    This is because the number of worker threads in the middleware increases for every new server.
+    This increase in number of worker threads helps throughput when going from $3$ to $5$ servers, but when going from $5$ to $7$ servers, the extra workers don't help anymore because of the way they need to contend for CPU time.
+    This initial increase weakens as the replication coefficient increases because of how much more expensive writes become, and for full replication it is completely gone.
+    Overall throughput decreases (slightly) as the number of servers increases.
+
+    However, the number of workers increases rapidly (linearly) as more servers are added.
+    This means that that the service rates of the models decrease as the number of servers grow, mainly because the number of servers in the model increases so quickly.
+    When service rates drop in the models, the predicted response time increases, which is why this observation concerning response times makes sense.
+
+  \item
+    The severity of this increase is independent of the replication coefficient.
+
+    After the previous explanation, this makes perfect sense as well.
+    As the increase in predicted response times is mainly due to the increase in the number of workers in the middleware, and this increase in number of workers is independent of the replication coefficient, it makes sense that the increase in predicted response times is also independent of the replication coefficient.
+
+  \item
+    The real response times decrease for an increasing number of servers.
+
+    This makes sense because more servers allow for a better distribution of the load.
+    With more servers, queues will more often be empty and as a result, requests spend less time in queues.
+    As a result, the response time decreases.
+
+    Keep in mind that this is the response time as measured by the middleware.
+    The response time as measured by the clients does in fact behave exactly as the throughput would suggest in a closed system.
+    This can be seen in figure \ref{fig:replication-mmm-absresp}
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=.7\textwidth]{\plot{remote-replication-effect-mmm-model-absresp.png}}
+      \caption{Response time by Replication Coefficient}
+      \label{fig:replication-mmm-absresp}
+    \end{figure}
+
+    The reason behind this difference in the response time as measured by the middleware and the response time as measured by the client is due to the following phenomenon.
+    As the total number of workers increases with the number of servers, the workers have to contend more and more for CPU time.
+    That means that the thread that receives in the requests gets an increasingly smaller share of time to do so.
+    As long as requests haven't been received, their 'timer' for response time doesn't start yet.
+
+  \item
+    The decrease in real response times (as measured by the middleware) is dependent on the replication coefficient.
+
+    The same situation as described in the previous point happens for all different replication coefficients. 
+    However, as the replication coefficient increases, the replication factor increases and, as a result, write requests become a lot more expensive
+    This can be seen in both the response times as measured by the clients (figure \ref{fig:replication-mmm-byrepcof}) and the response times as measured by the middleware (figure \ref{fig:replication-mmm-absresp}).
+    This effect of more expensive write requests on the response time somewhat cancels out the effect of an increased number of servers on the response time (as measured by the middleware) that was described in the previous point.
+    As a result the response time decreases more slowly the higher the replication coefficient.
+    
+\end{itemize}
+
+Figure \ref{fig:replication-mmm-bynrsers} shows the same data as figure \ref{fig:replication-mmm-byrepcof}, but first grouped by the number of servers and then by the replication factor.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{\plot{remote-replication-effect-mmm-model-bynrsers.png}}
+  \caption{Response time by Number of Servers}
+  \label{fig:replication-mmm-bynrsers}
+\end{figure}
+
+On this plot we additionally see:
+
+\begin{itemize}
+  \item Both in the models and in the real data, the response time increases as the replication factor increases.
+
+    The reason why the real response times increase as the replication factor increases was already discussed previously: because write requests become more expensive.
+    The reason that the model models this trend well, is because of the decrease in maximum throughput as a result of an increased replication factor on throughput.
+    This can be seen in figure \ref{fig:replication-mmm-maxtps}.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=.7\textwidth]{\plot{remote-replication-effect-mmm-model-maxtps.png}}
+      \caption{Response time by Replication Coefficient}
+      \label{fig:replication-mmm-maxtps}
+    \end{figure}
+
+    A decrease in maximum throughput, for a fixed number of servers, directly results in a decreased service rate of the model.
+    As a result it makes sense that the response time predicted by the models increases.
+\end{itemize}
+
+\section{System as Network of Queues}\label{sec:network-of-queues}
+
+% Length: 1-3 pages
+
+% Based on the outcome of the different modeling efforts from the previous sections, build a comprehensive network of queues model for the whole system. Compare it with experimental data and use the methods discussed in the lecture and the book to provide an in-depth analysis of the behavior. This includes the identification and analysis of bottlenecks in your system. Make sure to follow the model-related guidelines described in the Notes!
+
+\subsection{Definition of the network}
+
+The same black box is used as in the previous section.
+The modeled network is an open queuing network and it is defined as follows.
+
+For a given setup with $S$ servers and $T$ threads per reader threadpool, the queueing network consists of $1 + 4 \cdot S$ service centers.
+The first network is an $M/M/1$ service center and it represents the part of the middleware that handles incoming requests.
+Its queue is not explicitly visible in the code, because it is defined in Java's Asynchronous IO framework, but it is there nonetheless.
+Next, for each server, there is an $M/M/T$ service center that represents the $T$ threads in the reader threadpool.
+The `service' of this service center includes the synchronous sending of read requests, the network delay, the Memcache read operation, and sending back the response to the appropriate client.
+For each server, there are three more service centers that represent the parts of the middleware that handle writes.
+First there is an $M/M/1$ service center that represents the asynchronous sending of write requests.
+Directly behind that, there is an $M/M/\infty$ delay center, that represents the network delay and Memcache's write operations.
+Lastly, behind that, there is another $M/M/1$ service center that represents sending back the response to the appropriate client if the replication is done.
+\footnote{For details on how write requests are handled, see the first report.}
+
+A detailed illustration of this queueing network can be found in figure \ref{fig:network-of-queues}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[scale=0.5, every node/.style={scale=0.7}]
+    % Connection accepter and initial reader
+    \node at (9,2) {\Large Request Acceptor};
+    \mmoqueue{200}{0}
+    \node at (9,-0.5) {$M/M/1$};
+    
+    % Worker queues
+    \node at (11.5,5.75) {\Large Readers};
+    \node at (11.5,7.5) {\Large Writer};
+
+    \node at (16.5,9) {\Large Write sender};
+    \node at (23,9) {\Large Write processor};
+    \node at (30.5,9) {\Large Write responder};
+		\draw [thick] (12.2,0.5) -- (13,7);
+		\draw [->, thick] (13,7) -- (14,8);
+		\draw [->, thick] (13,7) -- (14,6);
+		\draw [->, thick] (19,7.5) -- (21,7.5);
+		\draw [->, thick] (26,7.5) -- (28,7.5);
+    \mmoqueue{400}{200}
+    \mmiqueue{600}{200}
+    \mmoqueue{800}{200}
+    \mmmqueue{400}{150}
+
+		\draw [thick] (12.2,0.5) -- (13,3);
+		\draw [->, thick] (13,3) -- (14,4);
+		\draw [->, thick] (13,3) -- (14,2);
+		\draw [->, thick] (19,4) -- (21,4);
+		\draw [->, thick] (26,4) -- (28,4);
+    \mmoqueue{400}{100}
+    \mmiqueue{600}{100}
+    \mmoqueue{800}{100}
+    \mmmqueue{400}{50}
+
+    \node at (16, 0.5) {$\vdots$};
+
+		\draw [thick] (12.2,0.5) -- (13,-2);
+		\draw [->, thick] (13,-2) -- (14,-1);
+		\draw [->, thick] (13,-2) -- (14,-3);
+		\draw [->, thick] (26,-1.25) -- (28,-1.25);
+		\draw [->, thick] (19,-1.25) -- (21,-1.25);
+    \mmoqueue{400}{-50}
+    \mmiqueue{600}{-50}
+    \mmoqueue{800}{-50}
+    \mmmqueue{400}{-100}
+
+    \node at (16,-0.25) {$M/M/1$};
+    \node at (16,-4.5) {$M/M/16$};
+    \node at (23,-2.25) {$M/M/\infty$};
+    \node at (30,-2.25) {$M/M/1$};
+
+  \end{tikzpicture}
+  \caption{Comprehensive network of queues}
+  \label{fig:network-of-queues}
+\end{figure}
+
+The reasoning behind choosing an open queueing network as opposed to a closed network is twofold.
+
+\begin{itemize}
+  \item An open queueing network is more generally applicable than just a memaslap workload.
+  \item Modelling a closed queueing network would require additional estimates for network times and client think times.
+    While think times are easy to estimate (see section \ref{sec:think-time-estimation}), estimating network times accurately, while not interfering with acceptor queue times, is much harder and would require additional measurements.
+\end{itemize}
+
+\subsection{Experiment setup}
+
+A single model of this kind was built using the data of a new experiment.
+This experiment was designed so as to exhibit as many different aspect of the system under test.
+For this reason, many clients and servers were used, the middleware used many threads per reader queue, and the replication coefficient was set to 0.5.
+
+The details of this experiment can be found in figure \ref{fig:sut-remote-extreme}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-extreme-table.tex}}
+  \caption{Experiment setup}
+  \label{fig:sut-remote-extreme}
+\end{figure}
+
+\subsection{Parameter estimation}
+The network of queues as modelled above has 7 parameters and they were estimated as follows.
+
+The overall arrival rate.
+
+Given that the system that we are measuring data in is a closed system, we can estimate the overall arrival rate as the average throughput.
+
+The service time of the acceptor service center was estimated as the time between receiving a request and enqueuing the request.
+
+The service time of the read workers' service center was estimated as the time between dequeuing a read request and responding to the request's client.
+
+The number of servers of the read worker's service center was estimated as the number threads per read thread pool.
+
+The service rate of the first write service center was estimated as the time between dequeueing a write request and forwarding the request to the first server.
+
+The service rate of the second write service center was estimated as the time between forwarding a write request to the first server and receiving the last response from the servers.
+
+The service rate of the third write service center was estimated as the time between receiving the last response from the servers and and sending the response back to the client.
+
+The model that was derived from the data gathered from the experiment as detailed in figure \ref{fig:sut-remote-extreme} can be found in figure \ref{fig:mymodel-model}.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-extreme-mymodel-model.tex}}
+  \caption{Network of queues model parameters}
+  \label{fig:mymodel-model}
+\end{figure}
+
+The most important characteristics of the model can be found in figure \ref{fig:mymodel-characteristics}.
+These numbers were computed using Octave's queueing package \cite{octave}.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-extreme-mymodel-characteristics.tex}}
+  \caption{Network of queues characteristics}
+  \label{fig:mymodel-characteristics}
+\end{figure}
+
+\subsection{Identification of bottlenecks}
+
+The writer receiver service centers have the highest utilisation, but because they are delay centers, they cannot be identified as the bottleneck of the system theoretically.
+The service center with the highest utilisation that is not a delay center is the acceptor service center.
+We conclude that this is the bottleneck of the system.
+
+It makes sense that this is the bottleneck of the system because it is the only part of the middleware that does not scale with the number of servers that are available.
+In fact, as more servers are added, this part even shrinks in relative terms because of CPU contention between the threads.
+
+\subsection{Analysis of the model}
+
+In figure \ref{fig:mymodel-real}, there are measurements of the real system.
+
+\begin{figure}[H]
+  \centering
+  \input{\model{remote-extreme-mymodel-real.tex}}
+  \caption{Network of queues measurements}
+  \label{fig:mymodel-real}
+\end{figure}
+
+The response time in this table corresponds to the response time as measured by the middleware.
+The prediction in figure \ref{fig:mymodel-characteristics} is relatively close to the real response time, but the distance is still significant.
+
+The real queue waiting times are much larger than the predcted queue times.
+In fact, if we take the weighted average of the real queue waiting times, then we get a value that is extremely close to the difference between the real response time and the predicted response time.
+
+\[ 0.9 \cdot 794 + 0.1 \cdot 5 = 751 \approx 711 = 3263 - 2552 \]
+
+However, the extreme under-estimation of the queue times by the model is entirely reasonable.
+This problem occurs because the model does not take into account the fact that all parallelisation in the middleware happens on the same machine.
+As such, the different threads have to contend with eachother for CPU time.
+This means that adding a new thread does not just create more capacity, it just divides up the capacity among more threads.
+Whenever a thread is scheduled to do work, it can work at the given service rate, but as the total number of workers in the middleware increases, each thread gets scheduled less frequently.
+If all middleware threads could work at their respective service rate all of the time, the model would predict queueing times more accurately.\footnote{An extra experiment I ran with only one server and 6 middleware thread confirms this.}
+
+\section{Factorial Experiment}\label{sec:2k-experiment}
+
+% Length: 1-3 pages
+
+% Design a $2^k$ factorial experiment and follow the best practices outlined in the book and in the lecture to analyze the results. You are free to choose the parameters for the experiment and in case you have already collected data in the second milestone that can be used as source for this experiment, you can reuse it. Otherwise, in case you need to run new experiments anyway, we recommend exploring the impact of request size on the middleware together with an other parameter.
+
+A full factorial experiment with replication has been run to explore the impact of three factors $A$, $B$, and $C$ on a response variable $y$; as listed in figure \ref{fig:tps-sign-table-legend}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-tps-legend.tex}}
+  \caption{Symbol definitions}
+  \label{fig:tps-sign-table-legend}
+\end{figure}
+
+Three repetitions were performed for each setup.
+For each of these factors, two different configurations were specified.
+All the elements of the Carthesian product of these configurations are tested.
+The details of this experiment's setups can be found in figure \ref{fig:sut-2k-factorial}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-table.tex}}
+  \caption{Factorial experiment}
+  \label{fig:sut-2k-factorial}
+\end{figure}
+
+The results of this experiment can be found in figure \ref{fig:tps-sign-table-results}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-tps-results.tex}}
+  \caption{Throughput results}
+  \label{fig:tps-sign-table-results}
+\end{figure}
+
+In figure \ref{fig:tps-sign-table-add-model}, we can find a sign table of an additive model of this $2^3 \cdot 3$ experiment.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-tps-add-signtable.tex}}
+  \caption{Throughput Sign Table (additive model)}
+  \label{fig:tps-sign-table-add-model}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-2k-factorial-sign-table-tps-add-variations.tex}}
+  \caption{Throughput Variation Table (additive model)}
+  \label{fig:tps-sign-table-add-vars}
+\end{figure}
+
+In figure \ref{fig:tps-sign-table-add-vars} variation explained by each factor is laid out, as well as the relative variation explained by each factor.
+
+This table suggests that the replication coefficient has the highest impact on throughput, out of the factors that were considered.
+A higher replication coefficient means that every write request needs to hit additional Memcache servers.
+This means that a significant ratio of the requests that passes through the middleware, the write requests, are suddenly a lot more expensive.
+As a result, the average request will take longer to be processed and consequently fewer requests can be processed in a given amount of time.
+The fact that this is the most important factor is consistent with the common knowledge \cite{latency} that the network is one of the most expensive parts of a distributed system.
+
+The next most important factor is the write percentage.
+This makes sense because write requests only have one thread to deal with them per server, as opposed to the entire thread pool that read requests get.
+This matters because while forwarding requests happens asynchronously, sending responses back to clients happens synchronously.
+In addition to this, write requests are more expensive than read requests as soon as any replication is used.
+
+The third most important factor is, interestingly, an interaction factor.
+The interaction between the replication coefficient and the write percentage is the third most important factor.
+This means that the impact of the replication coefficient on the throughput is even greater in the case of a greater write percentage and vice versa.
+This is because writes become significantly more expensive if replication is used, but writes need not be much more expensive than reads if no replication is used at all.
+
+The last factor that has a significant impact is the size of requests.
+This is because larger requests are more expensive for Memcache to process, but also because the middleware needs to do more work in order to process a larger request.
+Every byte of a request is copied twice.
+The first time to parse it from the contents of a ByteBuffer and the second time to render back the response as a ByteBuffer.
+As a result, it makes sense that throughput decreases as request value increases.
+
+There are two more factors that have little impact on throughput: The combination of request value size and the write percentage, and the combination of all three individual factors.
+
+Lastly, almost none of the variation is explained by experimental error, which tells us that the experiments were rather internally consistent.
+
+For completeness: A multiplicative model was made as well, but because the difference between the maximum $y$ and the minimum $y$ is small, it gave similar results and the additive model already has little variation explained by error.
+
+\section{Interactive Law Verification}\label{sec:interactive-law}
+
+% Length: 1-2 pages
+
+% Check the validity of all experiments from one of the three sections in your Milestone 2 report using the interactive law (choose a section in which your system has at least 9 different configurations). Analyze the results and explain them in detail.
+
+To check that the experiment data makes sense using the Interactive Response Time Law, we need the following data:
+
+\begin{itemize}
+  \item Number of users of the system
+  \item Response time
+  \item Throughput
+  \item Think time
+\end{itemize}
+
+We know the number of users of the system from the total number of virtual clients,
+and we can measure the response time and the throughput of the system.
+The only data that is missing is the think time.
+
+\subsection{Think time}
+\label{sec:think-time-estimation}
+
+To estimate the think time of an average client, the following benchmark was performed.
+An experiment was configured with one server, one middleware, one client.
+The middleware was configured to log every request instead of sampling requests to log.
+The client was configured to only use one virtual client.
+Most importantly: all of these were run on the same machine and this machine is of the same kind as the usual client machines.
+The details of this experiment can be found in figure \ref{fig:sut-think-time}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-think-time-table.tex}}
+  \caption{Think time benchmark}
+  \label{fig:sut-think-time}
+\end{figure}
+
+The middleware logs timestamps for the arrival of every request and for the time when the middleware responds.
+The difference between the moment in time when the middleware responds to one request, and the moment in time where it receives the next request is an estimate of the think time of the client.
+This estimate is an over-approximation, but it should be relatively tight as the client, middleware and server are run on the same machine.
+
+Using this method, the average think time of a client was estimated to be $\input{\genfile{remote-replication-effect-irtl-think-time.tex}}$ microseconds on average.
+This will be used in the next section.
+
+\subsection{Verification}
+
+To verify that the experimental data makes sense, we predict the response time $R$ from the throughput $X$, number of users $N$ and the estimated think time $Z$.
+The results can be found in figure \ref{fig:irtl-table}.
+
+\begin{figure}[H]
+  \centering
+  \input{\genfile{remote-replication-effect-irtl-table.tex}}
+  \caption{Interactive response time verification}
+  \label{fig:irtl-table}
+\end{figure}
+
+As we can see, the estimated response time is smaller than the actual response time.
+The error is small but it makes sense.
+The average response time is not perfectly representative for the response time of a typical request, because of the fact that the response times comes from a skewed distribution with a long tail, and the average is heavily influenced by outliers.
+This can be seen in figure \ref{fig:histo-resp}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{\plot{total-duration-histos/remote-replication-effect-histogram-5.png}}
+  \caption{Histogram of Response time}
+  \label{fig:histo-resp}
+\end{figure}
+
+In conclusion, the data gathered during the performed experiments looks valid.
+
+
+\section{Log file listing}
+
+\input{\genfile{report-3-logfile-listings.tex}}
+
+\begin{thebibliography}{9}
+
+  \bibitem{jain2010art}
+    The Art of Computer Systems Performance Analysis: Techniques,
+    Jain, Raj and Menasce, Daniel and Dowdy, Lawrence W. and Almeida, Virgilio AF and Smith, Connie U. and Williams, Lloyd G.
+    2010,
+    John Wiley \& Sons.
+
+  % \bibitem{lazowska}
+    % Lazowska, Edward D., et al. Quantitative system performance: computer system analysis using queueing network models. Prentice-Hall, Inc., 1984.
+  \bibitem{latency}
+    Latency Numbers Every Programmer Should Know \url{https://gist.github.com/jboner/2841832}
+
+  \bibitem{octave}
+    The `queuing' package for the Octave programming language \url{http://www.moreno.marzolla.name/software/queueing/}
+\end{thebibliography}
+
+\end{document}

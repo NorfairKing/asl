@@ -1,9 +1,9 @@
 module AslBuild.Constants where
 
-import           Development.Shake.FilePath
+import Development.Shake.FilePath
 
-import           System.Directory
-import           System.IO.Unsafe
+import System.Directory
+import System.IO.Unsafe
 
 -- Username
 myNetzh :: String
@@ -103,9 +103,10 @@ aslDir = ""
 
 {-# NOINLINE aslCacheDir #-}
 aslCacheDir :: FilePath
-aslCacheDir = unsafePerformIO $ do
-    home <- getHomeDirectory
-    return $ home </> ".asl"
+aslCacheDir =
+    unsafePerformIO $ do
+        home <- getHomeDirectory
+        return $ home </> ".asl"
 
 outDir :: FilePath
 outDir = aslCacheDir </> out
@@ -195,7 +196,6 @@ jsonExt = "json"
 cleanTarget :: String
 cleanTarget = "clean"
 
-
 -- Commands
 antCmd :: String
 antCmd = "ant"
@@ -241,7 +241,6 @@ defaultMemcachedPort :: Int
 defaultMemcachedPort = 11211
 
 -- Azure
-
 resourceGroupName :: String
 resourceGroupName = "myResourceGroup"
 

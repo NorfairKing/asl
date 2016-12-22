@@ -1,40 +1,45 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 module AslBuild.Vm.Types
     ( VmData(..)
     , AzureVmData(..)
     ) where
 
-import           Control.Monad
-import           Data.Aeson
-import           Data.Aeson.Types
-import           Data.Maybe
-import qualified Data.Vector      as V
-import           GHC.Generics
+import Control.Monad
+import Data.Aeson
+import Data.Aeson.Types
+import Data.Maybe
+import qualified Data.Vector as V
+import GHC.Generics
 
-data VmData
-    = VmData
-    { vmName      :: String
-    , vmPublicIp  :: String
+data VmData = VmData
+    { vmName :: String
+    , vmPublicIp :: String
     , vmPrivateIp :: String
-    , vmAdmin     :: String
-    , vmFullUrl   :: String
-    , vmType      :: String
+    , vmAdmin :: String
+    , vmFullUrl :: String
+    , vmType :: String
     } deriving (Show, Eq, Generic)
 
 instance ToJSON VmData
+
 instance FromJSON VmData
 
-newtype AzureVmData = AzureVmData { azureUnpack :: [VmData] }
+newtype AzureVmData = AzureVmData
+    { azureUnpack :: [VmData]
+    }
 
 instance FromJSON AzureVmData where
     parseJSON v = aParser v
       where
-        aParser = withArray "AzureVmData" $ \a -> do
-            vms <- forM a $ \iv -> do
-                let mvm = parseMaybe (withObject "SingleVmData" parseSingleVm) iv
-                return mvm
-            return $ AzureVmData $ catMaybes $ V.toList vms
+        aParser =
+            withArray "AzureVmData" $ \a -> do
+                vms <-
+                    forM a $ \iv -> do
+                        let mvm = parseMaybe (withObject "SingleVmData" parseSingleVm) iv
+                        return mvm
+                return $ AzureVmData $ catMaybes $ V.toList vms
 
 parseSingleVm :: Object -> Parser VmData
 parseSingleVm o = do
@@ -53,8 +58,8 @@ parseSingleVm o = do
     publip <- pipe .: "ipAddress"
     (Object dns) <- pipe .: "dnsSettings"
     fullUrl <- dns .: "fqdn"
-
-    return VmData
+    return
+        VmData
         { vmName = name
         , vmPublicIp = publip
         , vmPrivateIp = privip

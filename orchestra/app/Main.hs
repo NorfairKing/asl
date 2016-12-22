@@ -1,6 +1,6 @@
 module Main where
 
-import           AslBuild
+import AslBuild
 
 main :: IO ()
 main = aslBuild

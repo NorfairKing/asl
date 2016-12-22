@@ -1,27 +1,30 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module AslBuild.Types where
 
-import           Data.Aeson    (FromJSON, ToJSON)
-import           Data.Csv
-import           Data.Hashable
-import           GHC.Generics
+import Data.Aeson (FromJSON, ToJSON)
+import Data.Csv
+import Data.Hashable
+import GHC.Generics
 
-
-data RequestKind = READ | WRITE
+data RequestKind
+    = READ
+    | WRITE
     deriving (Show, Eq, Generic)
 
-instance ToJSON   RequestKind
+instance ToJSON RequestKind
+
 instance FromJSON RequestKind
 
 instance FromField RequestKind where
-    parseField "read"  = pure READ
+    parseField "read" = pure READ
     parseField "write" = pure WRITE
     parseField _ = mempty
 
 instance ToField RequestKind where
-    toField READ  = "read"
+    toField READ = "read"
     toField WRITE = "write"
 
 data Persistence
@@ -29,7 +32,8 @@ data Persistence
     | Volatile
     deriving (Show, Eq, Generic)
 
-instance ToJSON   Persistence
+instance ToJSON Persistence
+
 instance FromJSON Persistence
 
 data Location
@@ -37,12 +41,12 @@ data Location
     | Remote
     deriving (Show, Eq, Generic)
 
-instance ToJSON   Location
+instance ToJSON Location
+
 instance FromJSON Location
 
-data Script
-    = Script
-    { scriptName    :: FilePath
+data Script = Script
+    { scriptName :: FilePath
     , scriptContent :: [String]
     } deriving (Show, Eq)
 
@@ -52,36 +56,35 @@ namedScript name contents = Script name $ "#!/bin/bash" : contents
 script :: [String] -> Script
 script contents = namedScript (show $ hash contents) contents
 
-data RemoteLogin
-    = RemoteLogin
+data RemoteLogin = RemoteLogin
     { remoteUser :: Maybe String
     , remoteHost :: String
     } deriving (Show, Eq, Generic)
 
-instance ToJSON   RemoteLogin
+instance ToJSON RemoteLogin
+
 instance FromJSON RemoteLogin
 
 remoteLoginStr :: RemoteLogin -> String
-remoteLoginStr RemoteLogin{..} =
+remoteLoginStr RemoteLogin {..} =
     case remoteUser of
         Nothing -> remoteHost
         Just user -> user ++ "@" ++ remoteHost
 
-
-data RemoteServerUrl
-    = RemoteServerUrl
-    { serverUrl  :: String
+data RemoteServerUrl = RemoteServerUrl
+    { serverUrl :: String
     , serverPort :: Int
     } deriving (Show, Eq, Generic)
 
-instance ToJSON   RemoteServerUrl
+instance ToJSON RemoteServerUrl
+
 instance FromJSON RemoteServerUrl
 
 remoteServerUrl :: RemoteServerUrl -> String
-remoteServerUrl RemoteServerUrl{..} = serverUrl ++ ":" ++ show serverPort
+remoteServerUrl RemoteServerUrl {..} = serverUrl ++ ":" ++ show serverPort
 
 loginToMemcachedServerUrl :: RemoteLogin -> RemoteServerUrl
-loginToMemcachedServerUrl RemoteLogin{..} = RemoteServerUrl remoteHost 11211
+loginToMemcachedServerUrl RemoteLogin {..} = RemoteServerUrl remoteHost 11211
 
 data TimeUnit
     = Seconds Int
@@ -89,7 +92,8 @@ data TimeUnit
     | Hours Int
     deriving (Show, Eq, Generic)
 
-instance ToJSON   TimeUnit
+instance ToJSON TimeUnit
+
 instance FromJSON TimeUnit
 
 instance ToField TimeUnit where
@@ -98,10 +102,9 @@ instance ToField TimeUnit where
 toSeconds :: TimeUnit -> Int
 toSeconds (Seconds i) = i
 toSeconds (Minutes i) = 60 * i
-toSeconds (Hours i)   = 60 * 60 * i
+toSeconds (Hours i) = 60 * 60 * i
 
 timeUnit :: TimeUnit -> String
 timeUnit (Seconds i) = show i ++ "s"
 timeUnit (Minutes i) = show i ++ "m"
-timeUnit (Hours i)   = show i ++ "h"
-
+timeUnit (Hours i) = show i ++ "h"

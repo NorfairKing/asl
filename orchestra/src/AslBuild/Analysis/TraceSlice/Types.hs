@@ -1,55 +1,50 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module AslBuild.Analysis.TraceSlice.Types where
 
-import           GHC.Generics
+import GHC.Generics
 
-import qualified Pipes.Csv                     as P
+import qualified Pipes.Csv as P
 
-import           Data.Csv
-import           Data.Monoid
+import Data.Csv
+import Data.Monoid
 
-import           AslBuild.Analysis.Trace.Types
+import AslBuild.Analysis.Trace.Types
 
-data DurTup a
-    = DurTup
-    { nrCs      :: Int
+data DurTup a = DurTup
+    { nrCs :: Int
     , middleTds :: Int
-    , durs      :: Durations a
+    , durs :: Durations a
     } deriving (Show, Eq, Generic)
 
-instance FromField a => FromNamedRecord (DurTup a) where
-    parseNamedRecord m = DurTup
-        <$> m .: "nrClients"
-        <*> m .: "middleThreads"
-        <*> parseNamedRecord m
+instance Functor DurTup where
+    fmap f dt = dt {durs = fmap f (durs dt)}
 
-instance ToField a => ToNamedRecord (DurTup a) where
-    toNamedRecord DurTup{..} =
-        namedRecord
-            [ "nrClients" .= nrCs
-            , "middleThreads" .= middleTds
-            ]
-        <> toNamedRecord durs
+instance FromField a =>
+         FromNamedRecord (DurTup a) where
+    parseNamedRecord m = DurTup <$> m .: "nrClients" <*> m .: "middleThreads" <*> parseNamedRecord m
+
+instance ToField a =>
+         ToNamedRecord (DurTup a) where
+    toNamedRecord DurTup {..} =
+        namedRecord ["nrClients" .= nrCs, "middleThreads" .= middleTds] <> toNamedRecord durs
 
 instance DefaultOrdered (DurTup a) where
-    headerOrder _ = header
-        [ "nrClients"
-        , "middleThreads"
-        ]
-        <> headerOrder (undefined :: Durations Integer)
+    headerOrder _ =
+        header ["nrClients", "middleThreads"] <> headerOrder (undefined :: Durations Integer)
 
-data DurationsLine a
-    = DurationsLine
-    { nrCls      :: Int
+data DurationsLine a = DurationsLine
+    { nrCls :: Int
     , middleThds :: Int
-    , category   :: String
-    , value      :: a
+    , category :: String
+    , value :: a
     } deriving (Show, Eq, Generic)
 
-instance ToField a => ToNamedRecord (DurationsLine a) where
-    toNamedRecord DurationsLine{..} =
+instance ToField a =>
+         ToNamedRecord (DurationsLine a) where
+    toNamedRecord DurationsLine {..} =
         namedRecord
             [ "nrClients" .= nrCls
             , "middleThreads" .= middleThds
@@ -58,10 +53,4 @@ instance ToField a => ToNamedRecord (DurationsLine a) where
             ]
 
 instance DefaultOrdered (DurationsLine a) where
-    headerOrder _ = header
-        [ "nrClients"
-        , "middleThreads"
-        , "category"
-        , "value"
-        ]
-
+    headerOrder _ = header ["nrClients", "middleThreads", "category", "value"]

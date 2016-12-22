@@ -1,9 +1,9 @@
 module AslBuild.VisualVm where
 
-import           Development.Shake
-import           Development.Shake.FilePath
+import Development.Shake
+import Development.Shake.FilePath
 
-import           AslBuild.Constants
+import AslBuild.Constants
 
 visualVmRule :: String
 visualVmRule = "visualvm"
@@ -23,10 +23,8 @@ visualVmZip = tmpDir </> "visualvm.zip"
 visualVmRules :: Rules ()
 visualVmRules = do
     visualVmRule ~> need [visualVmBinInDlDir]
-
     visualVmZip %> \_ ->
         cmd curlCmd "--output" visualVmZip visualVmUrl "--location" -- Folow redirects
-
     visualVmBinInDlDir %> \_ -> do
         need [visualVmZip]
         cmd "unzip" "-d" tmpDir visualVmZip

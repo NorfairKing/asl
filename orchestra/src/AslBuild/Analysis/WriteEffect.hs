@@ -75,11 +75,14 @@ rulesForWriteAnalysis rec = onlyIfResultsExist rec $ do
 
     let simplifiedCsv = simplifiedWriteCsv rec
     simplifiedCsv %> \outFile -> do
+        -- TODO combine repititions
         slocs <- readResultsSummaryLocationsForCfg rec
-        lines_ <- forP slocs $ \sloc -> do
+        let combinedResultsFiles = map (combineClientResultsFile rec) $ concat slocs
+        need combinedResultsFiles
+        lines_ <- forP (concat slocs) $ \sloc -> do
             ers <- readResultsSummary sloc
             setup <- readExperimentSetupForSummary ers
-            res <- throughputResults rec $ erClientLogFiles ers
+            res <- readCombinedClientResults $ combineClientResultsFile rec sloc
             return $ simplifiedCsvLines setup res
 
         writeCSV outFile lines_
