@@ -286,7 +286,7 @@ A number of observations can be made about this plot.
     The models predict a severe increase in response time for an increased number of servers.
   
     This is because of the way the models are constructed from both the throughput and number of workers.
-    To explain, we have to look at a similar plot, but this time plotting absolute throughput on the y axis as in figure \ref{fig:replication-mmm-abstps}.
+    To explain, we have to look at a similar plot, but this time plotting absolute average throughput on the y axis as in figure \ref{fig:replication-mmm-abstps}.
 
     \begin{figure}[H]
       \centering
@@ -303,7 +303,7 @@ A number of observations can be made about this plot.
 
     However, the number of workers increases rapidly (linearly) as more servers are added.
     This means that that the service rates of the models decrease as the number of servers grow, mainly because the number of servers in the model increases so quickly.
-    When service rates drop in the models, the predicted response time increases, which is why this observation concerning response times makes sense.
+    When service rates drop in the models, the predicted response time increases, which is why this observation concerning response times makes sense, even if it does not model reality well.
 
   \item
     The severity of this increase is independent of the replication coefficient.
@@ -338,7 +338,7 @@ A number of observations can be made about this plot.
     The decrease in real response times (as measured by the middleware) is dependent on the replication coefficient.
 
     The same situation as described in the previous point happens for all different replication coefficients. 
-    However, as the replication coefficient increases, the replication factor increases and, as a result, write requests become a lot more expensive
+    However, as the replication coefficient increases, the replication factor increases and, as a result, write requests become a lot more expensive.
     This can be seen in both the response times as measured by the clients (figure \ref{fig:replication-mmm-byrepcof}) and the response times as measured by the middleware (figure \ref{fig:replication-mmm-absresp}).
     This effect of more expensive write requests on the response time somewhat cancels out the effect of an increased number of servers on the response time (as measured by the middleware) that was described in the previous point.
     As a result the response time decreases more slowly the higher the replication coefficient.
