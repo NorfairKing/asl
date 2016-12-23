@@ -607,7 +607,7 @@ The fact that this is the most important factor is consistent with the common kn
 The next most important factor is the write percentage.
 This makes sense because write requests only have one thread to deal with them per server, as opposed to the entire thread pool that read requests get.
 This matters because while forwarding requests happens asynchronously, sending responses back to clients happens synchronously.
-In addition to this, write requests are more expensive than read requests as soon as any replication is used.
+In addition to this, write requests are more expensive than read requests\footnote{See section 3 of the previous report.}, particularly when replication is used.
 
 The third most important factor is, interestingly, an interaction factor.
 The interaction between the replication coefficient and the write percentage is the third most important factor.
