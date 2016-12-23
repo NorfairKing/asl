@@ -632,13 +632,19 @@ For completeness: A multiplicative model was made as well, but because the diffe
 
 % Check the validity of all experiments from one of the three sections in your Milestone 2 report using the interactive law (choose a section in which your system has at least 9 different configurations). Analyze the results and explain them in detail.
 
-To check that the experiment data makes sense using the Interactive Response Time Law, we need the following data:
+\begin{figure}[H]
+  \[ R = \frac{N}{X} - Z \]
+  \caption{Interactive response time law}
+  \label{fig:irtl}
+\end{figure}
+
+To check that the experiment data makes sense using the Interactive Response Time Law (figure \ref{fig:irtl}), we need the following data:
 
 \begin{itemize}
-  \item Number of users of the system
-  \item Response time
-  \item Throughput
-  \item Think time
+  \item Number of users of the system: $N$
+  \item Response time: $R$
+  \item Throughput: $X$
+  \item Think time: $Z$
 \end{itemize}
 
 We know the number of users of the system from the total number of virtual clients,
@@ -666,14 +672,14 @@ The middleware logs timestamps for the arrival of every request and for the time
 The difference between the moment in time when the middleware responds to one request, and the moment in time where it receives the next request is an estimate of the think time of the client.
 This estimate is an over-approximation, but it should be relatively tight as the client, middleware and server are run on the same machine.
 
-Using this method, the average think time of a client was estimated to be $Z = \input{\genfile{remote-replication-effect-irtl-think-time.tex}}$ microseconds on average.
+Using this method, the average think time of a client was estimated to be up to $Z = \input{\genfile{remote-replication-effect-irtl-think-time.tex}}$ microseconds on average.
 This will be used in the next section.
 
 \subsection{Verification}
 
 The data to be verified comes from the experiments on the topic of the effects of the replication effect as listed in figure \ref{fig:sut-remote-replication-effect}.
 
-To verify that the experimental data makes sense, we predict the response time $R$ from the throughput $X$, number of users $N$ and the estimated think time $Z$.
+To verify that the experimental data makes sense, we predict the response time $R$ from the throughput $X$, number of users $N$ and the estimated think time $Z$, and compare this prediction with the measured mean response time.
 The results can be found in figure \ref{fig:irtl-table}.
 
 \begin{figure}[H]
