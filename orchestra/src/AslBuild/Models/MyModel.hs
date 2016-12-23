@@ -311,7 +311,7 @@ genTexfilesFor ecf = do
     let readDursFile = combinedAvgReadDurationFile ecf mes
     let writeDursFile = combinedAvgWriteDurationFile ecf mes
     need [myModelFile, solutionFile, combinedMiddlewareFile, readDursFile, writeDursFile]
-    setup <- readExperimentSetupForSummary $ head erss
+    -- setup <- readExperimentSetupForSummary $ head erss
     MyModel {..} <- readMyModelFile myModelFile
     let unmodeltime = (* (1000 * 1000))
     let modtab =
@@ -346,7 +346,7 @@ genTexfilesFor ecf = do
             tabularWithHeader
                 ["Modeled measure", "Value", "Unit"]
                 [ ["Response time", printf "%.f" $ unmodeltime systemResponseTime, "$\\mu s$"]
-                , ["Average number of requests", printf "%.2f" avgNumberOfRequests, "Requests"]
+                -- , ["Average number of requests", printf "%.2f" avgNumberOfRequests, "Requests"]
                 , ["Acceptor utilisation", printf "%.5f" $ forAcceptor utilisations, ""]
                 , ["Reader utilisation", printf "%.5f" $ forReader utilisations, ""]
                 , ["Write sender utilisation", printf "%.5f" $ forFirstWriter utilisations, ""]
@@ -374,7 +374,7 @@ genTexfilesFor ecf = do
                   , printf "%.f" $ unmiddletime $ avgAvgs $ totalDuration mrs
                   , "$\\mu s$"
                   ]
-                , ["Number of clients", printf "%d" $ nrUsers setup, "Clients"]
+                -- , ["Number of clients", printf "%d" $ nrUsers setup, "Clients"]
                 , [ "Read queue waiting time"
                   , printf "%.f" $ unmiddletime $ avgAvgs $ untilDequeuedTime readDurs
                   , "$\\mu s$"

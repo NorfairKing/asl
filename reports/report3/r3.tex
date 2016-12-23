@@ -481,20 +481,12 @@ The details of this experiment can be found in figure \ref{fig:sut-remote-extrem
 \subsection{Parameter estimation}
 The network of queues as modelled above has 7 parameters and they were estimated as follows.
 
-The overall arrival rate.
-
 Given that the system that we are measuring data in is a closed system, we can estimate the overall arrival rate as the average throughput.
-
 The service time of the acceptor service center was estimated as the time between receiving a request and enqueuing the request.
-
 The service time of the read workers' service center was estimated as the time between dequeuing a read request and responding to the request's client.
-
 The number of servers of the read worker's service center was estimated as the number threads per read thread pool.
-
 The service rate of the first write service center was estimated as the time between dequeueing a write request and forwarding the request to the first server.
-
 The service rate of the second write service center was estimated as the time between forwarding a write request to the first server and receiving the last response from the servers.
-
 The service rate of the third write service center was estimated as the time between receiving the last response from the servers and and sending the response back to the client.
 
 The model that was derived from the data gathered from the experiment as detailed in figure \ref{fig:sut-remote-extreme} can be found in figure \ref{fig:mymodel-model}.
@@ -544,6 +536,7 @@ In fact, if we take the weighted average of the real queue waiting times, then w
 
 \[ 0.9 \cdot 794 + 0.1 \cdot 5 = 751 \approx 711 = 3263 - 2552 \]
 
+This suggest that queue times are the most important mis-prediction of this model
 However, the extreme under-estimation of the queue times by the model is entirely reasonable.
 This problem occurs because the model does not take into account the fact that all parallelisation in the middleware happens on the same machine.
 As such, the different threads have to contend with eachother for CPU time.
