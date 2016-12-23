@@ -52,9 +52,9 @@
 
 This report is the third installment in a series of three reports for the Advanced System Lab course.
 The two previous reports considered the building of a middleware and experimentation.
-This report will focus on modelling the middleware.
+This report will focus on modelling the system.
 
-A model of the situation can be found in figure \ref{ref:complete-system}.
+An illustration of the situation can be found in figure \ref{ref:complete-system}.
 
 \begin{figure}[H]
   \centering
@@ -85,7 +85,7 @@ Section 3 of the previous report lists them clearly.
 
 \subsection{Boundaries of M/M/1 model}
 
-To make a M/M/1 model of the entire system, we have to treat the system under test as a black box.
+To make a M/M/1 model of the entire system, we have to treat the system as a black box.
 The black box is drawn from the middleware, across the network on the server side and across the servers.
 
 This black box seemed the most appropriate.
@@ -134,19 +134,19 @@ The details of the configuration can be found in figure \ref{fig:sut-stability-t
 The arrival rate $\lambda$ is estimated by the average\footnote{over the 1 second intervals of the trace} throughput as seen by the clients.
 Indeed, because we are dealing with a closed system, the rate at which requests arrive at the black box is exactly equal to the rate at which requests are processed.
 To justify this way of estimating $\lambda$, we rely on the fact that we are dealing with a closed system.
+Indeed, the number of requests that have been processed in a given period is equal to the number of requests that arrive in that period.
 
 \subsubsection{Estimation of the service rate $\mu$}
 
 The service rate $\mu$ is estimated by the maximum throughput throughput as seen by the clients over all the 1 second intervals of the experiment.
 This can be justified by realising that the service rate is the maximum speed at which the system can process requests.
+If a given throughput is realised in a one-second interval, that means the system can process requests at least that quickly.
 This means that taking the maximum throughput will yield a lower bound for the service rate.
 Because we consider many one second intervals, this estimation should give us a relatively accurate lower-bound for the service rate.
 
 \subsection{Comparison with experimental results}
 
-In figure \ref{fig:mm1-model}, we can see the M/M/1 model that was built according to guidelines of the previous subsection.
-On the left-hand side we can see the input parameters and output measures as predicted by the model.
-On the right-hand side we can see a comparison with data gathered from the system.
+In figure \ref{fig:mm1-model}, we can see the M/M/1 model that was built according to guidelines of the previous subsection and box 31.1 of the book \cite{jain2010art}.
 
 \begin{figure}[H]
   \centering
@@ -185,13 +185,13 @@ Indeed, the ratio of the measured response time to the predicted response time i
 The ratio is still smaller, of course, because not every worker in the system is necessarily constantly busy.
 
 The predicted number of jobs in the system is compared to the total number of clients in the system, an over-approximation for the real number of jobs in the system.
-The predicted number of jobs in the queue is compared to this approximation minus the total number of workers in the real system, an approximation of the total numbor of jobs in any queues in the middleware.
+The predicted number of jobs in the queue is compared to this approximation minus the total number of workers in the real system, an approximation of the total number of jobs in any queues in the middleware.
 
 Once again we see that the predictions are a lot smaller than than the measured values.
 This is for the same reason: A system with one queue and one server, that can process jobs with the given service rate at the given arrival rate, would have much fewer jobs in the system and in its queue than the real system with parallelisation.
 
 In fact, this can be shown by looking at the ratio between the number of jobs in the queue and the number of jobs in the system.
-These ratios are very close, precicely as we would expect.
+These ratios are very close, precisely as we would expect.
 
 \section{Analysis of System Based on Scalability Data}\label{sec:analysis-scalability}
 

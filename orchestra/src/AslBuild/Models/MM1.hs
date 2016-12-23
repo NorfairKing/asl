@@ -210,22 +210,22 @@ makeMM1ReportContent ecf = do
         writeFile' (mm1ModelTexFileWithPostfix ecf "service-rate") (showDub $ serviceRate mm1)
         writeFile'
             (mm1ModelTexFileWithPostfix ecf "resprat")
-            (showDub $ timeFromMiddle actualMeanResp / timeFromModel predictedMeanWait)
+            (printf "%.2f" $ timeFromMiddle actualMeanResp / timeFromModel predictedMeanWait)
         writeFile'
             (mm1ModelTexFileWithPostfix ecf "waitrat")
-            (showDub $ timeFromMiddle actualAvgWait / timeFromModel predictedMeanWait)
+            (printf "%.2f" $ timeFromMiddle actualAvgWait / timeFromModel predictedMeanWait)
         let t1 =
                 tabularWithHeader
                     ["Measure", "Model", "Unit"]
                     [ dline "Arrival rate" (arrivalRate mm1) "(transactions / second)"
                     , dline "Service rate" (serviceRate mm1) "(transactions / second)"
                     , dline "Traffic intensity" (mm1TrafficIntensity mm1) ""
-                    , dline "Mean response time" predictedMeanResp "$\\mu s$"
+                    , dline "Mean response time" (timeFromModel predictedMeanResp) "$\\mu s$"
                     , dline
                           "Std Dev response time"
                           (timeFromModel $ mm1StdDevResponseTime mm1)
                           "$\\mu s$"
-                    , dline "Mean waiting time" predictedMeanWait "$\\mu s$"
+                    , dline "Mean waiting time" (timeFromModel predictedMeanWait) "$\\mu s$"
                     , dline
                           "Std Dev waiting time"
                           (timeFromModel $ mm1StdDevWaitingTime mm1)
